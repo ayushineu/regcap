@@ -1,9 +1,16 @@
 import streamlit as st
 import os
 import time
+import datetime
 from utils.pdf_processor import extract_text_from_pdfs
 from utils.vector_store import create_vector_store, get_similar_chunks
 from utils.openai_helper import generate_answer, generate_diagram, detect_diagram_request
+from utils.db_manager import (
+    init_db, get_current_session, create_new_session, 
+    save_document_chunks, get_all_document_chunks, save_chat_history, 
+    get_chat_history, save_diagrams, get_diagrams, save_vector_store, 
+    get_vector_store, list_all_sessions, delete_session
+)
 
 # Set page configuration
 st.set_page_config(
@@ -12,17 +19,32 @@ st.set_page_config(
     layout="wide"
 )
 
+# Initialize database
+current_session = init_db()
+
 # Initialize session state variables
 if "vector_store" not in st.session_state:
-    st.session_state["vector_store"] = None
+    # Try to load from database
+    vector_store = get_vector_store()
+    st.session_state["vector_store"] = vector_store
+    st.session_state["documents_processed"] = vector_store is not None
+
 if "documents_processed" not in st.session_state:
     st.session_state["documents_processed"] = False
+
 if "processing_status" not in st.session_state:
     st.session_state["processing_status"] = ""
+
 if "chat_history" not in st.session_state:
-    st.session_state["chat_history"] = []
+    # Try to load from database
+    st.session_state["chat_history"] = get_chat_history()
+
 if "diagrams" not in st.session_state:
-    st.session_state["diagrams"] = []
+    # Try to load from database
+    st.session_state["diagrams"] = get_diagrams()
+
+if "session_id" not in st.session_state:
+    st.session_state["session_id"] = current_session
 
 # Function to process uploaded PDF files
 def process_uploaded_files(uploaded_files):
@@ -39,12 +61,28 @@ def process_uploaded_files(uploaded_files):
                 return False
             
             st.session_state["processing_status"] = f"Extracted {len(text_chunks)} text chunks from {len(uploaded_files)} documents."
+            
+            # Save document chunks to database
+            if len(uploaded_files) == 1:
+                # If only one file, save all chunks to it
+                save_document_chunks(uploaded_files[0].name, text_chunks)
+            else:
+                # Divide chunks among files
+                chunk_size = len(text_chunks) // len(uploaded_files)
+                for i, file in enumerate(uploaded_files):
+                    start_idx = i * chunk_size
+                    end_idx = start_idx + chunk_size if i < len(uploaded_files) - 1 else len(text_chunks)
+                    save_document_chunks(file.name, text_chunks[start_idx:end_idx])
         
         with st.spinner("Creating vector embeddings... This may take a moment."):
             vector_store = create_vector_store(text_chunks)
             if vector_store:
                 st.session_state["vector_store"] = vector_store
                 st.session_state["documents_processed"] = True
+                
+                # Save vector store to database
+                save_vector_store(vector_store)
+                
                 st.success("Documents processed successfully!")
                 return True
             else:
@@ -94,15 +132,36 @@ with st.sidebar:
     - "Draw a diagram of the data protection framework"
     - "Generate a mind map of key regulatory principles"
     """)
-        
-    # Reset button
-    if st.button("Reset"):
+    
+    # Session management
+    st.header("Session Management")
+    
+    # Display current session
+    st.info(f"Current Session: {datetime.datetime.fromtimestamp(int(st.session_state['session_id'])).strftime('%Y-%m-%d %H:%M:%S')}")
+    
+    # New session button
+    if st.button("Start New Session"):
+        new_session_id = create_new_session()
+        st.session_state["session_id"] = new_session_id
         st.session_state["vector_store"] = None
         st.session_state["documents_processed"] = False
         st.session_state["processing_status"] = ""
         st.session_state["chat_history"] = []
         st.session_state["diagrams"] = []
-        st.success("Application has been reset. You can upload new documents.")
+        st.success("Started a new session!")
+        st.rerun()
+    
+    # Reset button
+    if st.button("Reset Current Session"):
+        delete_session(st.session_state["session_id"])
+        new_session_id = create_new_session()
+        st.session_state["session_id"] = new_session_id
+        st.session_state["vector_store"] = None
+        st.session_state["documents_processed"] = False
+        st.session_state["processing_status"] = ""
+        st.session_state["chat_history"] = []
+        st.session_state["diagrams"] = []
+        st.success("Current session has been reset. You can upload new documents.")
         st.rerun()
 
 # Main chat interface
@@ -149,16 +208,20 @@ else:
                 full_response = "I couldn't find relevant information in the documents to answer your question. Please try rephrasing or ask another question."
             else:
                 # If it's a diagram request, generate a diagram
-                if is_diagram_request:
+                if is_diagram_request and diagram_type is not None:
                     with st.spinner(f"Generating {diagram_type} diagram..."):
                         success, result = generate_diagram(user_question, relevant_chunks, diagram_type)
                         
-                        if success:
-                            diagram_code = result["diagram_code"]
-                            explanation = result["explanation"]
+                        if success and isinstance(result, dict):
+                            # Access dictionary values safely
+                            diagram_code = result.get("diagram_code", "")
+                            explanation = result.get("explanation", "")
                             
-                            # Store the diagram
+                            # Store the diagram in session state
                             st.session_state["diagrams"].append((diagram_code, explanation, diagram_type))
+                            
+                            # Save diagrams to database
+                            save_diagrams(st.session_state["diagrams"])
                             
                             full_response = f"I've created a {diagram_type} diagram based on the document content. You can view it in the 'Generated Diagrams' section above. \n\n{explanation}"
                         else:
@@ -176,8 +239,11 @@ else:
                 time.sleep(0.01)
                 message_placeholder.write(response)
             
-            # Store in chat history
+            # Store in chat history (session state)
             st.session_state["chat_history"].append((user_question, full_response))
+            
+            # Save chat history to database
+            save_chat_history(st.session_state["chat_history"])
         
         # Rerun the app to ensure the diagram is displayed immediately
         if is_diagram_request and len(st.session_state["diagrams"]) > 0:
@@ -192,6 +258,7 @@ st.markdown("""
 - Request visual diagrams to better understand concepts and relationships
 - The application will search through the documents and provide accurate answers
 - All answers and diagrams are generated based solely on the content of the uploaded documents
+- Your data is persistently stored in the Replit Database
 """)
 
 # Diagram showing how the application works
@@ -202,12 +269,15 @@ graph TD
     A[Upload PDFs] --> B[Extract Text]
     B --> C[Create Vector Embeddings]
     C --> D[Store Document Chunks]
+    D --> DB1[(Replit Database)]
     E[User Question] --> F[Find Relevant Chunks]
     F --> G{Is Diagram Request?}
     G -->|Yes| H[Generate Mermaid Diagram]
     G -->|No| I[Generate Text Answer]
     H --> J[Display Diagram]
+    J --> DB2[(Replit Database)]
     I --> K[Display Response]
+    K --> DB3[(Replit Database)]
 ```
 """
 st.markdown(mermaid_diagram)
