@@ -56,12 +56,17 @@ def process_uploaded_files(uploaded_files):
     try:
         with st.spinner("Extracting text from PDFs..."):
             st.session_state["processing_status"] = "Starting document extraction..."
-            text_chunks = extract_text_from_pdfs(uploaded_files)
-            if not text_chunks:
-                st.error("Could not extract any text from the uploaded PDFs.")
+            try:
+                text_chunks = extract_text_from_pdfs(uploaded_files)
+                if not text_chunks:
+                    st.error("Could not extract any text from the uploaded PDFs.")
+                    return False
+                
+                st.session_state["processing_status"] = f"Extracted {len(text_chunks)} text chunks from {len(uploaded_files)} documents."
+            except Exception as extract_error:
+                st.error(f"Error extracting text from PDFs: {str(extract_error)}")
+                st.session_state["processing_status"] = f"Error extracting text: {str(extract_error)}"
                 return False
-            
-            st.session_state["processing_status"] = f"Extracted {len(text_chunks)} text chunks from {len(uploaded_files)} documents."
             
             # Save document chunks to database
             try:
@@ -73,7 +78,7 @@ def process_uploaded_files(uploaded_files):
                         st.warning("Could not save document chunks to database.")
                 else:
                     # Divide chunks among files
-                    chunk_size = len(text_chunks) // len(uploaded_files)
+                    chunk_size = max(1, len(text_chunks) // len(uploaded_files))
                     for i, file in enumerate(uploaded_files):
                         start_idx = i * chunk_size
                         end_idx = start_idx + chunk_size if i < len(uploaded_files) - 1 else len(text_chunks)
@@ -87,37 +92,48 @@ def process_uploaded_files(uploaded_files):
         with st.spinner("Creating vector embeddings... This may take a moment."):
             st.session_state["processing_status"] += " Creating vector embeddings..."
             # Process in smaller batches to avoid memory issues
-            max_batch_size = 50  # Process 50 chunks at a time
+            max_batch_size = 20  # Reduced batch size to avoid memory issues
             all_chunks = []
             
-            for i in range(0, len(text_chunks), max_batch_size):
-                batch = text_chunks[i:i+max_batch_size]
-                st.session_state["processing_status"] = f"Processing batch {i//max_batch_size + 1} of {len(text_chunks)//max_batch_size + 1}..."
-                vector_store = create_vector_store(batch)
-                if vector_store and "chunks" in vector_store:
-                    all_chunks.extend(vector_store["chunks"])
-            
-            if all_chunks:
-                # Set session state for immediate use
-                st.session_state["vector_store"] = {
-                    "chunks": all_chunks,
-                    # Index will be rebuilt when needed
-                }
-                st.session_state["documents_processed"] = True
+            try:
+                for i in range(0, len(text_chunks), max_batch_size):
+                    batch = text_chunks[i:i+max_batch_size]
+                    st.session_state["processing_status"] = f"Processing batch {i//max_batch_size + 1} of {(len(text_chunks)-1)//max_batch_size + 1}..."
+                    try:
+                        vector_store = create_vector_store(batch)
+                        if vector_store and "chunks" in vector_store:
+                            all_chunks.extend(vector_store["chunks"])
+                        else:
+                            st.warning(f"Skipping batch {i//max_batch_size + 1} - could not create vector store")
+                    except Exception as batch_error:
+                        st.warning(f"Error processing batch {i//max_batch_size + 1}: {str(batch_error)}")
+                        # Continue with the next batch
                 
-                # Try to save to database but don't halt if it fails
-                try:
-                    if save_vector_store(st.session_state["vector_store"]):
-                        st.session_state["processing_status"] += " Saved vector store to database."
-                    else:
-                        st.warning("Could not save vector store to database.")
-                except Exception as vs_error:
-                    st.warning(f"Vector store saving error: {str(vs_error)}")
-                
-                st.success("Documents processed successfully!")
-                return True
-            else:
-                st.error("Failed to create vector embeddings.")
+                if all_chunks:
+                    # Set session state for immediate use
+                    st.session_state["vector_store"] = {
+                        "chunks": all_chunks,
+                        # Index will be rebuilt when needed
+                    }
+                    st.session_state["documents_processed"] = True
+                    
+                    # Try to save to database but don't halt if it fails
+                    try:
+                        if save_vector_store(st.session_state["vector_store"]):
+                            st.session_state["processing_status"] += " Saved vector store to database."
+                        else:
+                            st.warning("Could not save vector store to database.")
+                    except Exception as vs_error:
+                        st.warning(f"Vector store saving error: {str(vs_error)}")
+                    
+                    st.success("Documents processed successfully!")
+                    return True
+                else:
+                    st.error("Failed to create vector embeddings for any chunk.")
+                    return False
+            except Exception as vector_error:
+                st.error(f"Error creating vector embeddings: {str(vector_error)}")
+                st.session_state["processing_status"] += f" Error creating embeddings: {str(vector_error)}"
                 return False
     except Exception as e:
         st.error(f"An error occurred while processing the documents: {str(e)}")
@@ -253,7 +269,9 @@ else:
                         if is_diagram_request and diagram_type is not None:
                             # Generate diagram
                             with st.spinner(f"Generating {diagram_type} diagram..."):
-                                success, result = generate_diagram(user_question, relevant_chunks, diagram_type)
+                                # Handle None value for diagram_type by defaulting to flowchart
+                                diagram_type_str = diagram_type if diagram_type is not None else "flowchart"
+                                success, result = generate_diagram(user_question, relevant_chunks, diagram_type_str)
                                 
                                 if success and isinstance(result, dict):
                                     # Access dictionary values safely
@@ -261,7 +279,7 @@ else:
                                     explanation = result.get("explanation", "")
                                     
                                     # Store the diagram in session state
-                                    st.session_state["diagrams"].append((diagram_code, explanation, diagram_type))
+                                    st.session_state["diagrams"].append((diagram_code, explanation, diagram_type_str))
                                     
                                     # Save diagrams to database
                                     try:
@@ -269,7 +287,7 @@ else:
                                     except Exception as e:
                                         st.warning(f"Could not save diagram to database: {str(e)}")
                                     
-                                    full_response = f"I've created a {diagram_type} diagram based on the document content. You can view it in the 'Generated Diagrams' section above. \n\n{explanation}"
+                                    full_response = f"I've created a {diagram_type_str} diagram based on the document content. You can view it in the 'Generated Diagrams' section above. \n\n{explanation}"
                                 else:
                                     full_response = f"I couldn't generate a diagram based on your request: {result}"
                         else:
