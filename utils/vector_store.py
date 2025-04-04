@@ -89,16 +89,57 @@ def get_similar_chunks(query, vector_store, top_k=5):
         A list of relevant text chunks
     """
     try:
+        # Check if vector_store has the required keys
+        if not vector_store or "chunks" not in vector_store:
+            st.warning("No document chunks available in vector store.")
+            return []
+            
+        # If index doesn't exist, try to rebuild it using get_vector_store from db_manager
+        if "index" not in vector_store:
+            st.info("Rebuilding vector index...")
+            from utils.db_manager import get_vector_store
+            try:
+                # Try to rebuild the vector store from database
+                current_session_vector_store = get_vector_store()
+                if current_session_vector_store and "index" in current_session_vector_store:
+                    vector_store = current_session_vector_store
+                else:
+                    # Rebuild index on the fly if database retrieval fails
+                    chunks = vector_store.get("chunks", [])
+                    embeddings = []
+                    for chunk in chunks:
+                        embedding = get_embedding(chunk["content"])
+                        if embedding is not None:
+                            embeddings.append(embedding)
+                    
+                    if not embeddings:
+                        st.warning("Could not generate embeddings for chunks.")
+                        return []
+                    
+                    # Build the index
+                    embeddings_array = np.array(embeddings).astype('float32')
+                    dimension = embeddings_array.shape[1]
+                    index = faiss.IndexFlatL2(dimension)
+                    index.add(embeddings_array)
+                    
+                    # Add to vector_store
+                    vector_store["index"] = index
+                    vector_store["embeddings"] = embeddings_array
+            except Exception as rebuild_error:
+                st.error(f"Error rebuilding vector index: {str(rebuild_error)}")
+                return []
+        
         # Generate embedding for the query
         query_embedding = get_embedding(query)
         if query_embedding is None:
+            st.warning("Failed to generate embedding for your query.")
             return []
         
         # Reshape query embedding to match FAISS requirements
         query_embedding = np.array([query_embedding]).astype('float32')
         
         # Search the index
-        distances, indices = vector_store["index"].search(query_embedding, k=top_k)
+        distances, indices = vector_store["index"].search(query_embedding, k=min(top_k, len(vector_store["chunks"])))
         
         # Collect the similar chunks
         similar_chunks = []
@@ -110,4 +151,6 @@ def get_similar_chunks(query, vector_store, top_k=5):
         return similar_chunks
     except Exception as e:
         st.error(f"Error searching vector store: {str(e)}")
+        import traceback
+        st.error(traceback.format_exc())
         return []

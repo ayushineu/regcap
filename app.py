@@ -55,6 +55,7 @@ def process_uploaded_files(uploaded_files):
     # Process the PDF files
     try:
         with st.spinner("Extracting text from PDFs..."):
+            st.session_state["processing_status"] = "Starting document extraction..."
             text_chunks = extract_text_from_pdfs(uploaded_files)
             if not text_chunks:
                 st.error("Could not extract any text from the uploaded PDFs.")
@@ -63,25 +64,55 @@ def process_uploaded_files(uploaded_files):
             st.session_state["processing_status"] = f"Extracted {len(text_chunks)} text chunks from {len(uploaded_files)} documents."
             
             # Save document chunks to database
-            if len(uploaded_files) == 1:
-                # If only one file, save all chunks to it
-                save_document_chunks(uploaded_files[0].name, text_chunks)
-            else:
-                # Divide chunks among files
-                chunk_size = len(text_chunks) // len(uploaded_files)
-                for i, file in enumerate(uploaded_files):
-                    start_idx = i * chunk_size
-                    end_idx = start_idx + chunk_size if i < len(uploaded_files) - 1 else len(text_chunks)
-                    save_document_chunks(file.name, text_chunks[start_idx:end_idx])
+            try:
+                if len(uploaded_files) == 1:
+                    # If only one file, save all chunks to it
+                    if save_document_chunks(uploaded_files[0].name, text_chunks):
+                        st.session_state["processing_status"] += " Saved document chunks to database."
+                    else:
+                        st.warning("Could not save document chunks to database.")
+                else:
+                    # Divide chunks among files
+                    chunk_size = len(text_chunks) // len(uploaded_files)
+                    for i, file in enumerate(uploaded_files):
+                        start_idx = i * chunk_size
+                        end_idx = start_idx + chunk_size if i < len(uploaded_files) - 1 else len(text_chunks)
+                        file_chunks = text_chunks[start_idx:end_idx]
+                        save_document_chunks(file.name, file_chunks)
+                    st.session_state["processing_status"] += " Saved all document chunks to database."
+            except Exception as db_error:
+                st.warning(f"Could not save document data: {str(db_error)}")
+                # Continue processing even if database saving fails
         
         with st.spinner("Creating vector embeddings... This may take a moment."):
-            vector_store = create_vector_store(text_chunks)
-            if vector_store:
-                st.session_state["vector_store"] = vector_store
+            st.session_state["processing_status"] += " Creating vector embeddings..."
+            # Process in smaller batches to avoid memory issues
+            max_batch_size = 50  # Process 50 chunks at a time
+            all_chunks = []
+            
+            for i in range(0, len(text_chunks), max_batch_size):
+                batch = text_chunks[i:i+max_batch_size]
+                st.session_state["processing_status"] = f"Processing batch {i//max_batch_size + 1} of {len(text_chunks)//max_batch_size + 1}..."
+                vector_store = create_vector_store(batch)
+                if vector_store and "chunks" in vector_store:
+                    all_chunks.extend(vector_store["chunks"])
+            
+            if all_chunks:
+                # Set session state for immediate use
+                st.session_state["vector_store"] = {
+                    "chunks": all_chunks,
+                    # Index will be rebuilt when needed
+                }
                 st.session_state["documents_processed"] = True
                 
-                # Save vector store to database
-                save_vector_store(vector_store)
+                # Try to save to database but don't halt if it fails
+                try:
+                    if save_vector_store(st.session_state["vector_store"]):
+                        st.session_state["processing_status"] += " Saved vector store to database."
+                    else:
+                        st.warning("Could not save vector store to database.")
+                except Exception as vs_error:
+                    st.warning(f"Vector store saving error: {str(vs_error)}")
                 
                 st.success("Documents processed successfully!")
                 return True
@@ -90,6 +121,9 @@ def process_uploaded_files(uploaded_files):
                 return False
     except Exception as e:
         st.error(f"An error occurred while processing the documents: {str(e)}")
+        st.session_state["processing_status"] = f"Error: {str(e)}"
+        import traceback
+        st.error(traceback.format_exc())
         return False
 
 # Title and description
@@ -200,37 +234,52 @@ else:
         # Display assistant response with typing animation
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
+            full_response = ""
             
-            # Get similar chunks from the vector store
-            relevant_chunks = get_similar_chunks(user_question, st.session_state["vector_store"])
-            
-            if not relevant_chunks:
-                full_response = "I couldn't find relevant information in the documents to answer your question. Please try rephrasing or ask another question."
+            # Check if we have document data
+            if "vector_store" not in st.session_state or not st.session_state["vector_store"]:
+                full_response = "I don't have any document data to work with. Please upload and process documents first."
+                st.error("No document data is available. Please upload and process documents first.")
             else:
-                # If it's a diagram request, generate a diagram
-                if is_diagram_request and diagram_type is not None:
-                    with st.spinner(f"Generating {diagram_type} diagram..."):
-                        success, result = generate_diagram(user_question, relevant_chunks, diagram_type)
-                        
-                        if success and isinstance(result, dict):
-                            # Access dictionary values safely
-                            diagram_code = result.get("diagram_code", "")
-                            explanation = result.get("explanation", "")
-                            
-                            # Store the diagram in session state
-                            st.session_state["diagrams"].append((diagram_code, explanation, diagram_type))
-                            
-                            # Save diagrams to database
-                            save_diagrams(st.session_state["diagrams"])
-                            
-                            full_response = f"I've created a {diagram_type} diagram based on the document content. You can view it in the 'Generated Diagrams' section above. \n\n{explanation}"
+                # Try to find relevant document chunks
+                try:
+                    with st.status("Finding relevant information in the documents..."):
+                        relevant_chunks = get_similar_chunks(user_question, st.session_state["vector_store"])
+                    
+                    if not relevant_chunks:
+                        full_response = "I couldn't find relevant information in the documents to answer your question. Please try rephrasing or ask another question."
+                    else:
+                        # We have relevant chunks, proceed to generate response
+                        if is_diagram_request and diagram_type is not None:
+                            # Generate diagram
+                            with st.spinner(f"Generating {diagram_type} diagram..."):
+                                success, result = generate_diagram(user_question, relevant_chunks, diagram_type)
+                                
+                                if success and isinstance(result, dict):
+                                    # Access dictionary values safely
+                                    diagram_code = result.get("diagram_code", "")
+                                    explanation = result.get("explanation", "")
+                                    
+                                    # Store the diagram in session state
+                                    st.session_state["diagrams"].append((diagram_code, explanation, diagram_type))
+                                    
+                                    # Save diagrams to database
+                                    try:
+                                        save_diagrams(st.session_state["diagrams"])
+                                    except Exception as e:
+                                        st.warning(f"Could not save diagram to database: {str(e)}")
+                                    
+                                    full_response = f"I've created a {diagram_type} diagram based on the document content. You can view it in the 'Generated Diagrams' section above. \n\n{explanation}"
+                                else:
+                                    full_response = f"I couldn't generate a diagram based on your request: {result}"
                         else:
-                            full_response = f"I couldn't generate a diagram based on your request: {result}"
-                else:
-                    # Generate a regular answer for non-diagram questions
-                    with st.spinner("Generating answer..."):
-                        answer = generate_answer(user_question, relevant_chunks)
-                        full_response = answer
+                            # Generate a regular answer for non-diagram questions
+                            with st.spinner("Generating answer..."):
+                                answer = generate_answer(user_question, relevant_chunks)
+                                full_response = answer
+                except Exception as e:
+                    st.error(f"Error processing your question: {str(e)}")
+                    full_response = "I encountered an error when processing your question. Please try again or upload new documents."
             
             # Simulate typing
             response = ""
@@ -243,7 +292,10 @@ else:
             st.session_state["chat_history"].append((user_question, full_response))
             
             # Save chat history to database
-            save_chat_history(st.session_state["chat_history"])
+            try:
+                save_chat_history(st.session_state["chat_history"])
+            except Exception as e:
+                st.warning(f"Could not save chat history to database: {str(e)}")
         
         # Rerun the app to ensure the diagram is displayed immediately
         if is_diagram_request and len(st.session_state["diagrams"]) > 0:

@@ -65,17 +65,25 @@ def save_document_chunks(document_name, text_chunks):
     Args:
         document_name: Name of the document
         text_chunks: List of extracted text chunks
+    
+    Returns:
+        Boolean indicating success or failure
     """
-    session_id = get_current_session()
-    
-    if "documents" not in db:
-        db["documents"] = {}
-    
-    if session_id not in db["documents"]:
-        db["documents"][session_id] = {}
-    
-    # Store document chunks
-    db["documents"][session_id][document_name] = encode_for_storage(text_chunks)
+    try:
+        session_id = get_current_session()
+        
+        if "documents" not in db:
+            db["documents"] = {}
+        
+        if session_id not in db["documents"]:
+            db["documents"][session_id] = {}
+        
+        # Store document chunks
+        db["documents"][session_id][document_name] = encode_for_storage(text_chunks)
+        return True
+    except Exception as e:
+        print(f"Error saving document chunks: {str(e)}")
+        return False
 
 def get_document_chunks(session_id=None):
     """
@@ -87,18 +95,24 @@ def get_document_chunks(session_id=None):
     Returns:
         Dictionary of document chunks by document name
     """
-    if session_id is None:
-        session_id = get_current_session()
-    
-    if "documents" not in db or session_id not in db["documents"]:
+    try:
+        if session_id is None:
+            session_id = get_current_session()
+        
+        if "documents" not in db or session_id not in db["documents"]:
+            return {}
+        
+        # Get document chunks for the session
+        documents = {}
+        for doc_name, encoded_chunks in db["documents"][session_id].items():
+            chunks = decode_from_storage(encoded_chunks)
+            if chunks:
+                documents[doc_name] = chunks
+        
+        return documents
+    except Exception as e:
+        print(f"Error retrieving document chunks: {str(e)}")
         return {}
-    
-    # Get document chunks for the session
-    documents = {}
-    for doc_name, encoded_chunks in db["documents"][session_id].items():
-        documents[doc_name] = decode_from_storage(encoded_chunks)
-    
-    return documents
 
 def get_all_document_chunks(session_id=None):
     """
@@ -110,16 +124,21 @@ def get_all_document_chunks(session_id=None):
     Returns:
         List of all text chunks from all documents
     """
-    if session_id is None:
-        session_id = get_current_session()
-    
-    documents = get_document_chunks(session_id)
-    all_chunks = []
-    
-    for doc_name, chunks in documents.items():
-        all_chunks.extend(chunks)
-    
-    return all_chunks
+    try:
+        if session_id is None:
+            session_id = get_current_session()
+        
+        documents = get_document_chunks(session_id)
+        all_chunks = []
+        
+        for doc_name, chunks in documents.items():
+            if chunks:  # Make sure chunks is not None
+                all_chunks.extend(chunks)
+        
+        return all_chunks
+    except Exception as e:
+        print(f"Error retrieving all document chunks: {str(e)}")
+        return []
 
 # Chat History Functions
 def save_chat_history(chat_history):
@@ -128,14 +147,22 @@ def save_chat_history(chat_history):
     
     Args:
         chat_history: List of (question, answer) tuples
+    
+    Returns:
+        Boolean indicating success or failure
     """
-    session_id = get_current_session()
-    
-    if "chat_histories" not in db:
-        db["chat_histories"] = {}
-    
-    # Store chat history
-    db["chat_histories"][session_id] = encode_for_storage(chat_history)
+    try:
+        session_id = get_current_session()
+        
+        if "chat_histories" not in db:
+            db["chat_histories"] = {}
+        
+        # Store chat history
+        db["chat_histories"][session_id] = encode_for_storage(chat_history)
+        return True
+    except Exception as e:
+        print(f"Error saving chat history: {str(e)}")
+        return False
 
 def get_chat_history(session_id=None):
     """
@@ -163,14 +190,22 @@ def save_diagrams(diagrams):
     
     Args:
         diagrams: List of (diagram_code, explanation, diagram_type) tuples
+    
+    Returns:
+        Boolean indicating success or failure
     """
-    session_id = get_current_session()
-    
-    if "diagrams" not in db:
-        db["diagrams"] = {}
-    
-    # Store diagrams
-    db["diagrams"][session_id] = encode_for_storage(diagrams)
+    try:
+        session_id = get_current_session()
+        
+        if "diagrams" not in db:
+            db["diagrams"] = {}
+        
+        # Store diagrams
+        db["diagrams"][session_id] = encode_for_storage(diagrams)
+        return True
+    except Exception as e:
+        print(f"Error saving diagrams: {str(e)}")
+        return False
 
 def get_diagrams(session_id=None):
     """
@@ -199,13 +234,22 @@ def save_vector_store(vector_store):
     Args:
         vector_store: Vector store object
     """
-    session_id = get_current_session()
-    
-    if "vector_stores" not in db:
-        db["vector_stores"] = {}
-    
-    # Store vector store
-    db["vector_stores"][session_id] = encode_for_storage(vector_store)
+    try:
+        session_id = get_current_session()
+        
+        if "vector_stores" not in db:
+            db["vector_stores"] = {}
+        
+        # Only store the chunks portion of the vector store
+        # We'll recreate the index when needed rather than storing the entire FAISS index
+        if vector_store and "chunks" in vector_store:
+            chunks_to_store = vector_store["chunks"]
+            db["vector_stores"][session_id] = encode_for_storage(chunks_to_store)
+            return True
+        return False
+    except Exception as e:
+        print(f"Error saving vector store: {str(e)}")
+        return False
 
 def get_vector_store(session_id=None):
     """
@@ -217,14 +261,48 @@ def get_vector_store(session_id=None):
     Returns:
         Vector store object if found, None otherwise
     """
-    if session_id is None:
-        session_id = get_current_session()
-    
-    if "vector_stores" not in db or session_id not in db["vector_stores"]:
+    try:
+        from utils.vector_store import get_embedding
+        import numpy as np
+        import faiss
+        
+        if session_id is None:
+            session_id = get_current_session()
+        
+        if "vector_stores" not in db or session_id not in db["vector_stores"]:
+            return None
+        
+        # Get stored chunks
+        stored_chunks = decode_from_storage(db["vector_stores"][session_id])
+        
+        if not stored_chunks:
+            return None
+        
+        # Generate embeddings for the chunks
+        embeddings = []
+        for chunk in stored_chunks:
+            embedding = get_embedding(chunk["content"])
+            if embedding is not None:
+                embeddings.append(embedding)
+        
+        if not embeddings:
+            return None
+            
+        # Convert to numpy array and create FAISS index
+        embeddings_array = np.array(embeddings).astype('float32')
+        dimension = embeddings_array.shape[1]
+        index = faiss.IndexFlatL2(dimension)
+        index.add(embeddings_array)
+        
+        # Return reconstructed vector store
+        return {
+            "index": index,
+            "chunks": stored_chunks,
+            "embeddings": embeddings_array
+        }
+    except Exception as e:
+        print(f"Error retrieving vector store: {str(e)}")
         return None
-    
-    # Get vector store for the session
-    return decode_from_storage(db["vector_stores"][session_id])
 
 # Session Management
 def list_all_sessions():
