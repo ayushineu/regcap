@@ -21,7 +21,7 @@ args = "Streamlit Server"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Minimal Test"
+args = "Diagnostic App"
 
 [[workflows.workflow]]
 name = "Streamlit Server"
@@ -39,7 +39,7 @@ args = "streamlit run app.py --server.port 5000"
 waitForPort = 5000
 
 [[workflows.workflow]]
-name = "Minimal Test"
+name = "Diagnostic App"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -50,7 +50,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "streamlit run minimal_test.py --server.port 5000"
+args = "streamlit run diagnostic_app.py --server.port 5000"
 waitForPort = 5000
 
 [[ports]]
