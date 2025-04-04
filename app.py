@@ -54,87 +54,145 @@ def process_uploaded_files(uploaded_files):
     
     # Process the PDF files
     try:
-        with st.spinner("Extracting text from PDFs..."):
-            st.session_state["processing_status"] = "Starting document extraction..."
-            try:
-                text_chunks = extract_text_from_pdfs(uploaded_files)
-                if not text_chunks:
-                    st.error("Could not extract any text from the uploaded PDFs.")
-                    return False
-                
-                st.session_state["processing_status"] = f"Extracted {len(text_chunks)} text chunks from {len(uploaded_files)} documents."
-            except Exception as extract_error:
-                st.error(f"Error extracting text from PDFs: {str(extract_error)}")
-                st.session_state["processing_status"] = f"Error extracting text: {str(extract_error)}"
-                return False
-            
-            # Save document chunks to database
-            try:
-                if len(uploaded_files) == 1:
-                    # If only one file, save all chunks to it
-                    if save_document_chunks(uploaded_files[0].name, text_chunks):
-                        st.session_state["processing_status"] += " Saved document chunks to database."
-                    else:
-                        st.warning("Could not save document chunks to database.")
-                else:
-                    # Divide chunks among files
-                    chunk_size = max(1, len(text_chunks) // len(uploaded_files))
-                    for i, file in enumerate(uploaded_files):
-                        start_idx = i * chunk_size
-                        end_idx = start_idx + chunk_size if i < len(uploaded_files) - 1 else len(text_chunks)
-                        file_chunks = text_chunks[start_idx:end_idx]
-                        save_document_chunks(file.name, file_chunks)
-                    st.session_state["processing_status"] += " Saved all document chunks to database."
-            except Exception as db_error:
-                st.warning(f"Could not save document data: {str(db_error)}")
-                # Continue processing even if database saving fails
+        # Create a status message to track progress
+        status_container = st.empty()
+        status_container.info("Starting document processing...")
+        st.session_state["processing_status"] = "Starting document extraction..."
         
-        with st.spinner("Creating vector embeddings... This may take a moment."):
-            st.session_state["processing_status"] += " Creating vector embeddings..."
-            # Process in smaller batches to avoid memory issues
-            max_batch_size = 20  # Reduced batch size to avoid memory issues
-            all_chunks = []
+        # Step 1: Extract text from PDFs with robust error handling
+        extracted_text_chunks = []
+        successful_files = []
+        
+        for i, file in enumerate(uploaded_files):
+            try:
+                status_container.info(f"Processing file {i+1}/{len(uploaded_files)}: {file.name}")
+                st.session_state["processing_status"] = f"Extracting text from {file.name}..."
+                
+                # Process one file at a time to prevent memory issues
+                file_chunks = extract_text_from_pdfs([file])
+                
+                if file_chunks:
+                    extracted_text_chunks.extend(file_chunks)
+                    successful_files.append(file)
+                    status_container.success(f"Successfully extracted {len(file_chunks)} chunks from {file.name}")
+                else:
+                    status_container.warning(f"No text could be extracted from {file.name}")
+            except Exception as extract_error:
+                status_container.error(f"Error extracting text from {file.name}: {str(extract_error)}")
+                # Continue with next file
+        
+        if not extracted_text_chunks:
+            status_container.error("Could not extract any text from the uploaded PDFs.")
+            st.session_state["processing_status"] = "Failed to extract any text from documents."
+            return False
+        
+        total_chunks = len(extracted_text_chunks)
+        status_container.success(f"Successfully extracted {total_chunks} text chunks from {len(successful_files)} documents.")
+        st.session_state["processing_status"] = f"Extracted {total_chunks} chunks from {len(successful_files)} documents."
+        
+        # Step 2: Save document chunks to database (file by file)
+        try:
+            for file in successful_files:
+                # Find chunks for this file
+                file_index = uploaded_files.index(file)
+                chunk_size = max(1, total_chunks // len(successful_files))
+                start_idx = file_index * chunk_size
+                end_idx = start_idx + chunk_size if file_index < len(successful_files) - 1 else total_chunks
+                file_chunks = extracted_text_chunks[start_idx:end_idx]
+                
+                # Try to save these chunks
+                try:
+                    save_document_chunks(file.name, file_chunks)
+                    status_container.info(f"Saved chunks for {file.name}")
+                except Exception as file_save_error:
+                    status_container.warning(f"Could not save chunks for {file.name}: {str(file_save_error)}")
+                
+            st.session_state["processing_status"] += " Saved available document chunks."
+        except Exception as db_error:
+            status_container.warning(f"Issues saving document data: {str(db_error)}")
+            # Continue processing even if database saving fails
+        
+        # Step 3: Create vector embeddings with very small batches to avoid memory issues
+        status_container.info("Creating vector embeddings... This may take a moment.")
+        st.session_state["processing_status"] += " Creating vector embeddings..."
+        
+        # Use a much smaller batch size to handle very large documents
+        max_batch_size = 5  # Extremely reduced batch size to avoid memory issues
+        all_processed_chunks = []
+        total_batches = (total_chunks - 1) // max_batch_size + 1
+        
+        for i in range(0, total_chunks, max_batch_size):
+            batch = extracted_text_chunks[i:i+max_batch_size]
+            batch_num = i // max_batch_size + 1
+            
+            status_container.info(f"Processing batch {batch_num} of {total_batches}...")
+            st.session_state["processing_status"] = f"Processing batch {batch_num}/{total_batches}..."
             
             try:
-                for i in range(0, len(text_chunks), max_batch_size):
-                    batch = text_chunks[i:i+max_batch_size]
-                    st.session_state["processing_status"] = f"Processing batch {i//max_batch_size + 1} of {(len(text_chunks)-1)//max_batch_size + 1}..."
+                # Create formatted chunks with content and metadata
+                formatted_chunks = []
+                for j, chunk in enumerate(batch):
                     try:
-                        vector_store = create_vector_store(batch)
-                        if vector_store and "chunks" in vector_store:
-                            all_chunks.extend(vector_store["chunks"])
-                        else:
-                            st.warning(f"Skipping batch {i//max_batch_size + 1} - could not create vector store")
-                    except Exception as batch_error:
-                        st.warning(f"Error processing batch {i//max_batch_size + 1}: {str(batch_error)}")
-                        # Continue with the next batch
+                        # Skip empty chunks
+                        if not chunk.strip():
+                            continue
+                            
+                        # Create a properly formatted chunk
+                        formatted_chunks.append({
+                            "content": chunk,
+                            "metadata": {
+                                "chunk_id": f"{i+j}",
+                                "batch": batch_num,
+                                "document": successful_files[min(i//chunk_size, len(successful_files)-1)].name
+                            }
+                        })
+                    except Exception as chunk_format_error:
+                        status_container.warning(f"Error formatting chunk {i+j}: {str(chunk_format_error)}")
                 
-                if all_chunks:
-                    # Set session state for immediate use
-                    st.session_state["vector_store"] = {
-                        "chunks": all_chunks,
-                        # Index will be rebuilt when needed
-                    }
-                    st.session_state["documents_processed"] = True
-                    
-                    # Try to save to database but don't halt if it fails
+                # Only process if we have valid chunks
+                if formatted_chunks:
                     try:
-                        if save_vector_store(st.session_state["vector_store"]):
-                            st.session_state["processing_status"] += " Saved vector store to database."
+                        vector_store = create_vector_store(formatted_chunks)
+                        if vector_store and "chunks" in vector_store:
+                            all_processed_chunks.extend(vector_store["chunks"])
+                            status_container.success(f"Processed batch {batch_num} successfully")
                         else:
-                            st.warning("Could not save vector store to database.")
-                    except Exception as vs_error:
-                        st.warning(f"Vector store saving error: {str(vs_error)}")
-                    
-                    st.success("Documents processed successfully!")
-                    return True
+                            status_container.warning(f"Batch {batch_num} processing returned no chunks")
+                    except Exception as create_error:
+                        status_container.error(f"Error processing batch {batch_num}: {str(create_error)}")
                 else:
-                    st.error("Failed to create vector embeddings for any chunk.")
-                    return False
-            except Exception as vector_error:
-                st.error(f"Error creating vector embeddings: {str(vector_error)}")
-                st.session_state["processing_status"] += f" Error creating embeddings: {str(vector_error)}"
-                return False
+                    status_container.warning(f"No valid chunks in batch {batch_num}")
+            except Exception as batch_error:
+                status_container.error(f"Error with batch {batch_num}: {str(batch_error)}")
+                # Continue with the next batch
+        
+        # Step 4: Save results if we have any processed chunks
+        if all_processed_chunks:
+            # Set session state for immediate use
+            st.session_state["vector_store"] = {
+                "chunks": all_processed_chunks,
+                # Index will be rebuilt when needed
+            }
+            st.session_state["documents_processed"] = True
+            
+            # Try to save to database but don't halt if it fails
+            try:
+                if save_vector_store(st.session_state["vector_store"]):
+                    status_container.success("Saved vector store to database")
+                    st.session_state["processing_status"] += " Saved vector store to database."
+                else:
+                    status_container.warning("Could not save vector store to database, but documents are still available for this session")
+            except Exception as vs_error:
+                status_container.warning(f"Vector store saving error: {str(vs_error)}")
+                st.session_state["processing_status"] += " (Note: Vector store could not be saved to database but is available for this session)"
+            
+            status_container.success(f"Documents processed successfully! Processed {len(all_processed_chunks)} chunks.")
+            return True
+        else:
+            status_container.error("Failed to create vector embeddings for any chunk. Try uploading smaller or different PDF files.")
+            st.session_state["processing_status"] = "Failed to create any vector embeddings."
+            return False
+            
     except Exception as e:
         st.error(f"An error occurred while processing the documents: {str(e)}")
         st.session_state["processing_status"] = f"Error: {str(e)}"

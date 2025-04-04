@@ -2,7 +2,43 @@ import json
 import pickle
 import base64
 import time
-from replit import db
+import os
+
+# Use simple file-based storage instead of Replit DB
+# This avoids potential issues with the Replit DB
+class SimpleStorage:
+    def __init__(self):
+        self.storage_dir = os.path.join(os.getcwd(), "data_storage")
+        os.makedirs(self.storage_dir, exist_ok=True)
+        self.data = self._load_data()
+    
+    def _load_data(self):
+        data_file = os.path.join(self.storage_dir, "data.json")
+        if os.path.exists(data_file):
+            try:
+                with open(data_file, 'r') as f:
+                    return json.load(f)
+            except Exception:
+                return {}
+        return {}
+    
+    def _save_data(self):
+        data_file = os.path.join(self.storage_dir, "data.json")
+        with open(data_file, 'w') as f:
+            json.dump(self.data, f)
+    
+    def __getitem__(self, key):
+        return self.data.get(key, {})
+    
+    def __setitem__(self, key, value):
+        self.data[key] = value
+        self._save_data()
+    
+    def __contains__(self, key):
+        return key in self.data
+
+# Initialize the simple storage
+db = SimpleStorage()
 
 def init_db():
     """
