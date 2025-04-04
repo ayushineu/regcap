@@ -1,0 +1,129 @@
+Connection failed with status 502, and response "<!DOCTYPE html>
+
+<html lang="en"> <head> <title>Hmm... We couldn&#39;t reach this app</title> <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans"> <style> body { margin: 0; height: 100vh; display: flex; justify-content: center; align-items: center; background: #1c2333; font-family: "IBM Plex Sans", "sans"; color: #f5f9fc; }
+.title-box {
+  font-size: 12px;
+  inline-size: max-content;
+  max-width: 100%;
+}
+
+.description-box {
+  font-size: 10px;
+  inline-size: max-content;
+  max-width: 100%;
+}
+
+.err-box {
+  padding: 1em;
+  width: 100vw;
+  max-width: 100vw;
+  overflow: hidden;
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ascii {
+  font-size: 6px;
+  text-align: center;
+  opacity: .8;
+}
+
+.eval-bot {
+  margin: 4em;
+}
+
+@media (max-width: 500px) {
+  .title-box {
+    font-size: 10px;
+  }
+
+  .description-box {
+    font-size: 8px;
+  }
+
+  .eval-bot {
+    margin: 1em;
+  }
+
+  .eval-bot svg {
+    width: 200px;
+  }
+
+  .message {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .repl-links {
+    font-size: 14px;
+  }
+}
+
+.console {
+  background-color: #0e1628;
+  color: #fff;
+  font-family: "IBM Plex Sans", "sans";
+  padding: 1em;
+  margin: 1em;
+}
+
+.footer-item {
+  margin: 1em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.link-icon {
+  margin-right: 8px;
+  margin-top: 4px;
+}
+
+a {
+  color: #c2c8cc;
+}
+
+</style> <script> var reload_timeout = setTimeout(function () { window.location.reload(); }, 60000); </script> </head> <body> <div class="err-box"> <div class="message"> <div class="eval-bot"> <pre class="ascii"> :::. :+++***++:.. :-=+=..:-=+**=======---: -+++****+====-::-=====-::. .. .. :: .=++++++=::----------::-::::::--------===--:.:::::. :--==+++=-::----------======----------:-===-:::::::. ::--==+++-----=+++=+++++====----======--==------:: ::::-====+++++++*************+==========---------::.. ..:::---==++*****************+++++++++=------------:::::.. ....:::-=+**********************++++++=--==========--:..... ..:::-++*********+**************+++++++--+***++++==: .::.. :=+*+=+++****++==+++*+++++++***+++++++++***********+=. .::-====-::--: .:-=++=====+++*++====++++++++++++++++++=+++*************+=======++++==--. .--==-----=====++=============+=+++=====++++****************+=+=========--:. . . :--====------=======--==========+++=====++++****+*****+****++===------====-. ...::::::::---====----------::::::-----========++++++++++***++++++++===--:::::-----. ...::::::..:::::---::::::::::...::::::::-----=++++++++++****+++++++===-:::::::::---: .::::.....:::::::::::................:::::=++++++++++*****++++++=====---:::::---::. ...... ......... ...............::=+==++++++++++++++============-----::...: ........::---===-===============------=---:::::::::... .......................::::::::---------:. .. ....................::::::--:::::. ...........
+</pre>
+  </div>
+  <div class="title-box">
+    <h1>Hmm... We couldn&#39;t reach this app</h1>
+  </div>
+  <div class="description-box">
+    <h2>Make sure this app has a port open and is ready to receive HTTP traffic.</h2>
+  </div>
+</div>
+
+<div>
+  <div class="footer-item">
+    <div class="link-icon">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M6.66668 8.66666C6.95298 9.04942 7.31825 9.36612 7.73771 9.59529C8.15717 9.82446 8.62102 9.96074 9.09778 9.99489C9.57454 10.029 10.0531 9.96024 10.5009 9.79319C10.9487 9.62613 11.3554 9.36471 11.6933 9.02666L13.6933 7.02666C14.3005 6.39799 14.6365 5.55598 14.6289 4.68199C14.6213 3.808 14.2708 2.97196 13.6527 2.35394C13.0347 1.73591 12.1987 1.38535 11.3247 1.37775C10.4507 1.37016 9.60869 1.70614 8.98001 2.31333L7.83334 3.45333M9.33334 7.33333C9.04704 6.95058 8.68177 6.63388 8.26231 6.4047C7.84285 6.17553 7.37901 6.03925 6.90224 6.00511C6.42548 5.97096 5.94695 6.03975 5.49911 6.20681C5.05128 6.37387 4.6446 6.63528 4.30668 6.97333L2.30668 8.97333C1.69948 9.602 1.3635 10.444 1.3711 11.318C1.37869 12.192 1.72926 13.028 2.34728 13.6461C2.96531 14.2641 3.80135 14.6147 4.67534 14.6222C5.54933 14.6298 6.39134 14.2939 7.02001 13.6867L8.16001 12.5467"
+          stroke="#C2C8CC" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </div>
+    <div class="repl-links">
+      <a href="https://replit.com">Go to Replit</a>
+    </div>
+  </div>
+
+  <div class="footer-item">
+    <div class="link-icon">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M6.66668 8.66666C6.95298 9.04942 7.31825 9.36612 7.73771 9.59529C8.15717 9.82446 8.62102 9.96074 9.09778 9.99489C9.57454 10.029 10.0531 9.96024 10.5009 9.79319C10.9487 9.62613 11.3554 9.36471 11.6933 9.02666L13.6933 7.02666C14.3005 6.39799 14.6365 5.55598 14.6289 4.68199C14.6213 3.808 14.2708 2.97196 13.6527 2.35394C13.0347 1.73591 12.1987 1.38535 11.3247 1.37775C10.4507 1.37016 9.60869 1.70614 8.98001 2.31333L7.83334 3.45333M9.33334 7.33333C9.04704 6.95058 8.68177 6.63388 8.26231 6.4047C7.84285 6.17553 7.37901 6.03925 6.90224 6.00511C6.42548 5.97096 5.94695 6.03975 5.49911 6.20681C5.05128 6.37387 4.6446 6.63528 4.30668 6.97333L2.30668 8.97333C1.69948 9.602 1.3635 10.444 1.3711 11.318C1.37869 12.192 1.72926 13.028 2.34728 13.6461C2.96531 14.2641 3.80135 14.6147 4.67534 14.6222C5.54933 14.6298 6.39134 14.2939 7.02001 13.6867L8.16001 12.5467"
+          stroke="#C2C8CC" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </div>
+    <div class="repl-links">
+      <a href="https://replit.com/site/hosting">Learn more about hosting on Replit</a>
+    </div>
+  </div>
+</div>
+
+</div> </body> </html> ".
