@@ -380,9 +380,22 @@ def generate_diagram(question, context_chunks, diagram_type="flowchart"):
         if "```mermaid" in mermaid_code:
             mermaid_code = mermaid_code.split("```mermaid")[1]
             if "```" in mermaid_code:
-                mermaid_code = mermaid_code.split("```")[0]
+                mermaid_code = mermaid_code.split("```")[0].strip()
         elif "```" in mermaid_code:
-            mermaid_code = mermaid_code.split("```")[1]
+            parts = mermaid_code.split("```")
+            if len(parts) >= 2:
+                mermaid_code = parts[1].strip()
+                # Check if the first line is the word "mermaid" 
+                if mermaid_code.startswith("mermaid\n"):
+                    mermaid_code = mermaid_code[8:].strip()
+        
+        # Ensure proper syntax for the diagram type
+        if diagram_type == "flowchart" and not mermaid_code.strip().startswith("flowchart"):
+            mermaid_code = "flowchart TD\n" + mermaid_code
+        elif diagram_type == "sequence" and not mermaid_code.strip().startswith("sequenceDiagram"):
+            mermaid_code = "sequenceDiagram\n" + mermaid_code
+        elif diagram_type == "mindmap" and not mermaid_code.strip().startswith("mindmap"):
+            mermaid_code = "mindmap\n" + mermaid_code
         
         print("Clean mermaid code extracted, generating explanation...")
         
@@ -772,9 +785,9 @@ def index():
                                     <strong>Explanation:</strong> {{ explanation }}
                                 </div>
                                 <div class="diagram-visual">
-                                    <div class="mermaid">
-                                        {{ diagram_code }}
-                                    </div>
+                                    <pre class="mermaid">
+{{ diagram_code }}
+                                    </pre>
                                 </div>
                             </div>
                         {% endfor %}
@@ -818,8 +831,24 @@ def index():
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
         <script>
-            // Initialize Mermaid
-            mermaid.initialize({ startOnLoad: true });
+            // Initialize Mermaid with more robust configuration
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'default',
+                logLevel: 'fatal',
+                securityLevel: 'loose',
+                flowchart: { 
+                    htmlLabels: true,
+                    curve: 'basis'
+                },
+                sequence: {
+                    diagramMarginX: 50,
+                    diagramMarginY: 10,
+                    actorMargin: 50,
+                    width: 150,
+                    height: 65
+                }
+            });
             
             // Tab functionality
             function openTab(evt, tabName) {
@@ -838,6 +867,13 @@ def index():
                 // Hide notification when diagrams tab is opened
                 if (tabName === 'diagrams-tab') {
                     document.getElementById('diagrams-notification').style.display = 'none';
+                    
+                    // Force re-render mermaid diagrams when tab is opened
+                    try {
+                        mermaid.init(undefined, '.mermaid');
+                    } catch(e) {
+                        console.error("Error re-rendering mermaid diagrams:", e);
+                    }
                 }
             }
             
@@ -860,25 +896,45 @@ def index():
                     var botMessages = document.querySelectorAll('.bot-message');
                     for(var i = 0; i < botMessages.length; i++) {
                         if(botMessages[i].innerHTML.includes('Please click on the "Diagrams" tab above')) {
-                            // Add a click helper
-                            var helper = document.createElement('button');
-                            helper.innerHTML = 'View Diagram';
-                            helper.className = 'btn btn-warning mt-2';
-                            helper.onclick = function() {
-                                document.getElementById('diagrams-tab-button').click();
-                            };
-                            botMessages[i].appendChild(helper);
+                            // Check if button already exists to avoid duplicates
+                            if (!botMessages[i].querySelector('.btn-warning')) {
+                                // Add a click helper
+                                var helper = document.createElement('button');
+                                helper.innerHTML = 'View Diagram';
+                                helper.className = 'btn btn-warning mt-2';
+                                helper.onclick = function() {
+                                    document.getElementById('diagrams-tab-button').click();
+                                };
+                                botMessages[i].appendChild(helper);
+                            }
                         }
                     }
                 }
             }
             
-            // Call scroll function when page loads
+            // Function to ensure diagrams are properly rendered
+            function initMermaidDiagrams() {
+                try {
+                    // Clean up any previous mermaid initialization
+                    document.querySelectorAll('.mermaid svg').forEach(function(el) {
+                        el.remove();
+                    });
+                    
+                    // Reinitialize mermaid
+                    mermaid.init(undefined, '.mermaid');
+                } catch(e) {
+                    console.error("Error initializing mermaid diagrams:", e);
+                }
+            }
+            
+            // Call functions when page loads
             window.onload = function() {
                 scrollChatToBottom();
-                mermaid.init(undefined, '.mermaid');
                 
-                // Show diagram notification if we have diagrams
+                // Initialize diagrams with a delay to ensure DOM is fully loaded
+                setTimeout(initMermaidDiagrams, 300);
+                
+                // Show diagram notification
                 setTimeout(checkAndShowDiagramNotification, 500);
             };
         </script>
