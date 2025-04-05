@@ -189,11 +189,26 @@ def get_embedding(text):
     """Get embedding for text using OpenAI."""
     try:
         text = text.replace("\n", " ")
-        response = client.embeddings.create(
-            input=text,
-            model="text-embedding-3-small"
-        )
-        return np.array(response.data[0].embedding, dtype=np.float32)
+        max_retries = 5
+        retry_delay = 1.0  # seconds
+        
+        for attempt in range(max_retries):
+            try:
+                response = client.embeddings.create(
+                    input=text,
+                    model="text-embedding-3-small"
+                )
+                return np.array(response.data[0].embedding, dtype=np.float32)
+            except Exception as e:
+                if "rate_limit_exceeded" in str(e) and attempt < max_retries - 1:
+                    print(f"Rate limit exceeded, retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                else:
+                    raise
+        
+        # If we get here, all retries failed
+        return None
     except Exception as e:
         print(f"Error getting embedding: {e}")
         return None
@@ -213,18 +228,44 @@ def create_vector_store(chunks):
         for i in range(0, len(chunk_texts), batch_size):
             batch = chunk_texts[i:i+batch_size]
             batch_embeddings = [get_embedding(text) for text in batch]
+            
+            # Skip any None values (failed embeddings)
+            batch_embeddings = [emb for emb in batch_embeddings if emb is not None]
             embeddings.extend(batch_embeddings)
+            
+            # Add a sleep to avoid rate limiting
+            time.sleep(0.5)
+        
+        # Make sure we have at least one embedding
+        if not embeddings:
+            print("No valid embeddings were generated.")
+            return None
             
         # Create FAISS index
         dimension = len(embeddings[0])
         index = faiss.IndexFlatL2(dimension)
         
-        embeddings_array = np.array(embeddings).astype('float32')
+        # Make sure all embeddings have the same shape
+        filtered_embeddings = []
+        filtered_chunks = []
+        
+        for i, embedding in enumerate(embeddings):
+            if len(embedding) == dimension:
+                filtered_embeddings.append(embedding)
+                if i < len(chunks):
+                    filtered_chunks.append(chunks[i])
+        
+        # Make sure we have at least one valid embedding after filtering
+        if not filtered_embeddings:
+            print("No consistent embeddings were found.")
+            return None
+            
+        embeddings_array = np.array(filtered_embeddings).astype('float32')
         index.add(embeddings_array)
         
         return {
             "index": index,
-            "chunks": chunks,
+            "chunks": filtered_chunks,
             "embeddings": embeddings_array
         }
     except Exception as e:
@@ -772,6 +813,10 @@ def ask_question():
     
     if not question:
         return redirect('/')
+    
+    # Save the question immediately to avoid losing it
+    answer = "Processing your question..."
+    save_chat_history(question, answer)
         
     # Check if this is a diagram request
     is_diagram_request, diagram_type = detect_diagram_request(question)
@@ -783,39 +828,63 @@ def ask_question():
         answer = "Please upload documents first so I can answer your questions based on them."
         save_chat_history(question, answer)
         return redirect('/')
-        
-    # Create or get vector store
-    vector_store = create_vector_store(chunks)
     
-    if not vector_store:
-        answer = "There was an error processing your documents. Please try again."
-        save_chat_history(question, answer)
-        return redirect('/')
+    try:
+        # Create or get vector store
+        vector_store = create_vector_store(chunks)
         
-    # Find relevant chunks
-    similar_chunks = get_similar_chunks(question, vector_store)
-    
-    if is_diagram_request:
-        # Generate diagram
-        success, result = generate_diagram(question, similar_chunks, diagram_type)
+        if not vector_store:
+            answer = "There was an error processing your documents. Please try again."
+            save_chat_history(question, answer)
+            return redirect('/')
+            
+        # Find relevant chunks
+        similar_chunks = get_similar_chunks(question, vector_store)
         
-        if success:
-            mermaid_code, explanation = result
-            answer = f"""
-            I've created a {diagram_type} based on your question.
+        if is_diagram_request:
+            # Generate diagram
+            if diagram_type is None:
+                diagram_type = "flowchart"  # Default to flowchart if type is None
+                
+            success, result = generate_diagram(question, similar_chunks, diagram_type)
             
-            **Explanation:** {explanation}
-            
-            You can view the diagram in the Diagrams tab.
-            """
+            if success:
+                mermaid_code, explanation = result
+                answer = f"""
+                I've created a {diagram_type} based on your question.
+                
+                **Explanation:** {explanation}
+                
+                You can view the diagram in the Diagrams tab.
+                """
+            else:
+                answer = result
         else:
-            answer = result
-    else:
-        # Generate text answer
-        answer = generate_answer(question, similar_chunks)
-    
-    # Save to chat history
-    save_chat_history(question, answer)
+            # Generate text answer
+            answer = generate_answer(question, similar_chunks)
+        
+        # Update the chat history with the actual answer
+        # First get the existing history
+        history = get_chat_history()
+        
+        # Find and update the last entry (which should be our placeholder)
+        if history:
+            # Remove the last entry (our placeholder)
+            history.pop()
+            
+            # Update storage with the modified history
+            session_id = get_current_session()
+            if "sessions" in storage and session_id in storage["sessions"]:
+                storage["sessions"][session_id]["chat_history"] = history
+            
+            # Add the new entry with the actual answer
+            save_chat_history(question, answer)
+        
+    except Exception as e:
+        # Handle any unexpected errors
+        print(f"Error processing question: {e}")
+        answer = f"I encountered an error while processing your question. Please try again or try asking a different question."
+        save_chat_history(question, answer)
     
     return redirect('/')
 
