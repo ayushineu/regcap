@@ -6,7 +6,7 @@ import json
 import time
 import tempfile
 from werkzeug.utils import secure_filename
-import fitz  # PyMuPDF
+import PyPDF2
 from openai import OpenAI
 import numpy as np
 import faiss
@@ -111,19 +111,21 @@ def extract_text_from_pdf(file_path):
     """Extract text from a PDF file."""
     try:
         text_chunks = []
-        doc = fitz.open(file_path)
-        
-        for page_num in range(len(doc)):
-            page = doc.load_page(page_num)
-            text = page.get_text()
-            if text.strip():
-                text_chunks.append({
-                    "content": text,
-                    "metadata": {
-                        "page": page_num + 1,
-                        "source": os.path.basename(file_path)
-                    }
-                })
+        with open(file_path, 'rb') as file:
+            reader = PyPDF2.PdfReader(file)
+            
+            for page_num in range(len(reader.pages)):
+                page = reader.pages[page_num]
+                text = page.extract_text()
+                
+                if text and text.strip():
+                    text_chunks.append({
+                        "content": text,
+                        "metadata": {
+                            "page": page_num + 1,
+                            "source": os.path.basename(file_path)
+                        }
+                    })
                 
         return text_chunks
     except Exception as e:

@@ -5,9 +5,12 @@ description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
     "faiss-cpu>=1.10.0",
+    "fitz>=0.0.1.dev2",
     "flask>=3.1.0",
+    "numpy>=2.2.4",
     "openai>=1.70.0",
-    "pymupdf>=1.25.5",
+    "pypdf2>=3.0.1",
     "replit>=4.1.1",
     "streamlit>=1.44.1",
+    "werkzeug>=3.1.3",
 ]

@@ -1,10 +1,10 @@
 import io
-import fitz  # PyMuPDF
+import PyPDF2
 import streamlit as st
 
 def extract_text_from_pdf(file):
     """
-    Extract text from a single PDF file using PyMuPDF.
+    Extract text from a single PDF file using PyPDF2.
     
     Args:
         file: A file-like object containing the PDF
@@ -14,16 +14,16 @@ def extract_text_from_pdf(file):
     """
     try:
         file_stream = io.BytesIO(file.getvalue())
-        doc = fitz.open(stream=file_stream, filetype="pdf")
+        reader = PyPDF2.PdfReader(file_stream)
         
         text_chunks = []
         
-        for page_num in range(len(doc)):
-            page = doc.load_page(page_num)
-            text = page.get_text("text")
+        for page_num in range(len(reader.pages)):
+            page = reader.pages[page_num]
+            text = page.extract_text()
             
             # Skip empty pages
-            if not text.strip():
+            if not text or not text.strip():
                 continue
                 
             # Add page number metadata
@@ -40,7 +40,9 @@ def extract_text_from_pdf(file):
         return text_chunks
     
     except Exception as e:
-        st.error(f"Error processing PDF {file.name}: {str(e)}")
+        print(f"Error processing PDF {file.name}: {str(e)}")
+        if hasattr(st, 'error'):  # Check if streamlit is available (for Flask compatibility)
+            st.error(f"Error processing PDF {file.name}: {str(e)}")
         return []
 
 def split_text_into_chunks(text, max_chunk_size=1000, overlap=100):
