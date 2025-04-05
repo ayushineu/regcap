@@ -327,11 +327,15 @@ def generate_answer(question, context_chunks):
 def generate_diagram(question, context_chunks, diagram_type="flowchart"):
     """Generate a Mermaid diagram based on context."""
     try:
+        print(f"Starting diagram generation for {diagram_type}...")
+        
         if not context_chunks:
+            print("No context chunks available for diagram generation")
             return False, "I don't have enough information to generate a diagram. Please upload relevant documents."
             
         # Prepare context
         context = "\n\n".join([chunk["content"] for chunk in context_chunks])
+        print(f"Prepared context with {len(context)} characters")
         
         # Construct the prompt
         messages = [
@@ -341,14 +345,34 @@ def generate_diagram(question, context_chunks, diagram_type="flowchart"):
             {"role": "user", "content": f"Context information: {context}\n\nCreate a {diagram_type} diagram for: {question}"}
         ]
         
-        # Generate response
-        response = client.chat.completions.create(
-            model="gpt-4o", # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
-            messages=messages,
-            max_tokens=1000
-        )
+        print("Sending request to OpenAI for diagram generation...")
+        # Generate response with retry mechanism
+        max_retries = 3
+        retry_delay = 1.0
+        
+        for attempt in range(max_retries):
+            try:
+                # Generate response
+                response = client.chat.completions.create(
+                    model="gpt-4o", # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
+                    messages=messages,
+                    max_tokens=1000
+                )
+                break  # If successful, break out of retry loop
+            except Exception as e:
+                if "rate_limit_exceeded" in str(e) and attempt < max_retries - 1:
+                    print(f"Rate limit exceeded, retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                else:
+                    raise
+        else:
+            # If we exit the loop normally (all retries failed)
+            print("All retries failed for diagram generation")
+            return False, "Failed to generate diagram after multiple attempts due to API rate limits. Please try again later."
         
         mermaid_code = response.choices[0].message.content.strip()
+        print(f"Received mermaid code: {mermaid_code[:100]}...")
         
         # Clean up the response to extract just the Mermaid code
         if "```mermaid" in mermaid_code:
@@ -357,7 +381,13 @@ def generate_diagram(question, context_chunks, diagram_type="flowchart"):
                 mermaid_code = mermaid_code.split("```")[0]
         elif "```" in mermaid_code:
             mermaid_code = mermaid_code.split("```")[1]
-            
+        
+        print("Clean mermaid code extracted, generating explanation...")
+        
+        # Generate explanation with retry mechanism
+        max_retries = 3
+        retry_delay = 1.0
+        
         # Generate explanation
         explanation_messages = [
             {"role": "system", "content": "You are an AI assistant specialized in explaining diagrams. "
@@ -365,20 +395,39 @@ def generate_diagram(question, context_chunks, diagram_type="flowchart"):
             {"role": "user", "content": f"Diagram: {mermaid_code}\n\nExplain this diagram in simple terms."}
         ]
         
-        explanation_response = client.chat.completions.create(
-            model="gpt-4o", # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
-            messages=explanation_messages,
-            max_tokens=500
-        )
+        for attempt in range(max_retries):
+            try:
+                explanation_response = client.chat.completions.create(
+                    model="gpt-4o", # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
+                    messages=explanation_messages,
+                    max_tokens=500
+                )
+                break  # If successful, break out of retry loop
+            except Exception as e:
+                if "rate_limit_exceeded" in str(e) and attempt < max_retries - 1:
+                    print(f"Rate limit exceeded for explanation, retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                else:
+                    raise
+        else:
+            # If we exit the loop normally (all retries failed)
+            print("All retries failed for explanation generation")
+            # Still return the diagram even if explanation fails
+            explanation = "Explanation could not be generated due to API limitations."
+            save_diagram(mermaid_code, explanation, diagram_type)
+            return True, (mermaid_code, explanation)
         
         explanation = explanation_response.choices[0].message.content
+        print("Explanation generated successfully, saving diagram...")
         
         # Save diagram
         save_diagram(mermaid_code, explanation, diagram_type)
+        print("Diagram saved successfully")
         
         return True, (mermaid_code, explanation)
     except Exception as e:
-        print(f"Error generating diagram: {e}")
+        print(f"Error generating diagram: {str(e)}")
         return False, f"Sorry, I encountered an error while generating a diagram: {str(e)}"
 
 def detect_diagram_request(question):
