@@ -610,8 +610,21 @@ def index():
                 margin-right: 5px;
                 border-top-left-radius: 5px;
                 border-top-right-radius: 5px;
+                font-weight: bold;
+                transition: all 0.3s ease;
             }
             .tab.active {
+                background-color: white;
+                border-bottom: 1px solid white;
+            }
+            .tab:hover {
+                background-color: #e3e3e3;
+            }
+            #diagrams-tab-button {
+                background-color: #f0f7ff;
+                border: 1px solid #c0d5e8;
+            }
+            #diagrams-tab-button.active {
                 background-color: white;
                 border-bottom: 1px solid white;
             }
@@ -681,10 +694,15 @@ def index():
             
             <!-- Tabs -->
             <div class="tabs">
-                <div class="tab active" onclick="openTab(event, 'chat-tab')">Chat</div>
-                <div class="tab" onclick="openTab(event, 'documents-tab')">Documents</div>
-                <div class="tab" onclick="openTab(event, 'diagrams-tab')">Diagrams</div>
-                <div class="tab" onclick="openTab(event, 'sessions-tab')">Sessions</div>
+                <div id="chat-tab-button" class="tab active" onclick="openTab(event, 'chat-tab')">Chat</div>
+                <div id="documents-tab-button" class="tab" onclick="openTab(event, 'documents-tab')">Documents</div>
+                <div id="diagrams-tab-button" class="tab" onclick="openTab(event, 'diagrams-tab')">
+                    <span style="position: relative;">
+                        Diagrams
+                        <div style="position: absolute; top: -8px; right: -8px; background-color: #ff9900; color: white; border-radius: 50%; width: 18px; height: 18px; display: none; font-size: 12px; text-align: center; line-height: 18px;" id="diagrams-notification">!</div>
+                    </span>
+                </div>
+                <div id="sessions-tab-button" class="tab" onclick="openTab(event, 'sessions-tab')">Sessions</div>
             </div>
             
             <!-- Chat Tab -->
@@ -816,6 +834,11 @@ def index():
                 }
                 document.getElementById(tabName).className += " active";
                 evt.currentTarget.className += " active";
+                
+                // Hide notification when diagrams tab is opened
+                if (tabName === 'diagrams-tab') {
+                    document.getElementById('diagrams-notification').style.display = 'none';
+                }
             }
             
             // Scroll chat to bottom
@@ -824,10 +847,39 @@ def index():
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
             
+            // Check if we have a diagram
+            function checkAndShowDiagramNotification() {
+                var mermaidDivs = document.querySelectorAll('.mermaid');
+                if (mermaidDivs.length > 0) {
+                    var notificationElement = document.getElementById('diagrams-notification');
+                    if (notificationElement) {
+                        notificationElement.style.display = 'block';
+                    }
+                    
+                    // Look for special alert in chat messages
+                    var botMessages = document.querySelectorAll('.bot-message');
+                    for(var i = 0; i < botMessages.length; i++) {
+                        if(botMessages[i].innerHTML.includes('Please click on the "Diagrams" tab above')) {
+                            // Add a click helper
+                            var helper = document.createElement('button');
+                            helper.innerHTML = 'View Diagram';
+                            helper.className = 'btn btn-warning mt-2';
+                            helper.onclick = function() {
+                                document.getElementById('diagrams-tab-button').click();
+                            };
+                            botMessages[i].appendChild(helper);
+                        }
+                    }
+                }
+            }
+            
             // Call scroll function when page loads
             window.onload = function() {
                 scrollChatToBottom();
                 mermaid.init(undefined, '.mermaid');
+                
+                // Show diagram notification if we have diagrams
+                setTimeout(checkAndShowDiagramNotification, 500);
             };
         </script>
     </body>
@@ -906,7 +958,9 @@ def ask_question():
                 
                 **Explanation:** {explanation}
                 
-                You can view the diagram in the Diagrams tab.
+                <div style="background-color: #ffe8cc; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                <strong>Important:</strong> Please click on the "Diagrams" tab above to view the generated diagram.
+                </div>
                 """
             else:
                 answer = result
