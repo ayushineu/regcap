@@ -784,10 +784,10 @@ def index():
                                 <div class="diagram-explanation">
                                     <strong>Explanation:</strong> {{ explanation }}
                                 </div>
-                                <div class="diagram-visual">
-                                    <pre class="mermaid">
-{{ diagram_code }}
-                                    </pre>
+                                <div class="diagram-actions">
+                                    <a href="/view_diagram/{{ loop.index0 }}" class="btn btn-success" target="_blank">
+                                        View Diagram in New Tab
+                                    </a>
                                 </div>
                             </div>
                         {% endfor %}
@@ -1009,13 +1009,19 @@ def ask_question():
             
             if success:
                 mermaid_code, explanation = result
+                # Get the index of this diagram (it's the latest one)
+                diagram_count = len(get_diagrams()) - 1  # -1 because we just added it and indexes are 0-based
+                
                 answer = f"""
                 I've created a {diagram_type} based on your question.
                 
                 **Explanation:** {explanation}
                 
                 <div style="background-color: #ffe8cc; padding: 10px; border-radius: 5px; margin-top: 10px;">
-                <strong>Important:</strong> Please click on the "Diagrams" tab above to view the generated diagram.
+                <strong>Important:</strong> 
+                <a href="/view_diagram/{diagram_count}" class="btn btn-success mt-2" target="_blank">Click here to view the diagram in a new tab</a>
+                <br>
+                (Or click on the "Diagrams" tab above to access all diagrams.)
                 </div>
                 """
             else:
@@ -1064,6 +1070,111 @@ def switch_session():
         storage["current_session"] = session_id
         
     return redirect('/')
+
+@app.route('/view_diagram/<int:diagram_index>')
+def view_diagram(diagram_index):
+    """Show a single diagram on a dedicated page."""
+    diagrams = get_diagrams()
+    
+    if diagram_index >= len(diagrams):
+        return "Diagram not found", 404
+        
+    diagram_code, explanation, diagram_type = diagrams[diagram_index]
+    
+    return render_template_string("""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>View Diagram</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+            body {
+                padding: 20px;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+            .diagram-container {
+                margin: 30px 0;
+                padding: 20px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+            .explanation {
+                margin-top: 20px;
+                padding: 15px;
+                background-color: #f8f9fa;
+                border-radius: 5px;
+            }
+            .diagram-visual {
+                margin-top: 30px;
+                padding: 20px;
+                background-color: white;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1>{{ diagram_type|capitalize }} Diagram</h1>
+                <a href="/" class="btn btn-primary">Back to Main App</a>
+            </div>
+            
+            <div class="diagram-container">
+                <div class="explanation">
+                    <h4>Explanation</h4>
+                    <p>{{ explanation }}</p>
+                </div>
+                
+                <div class="diagram-visual">
+                    <h4>Diagram</h4>
+                    <div class="mermaid-diagram" id="mermaid-diagram">{{ diagram_code }}</div>
+                    <div id="diagram-error" class="alert alert-danger mt-3" style="display:none;">
+                        Error rendering diagram. See raw code below:
+                        <pre class="mt-2 p-2 bg-light">{{ diagram_code }}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                try {
+                    // Configure mermaid
+                    mermaid.initialize({
+                        startOnLoad: false,
+                        securityLevel: 'loose',
+                        theme: 'default'
+                    });
+                    
+                    // Get diagram code and create element
+                    const diagramCode = document.getElementById('mermaid-diagram').textContent.trim();
+                    const outputDiv = document.getElementById('mermaid-diagram');
+                    
+                    // Render the diagram
+                    mermaid.render('mermaid-svg', diagramCode)
+                        .then(({svg, bindFunctions}) => {
+                            outputDiv.innerHTML = svg;
+                            if (bindFunctions) bindFunctions();
+                        })
+                        .catch(error => {
+                            console.error("Error rendering diagram:", error);
+                            document.getElementById('diagram-error').style.display = 'block';
+                        });
+                } catch(e) {
+                    console.error("Exception in diagram rendering:", e);
+                    document.getElementById('diagram-error').style.display = 'block';
+                }
+            });
+        </script>
+    </body>
+    </html>
+    """, diagram_code=diagram_code, explanation=explanation, diagram_type=diagram_type)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
