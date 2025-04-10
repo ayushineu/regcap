@@ -297,34 +297,57 @@ def get_similar_chunks(query, vector_store, top_k=5):
         return []
 
 # OpenAI helper functions
-def generate_answer(question, context_chunks):
-    """Generate answer using OpenAI."""
-    try:
-        if not context_chunks:
-            return "I don't have enough information to answer this question. Please upload relevant documents."
+def generate_answer(question, context_chunks, max_retries=3):
+    """Generate answer using OpenAI with retry mechanism."""
+    import time
+    
+    if not context_chunks:
+        return "I don't have enough information to answer this question. Please upload relevant documents."
+        
+    # Prepare context
+    context = "\n\n".join([chunk["content"] for chunk in context_chunks])
+    
+    # Construct the prompt
+    messages = [
+        {"role": "system", "content": "You are an AI assistant specialized in regulatory document analysis. "
+                                     "Answer questions based ONLY on the provided context. "
+                                     "If you don't know the answer based on the context, say so clearly."},
+        {"role": "user", "content": f"Context information: {context}\n\nQuestion: {question}"}
+    ]
+    
+    # Retry logic with exponential backoff
+    retry_count = 0
+    last_error = None
+    
+    while retry_count < max_retries:
+        try:
+            print(f"Attempt {retry_count + 1} to generate answer for: {question[:100]}...")
             
-        # Prepare context
-        context = "\n\n".join([chunk["content"] for chunk in context_chunks])
-        
-        # Construct the prompt
-        messages = [
-            {"role": "system", "content": "You are an AI assistant specialized in regulatory document analysis. "
-                                         "Answer questions based ONLY on the provided context. "
-                                         "If you don't know the answer based on the context, say so clearly."},
-            {"role": "user", "content": f"Context information: {context}\n\nQuestion: {question}"}
-        ]
-        
-        # Generate response
-        response = client.chat.completions.create(
-            model="gpt-4o", # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
-            messages=messages,
-            max_tokens=1000
-        )
-        
-        return response.choices[0].message.content
-    except Exception as e:
-        print(f"Error generating answer: {e}")
-        return f"Sorry, I encountered an error while generating an answer: {str(e)}"
+            # Generate response with a timeout
+            response = client.chat.completions.create(
+                model="gpt-4o", # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
+                messages=messages,
+                max_tokens=1000,
+                timeout=45  # 45 second timeout
+            )
+            
+            answer = response.choices[0].message.content
+            print(f"Successfully generated answer on attempt {retry_count + 1}")
+            return answer
+            
+        except Exception as e:
+            retry_count += 1
+            last_error = e
+            print(f"Error on attempt {retry_count}: {e}")
+            
+            if retry_count < max_retries:
+                wait_time = 2 ** retry_count  # Exponential backoff
+                print(f"Retrying in {wait_time} seconds...")
+                time.sleep(wait_time)
+    
+    # If all retries fail
+    print(f"Failed after {max_retries} attempts. Last error: {last_error}")
+    return "Sorry, I was unable to generate an answer at this time. Please try asking a more specific question or try again later."
 
 def generate_diagram(question, context_chunks, diagram_type="flowchart"):
     """Generate a Mermaid diagram based on context."""
@@ -354,11 +377,12 @@ def generate_diagram(question, context_chunks, diagram_type="flowchart"):
         
         for attempt in range(max_retries):
             try:
-                # Generate response
+                # Generate response with timeout
                 response = client.chat.completions.create(
                     model="gpt-4o", # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
                     messages=messages,
-                    max_tokens=1000
+                    max_tokens=1000,
+                    timeout=45  # 45 second timeout
                 )
                 break  # If successful, break out of retry loop
             except Exception as e:
@@ -415,7 +439,8 @@ def generate_diagram(question, context_chunks, diagram_type="flowchart"):
                 explanation_response = client.chat.completions.create(
                     model="gpt-4o", # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
                     messages=explanation_messages,
-                    max_tokens=500
+                    max_tokens=500,
+                    timeout=45  # 45 second timeout
                 )
                 break  # If successful, break out of retry loop
             except Exception as e:
@@ -973,6 +998,9 @@ def upload_files():
 @app.route('/ask', methods=['POST'])
 def ask_question():
     """Handle questions from the user."""
+    import threading
+    import time
+    
     question = request.form.get('question', '')
     
     if not question:
@@ -981,65 +1009,78 @@ def ask_question():
     # Save the question immediately to avoid losing it
     answer = "Processing your question..."
     save_chat_history(question, answer)
+    
+    # Start processing in a separate thread
+    def process_question():
+        nonlocal question
         
-    # Check if this is a diagram request
-    is_diagram_request, diagram_type = detect_diagram_request(question)
-    
-    # Get document chunks
-    chunks = get_all_document_chunks()
-    
-    if not chunks:
-        answer = "Please upload documents first so I can answer your questions based on them."
-        save_chat_history(question, answer)
-        return redirect('/')
-    
-    try:
-        # Create or get vector store
-        vector_store = create_vector_store(chunks)
-        
-        if not vector_store:
-            answer = "There was an error processing your documents. Please try again."
-            save_chat_history(question, answer)
-            return redirect('/')
+        try:
+            # Check if this is a diagram request
+            is_diagram_request, diagram_type = detect_diagram_request(question)
             
-        # Find relevant chunks
-        similar_chunks = get_similar_chunks(question, vector_store)
-        
-        if is_diagram_request:
-            # Generate diagram
-            if diagram_type is None:
-                diagram_type = "flowchart"  # Default to flowchart if type is None
-                
-            success, result = generate_diagram(question, similar_chunks, diagram_type)
+            # Get document chunks
+            chunks = get_all_document_chunks()
             
-            if success:
-                mermaid_code, explanation = result
-                # Get the index of this diagram (it's the latest one)
-                diagram_count = len(get_diagrams()) - 1  # -1 because we just added it and indexes are 0-based
+            if not chunks:
+                answer = "Please upload documents first so I can answer your questions based on them."
+                update_chat_history(question, answer)
+                return
+            
+            # Create or get vector store
+            vector_store = create_vector_store(chunks)
+            
+            if not vector_store:
+                answer = "There was an error processing your documents. Please try again."
+                update_chat_history(question, answer)
+                return
                 
-                answer = f"""
-                I've created a {diagram_type} based on your question.
+            # Find relevant chunks
+            similar_chunks = get_similar_chunks(question, vector_store)
+            
+            if is_diagram_request:
+                # Generate diagram
+                if diagram_type is None:
+                    diagram_type = "flowchart"  # Default to flowchart if type is None
+                    
+                success, result = generate_diagram(question, similar_chunks, diagram_type)
                 
-                **Explanation:** {explanation}
-                
-                <div style="background-color: #ffe8cc; padding: 10px; border-radius: 5px; margin-top: 10px;">
-                <strong>Important:</strong> 
-                <a href="/view_diagram/{diagram_count}" class="btn btn-success mt-2" target="_blank">Click here to view the diagram in a new tab</a>
-                <br>
-                (Or click on the "Diagrams" tab above to access all diagrams.)
-                </div>
-                """
+                if success:
+                    mermaid_code, explanation = result
+                    # Get the index of this diagram (it's the latest one)
+                    diagram_count = len(get_diagrams()) - 1  # -1 because we just added it and indexes are 0-based
+                    
+                    answer = f"""
+                    I've created a {diagram_type} based on your question.
+                    
+                    **Explanation:** {explanation}
+                    
+                    <div style="background-color: #ffe8cc; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                    <strong>Important:</strong> 
+                    <a href="/view_diagram/{diagram_count}" class="btn btn-success mt-2" target="_blank">Click here to view the diagram in a new tab</a>
+                    <br>
+                    (Or click on the "Diagrams" tab above to access all diagrams.)
+                    </div>
+                    """
+                else:
+                    answer = result
             else:
-                answer = result
-        else:
-            # Generate text answer
-            answer = generate_answer(question, similar_chunks)
-        
-        # Update the chat history with the actual answer
-        # First get the existing history
+                # Generate text answer with timeout mechanism
+                answer = generate_answer(question, similar_chunks)
+            
+            # Update the chat history with the actual answer
+            update_chat_history(question, answer)
+            
+        except Exception as e:
+            # Handle any unexpected errors
+            print(f"Error processing question: {e}")
+            answer = f"I encountered an error while processing your question. Please try again or try asking a different question."
+            update_chat_history(question, answer)
+    
+    # Helper function to update chat history
+    def update_chat_history(question, answer):
+        # Get the existing history
         history = get_chat_history()
         
-        # Find and update the last entry (which should be our placeholder)
         if history:
             # Remove the last entry (our placeholder)
             history.pop()
@@ -1051,13 +1092,11 @@ def ask_question():
             
             # Add the new entry with the actual answer
             save_chat_history(question, answer)
-        
-    except Exception as e:
-        # Handle any unexpected errors
-        print(f"Error processing question: {e}")
-        answer = f"I encountered an error while processing your question. Please try again or try asking a different question."
-        save_chat_history(question, answer)
     
+    # Start processing thread
+    threading.Thread(target=process_question).start()
+    
+    # Return immediately to avoid blocking the user
     return redirect('/')
 
 @app.route('/new_session', methods=['POST'])
