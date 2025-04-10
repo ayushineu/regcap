@@ -784,6 +784,11 @@ def index():
                                 <div class="diagram-explanation">
                                     <strong>Explanation:</strong> {{ explanation }}
                                 </div>
+                                <div class="diagram-visual mt-3 mb-3">
+                                    <div class="mermaid">
+{{ diagram_code }}
+                                    </div>
+                                </div>
                                 <div class="diagram-actions">
                                     <a href="/view_diagram/{{ loop.index0 }}" class="btn btn-success" target="_blank">
                                         View Diagram in New Tab
