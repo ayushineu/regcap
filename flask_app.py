@@ -637,6 +637,8 @@ def index():
                 --session-bg: #343a40;
                 --diagram-bg: #264e36;
                 --app-heading: #42a5f5;
+                --notification-bg: #664500;
+                --notification-text: #ffe8cc;
             }
             
             body {
@@ -793,7 +795,7 @@ def index():
             <div class="mt-4 mb-4 d-flex justify-content-between align-items-center">
                 <div>
                     <h1 class="mb-0" style="color: var(--app-heading);">RegCap GPT</h1>
-                    <p class="text-muted mb-0" style="font-size: 1.1rem;">Regulatory Intelligence</p>
+                    <p class="mb-0" style="font-size: 1.1rem; color: var(--text-color); opacity: 0.7;">Regulatory Intelligence</p>
                 </div>
                 <div>
                     <button id="darkModeToggle" class="btn btn-outline-secondary">
@@ -893,7 +895,7 @@ def index():
                                 <div class="diagram-explanation">
                                     <strong>Explanation:</strong> {{ explanation }}
                                 </div>
-                                <div class="diagram-visual mt-3 mb-3">
+                                <div class="diagram-visual mt-3 mb-3" style="background-color: var(--diagram-bg); padding: 15px; border-radius: 5px;">
                                     <div class="mermaid">
 {{ diagram_code }}
                                     </div>
@@ -1212,7 +1214,7 @@ def ask_question():
                     
                     **Explanation:** {explanation}
                     
-                    <div style="background-color: #ffe8cc; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                    <div style="background-color: var(--notification-bg, #ffe8cc); padding: 10px; border-radius: 5px; margin-top: 10px; color: var(--notification-text, #333);">
                     <strong>Important:</strong> 
                     <a href="/view_diagram/{diagram_count}" class="btn btn-success mt-2" target="_blank">Click here to view the diagram in a new tab</a>
                     <br>
@@ -1291,30 +1293,68 @@ def view_diagram(diagram_index):
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>RegCap GPT - View Diagram</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
         <style>
+            :root {
+                --bg-color: #ffffff;
+                --text-color: #333333;
+                --app-heading: #0056b3;
+                --card-bg: #f8f9fa;
+                --border-color: #ddd;
+                --diagram-bg: #ffffff;
+                --notification-bg: #ffe8cc;
+                --notification-text: #333;
+            }
+            
+            [data-theme="dark"] {
+                --bg-color: #1e1e1e;
+                --text-color: #e0e0e0;
+                --app-heading: #4d94ff;
+                --card-bg: #2d2d2d;
+                --border-color: #444;
+                --diagram-bg: #2d2d2d;
+                --notification-bg: #664500;
+                --notification-text: #ffe8cc;
+            }
+            
             body {
                 padding: 20px;
                 max-width: 1200px;
                 margin: 0 auto;
+                background-color: var(--bg-color);
+                color: var(--text-color);
             }
+            
             .diagram-container {
                 margin: 30px 0;
                 padding: 20px;
-                border: 1px solid #ddd;
+                border: 1px solid var(--border-color);
                 border-radius: 5px;
+                background-color: var(--card-bg);
             }
+            
             .explanation {
                 margin-top: 20px;
                 padding: 15px;
-                background-color: #f8f9fa;
+                background-color: var(--card-bg);
                 border-radius: 5px;
             }
+            
             .diagram-visual {
                 margin-top: 30px;
                 padding: 20px;
-                background-color: white;
-                border: 1px solid #ddd;
+                background-color: var(--diagram-bg);
+                border: 1px solid var(--border-color);
                 border-radius: 5px;
+            }
+            
+            h1, h4 {
+                color: var(--app-heading);
+            }
+            
+            .btn-outline-secondary {
+                color: var(--text-color);
+                border-color: var(--border-color);
             }
         </style>
     </head>
@@ -1322,7 +1362,12 @@ def view_diagram(diagram_index):
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
                 <h1>{{ diagram_type|capitalize }} Diagram</h1>
-                <a href="/" class="btn btn-primary">Back to Main App</a>
+                <div>
+                    <button id="darkModeToggle" class="btn btn-outline-secondary me-2">
+                        <i class="fa fa-moon-o"></i> Dark Mode
+                    </button>
+                    <a href="/" class="btn btn-primary">Back to Main App</a>
+                </div>
             </div>
             
             <div class="diagram-container">
@@ -1346,12 +1391,59 @@ def view_diagram(diagram_index):
         <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                // Setup dark mode toggle
+                setupDarkModeToggle();
+                
+                // Initialize the diagram
+                initializeDiagram();
+            });
+            
+            // Dark mode toggle functionality
+            function setupDarkModeToggle() {
+                const darkModeToggle = document.getElementById('darkModeToggle');
+                const htmlElement = document.documentElement;
+                
+                // Check for saved theme preference or respect OS preference
+                const savedTheme = localStorage.getItem('theme');
+                const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                
+                // Apply dark theme if saved or OS prefers dark
+                if (savedTheme === 'dark' || (!savedTheme && prefersDarkMode)) {
+                    htmlElement.setAttribute('data-theme', 'dark');
+                    darkModeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
+                    // Update Mermaid theme
+                    mermaid.initialize({ theme: 'dark' });
+                }
+                
+                // Toggle theme when button is clicked
+                darkModeToggle.addEventListener('click', function() {
+                    if (htmlElement.getAttribute('data-theme') === 'dark') {
+                        htmlElement.removeAttribute('data-theme');
+                        localStorage.setItem('theme', 'light');
+                        darkModeToggle.innerHTML = '<i class="fa fa-moon-o"></i> Dark Mode';
+                        // Update Mermaid theme
+                        mermaid.initialize({ theme: 'default' });
+                    } else {
+                        htmlElement.setAttribute('data-theme', 'dark');
+                        localStorage.setItem('theme', 'dark');
+                        darkModeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
+                        // Update Mermaid theme
+                        mermaid.initialize({ theme: 'dark' });
+                    }
+                    
+                    // Reinitialize diagram with new theme
+                    setTimeout(initializeDiagram, 100);
+                });
+            }
+            
+            // Function to initialize the diagram
+            function initializeDiagram() {
                 try {
                     // Configure mermaid
                     mermaid.initialize({
                         startOnLoad: false,
                         securityLevel: 'loose',
-                        theme: 'default'
+                        theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
                     });
                     
                     // Get diagram code and create element
@@ -1372,7 +1464,7 @@ def view_diagram(diagram_index):
                     console.error("Exception in diagram rendering:", e);
                     document.getElementById('diagram-error').style.display = 'block';
                 }
-            });
+            }
         </script>
     </body>
     </html>
