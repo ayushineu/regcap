@@ -87,14 +87,10 @@ It empowers users to extract actionable insights, generate visual aids, and navi
 
 ---
 
-## 🛡️ AI Ethics
+## 📜 AI Ethics
 
-This project will include an AI Ethics Framework outlining:
-- Responsible use of AI in regulatory interpretation
-- Transparency of limitations and risks
-- Mitigation of AI hallucination in compliance-critical answers
-
-(*Stay tuned in the repo for `ETHICS.md`.*)
+RegCap GPT was developed with a focus on responsible AI use.  
+Read our [AI_ETHICS.md](./AI_ETHICS.md) to learn more about the principles guiding this project.
 
 ---
 
