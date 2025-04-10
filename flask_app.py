@@ -827,14 +827,6 @@ def index():
                 </div>
             </div>
             
-            <!-- Session Information -->
-            <div class="session-info">
-                <h5>Current Session: {{ session_id }}</h5>
-                <form action="/new_session" method="post" class="mt-2">
-                    <button type="submit" class="btn btn-sm btn-primary">Create New Session</button>
-                </form>
-            </div>
-            
             <!-- App Container with Sidebar Tabs -->
             <div class="app-container">
                 <!-- Sidebar Tabs -->
@@ -939,6 +931,16 @@ def index():
             <!-- Sessions Tab -->
             <div id="sessions-tab" class="tab-content">
                 <div class="session-section">
+                    <div class="mb-4">
+                        <h3>Current Session</h3>
+                        <div class="session-info">
+                            <h5>Active Session: {{ session_id }}</h5>
+                            <form action="/new_session" method="post" class="mt-2">
+                                <button type="submit" class="btn btn-primary">Create New Session</button>
+                            </form>
+                        </div>
+                    </div>
+                    
                     <h3>Available Sessions</h3>
                     {% if sessions %}
                         <ul class="list-group">
