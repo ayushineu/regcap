@@ -621,6 +621,9 @@ def index():
                 --session-bg: #f8f9fa;
                 --diagram-bg: #e9f7ef;
                 --app-heading: #0056b3;
+                --card-bg: #f8f9fa;
+                --notification-bg: #ffe8cc;
+                --notification-text: #333;
             }
             
             [data-theme="dark"] {
@@ -637,6 +640,7 @@ def index():
                 --session-bg: #343a40;
                 --diagram-bg: #264e36;
                 --app-heading: #42a5f5;
+                --card-bg: #2d2d2d;
                 --notification-bg: #664500;
                 --notification-text: #ffe8cc;
             }
@@ -678,7 +682,8 @@ def index():
                 padding: 20px;
                 border: 1px solid var(--border-color);
                 border-radius: 5px;
-                background-color: var(--bg-color);
+                background-color: var(--card-bg);
+                color: var(--text-color);
             }
             .app-container {
                 display: flex;
@@ -715,13 +720,22 @@ def index():
                 background-color: #0069d9;
             }
             #diagrams-tab-button {
-                background-color: #f0f7ff;
-                border: 1px solid #c0d5e8;
+                background-color: var(--tab-bg);
+                border: 1px solid var(--border-color);
             }
             #diagrams-tab-button.active {
-                background-color: #007bff;
+                background-color: var(--tab-active-bg);
+                color: var(--tab-active-color);
+                border-color: var(--tab-active-bg);
+            }
+            [data-theme="dark"] #diagrams-tab-button {
+                background-color: #2d2d2d;
+                border: 1px solid #444;
+            }
+            [data-theme="dark"] #diagrams-tab-button.active {
+                background-color: #0069d9;
                 color: white;
-                border-color: #007bff;
+                border-color: #0069d9;
             }
             .tab-content {
                 display: none;
@@ -747,7 +761,8 @@ def index():
                 padding: 15px;
                 border: 1px solid var(--border-color);
                 border-radius: 5px;
-                background-color: var(--bg-color);
+                background-color: var(--card-bg);
+                color: var(--text-color);
             }
             .diagram-code {
                 margin-top: 10px;
