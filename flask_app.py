@@ -935,9 +935,7 @@ def index():
                         <h3>Current Session</h3>
                         <div class="session-info">
                             <h5>Active Session: {{ session_id }}</h5>
-                            <form action="/new_session" method="post" class="mt-2">
-                                <button type="submit" class="btn btn-primary">Create New Session</button>
-                            </form>
+                            <button id="createNewSessionBtn" class="btn btn-primary mt-2">Create New Session</button>
                         </div>
                     </div>
                     
@@ -950,10 +948,7 @@ def index():
                                     {% if s_id == session_id %}
                                         <span class="badge bg-primary rounded-pill">Current</span>
                                     {% else %}
-                                        <form action="/switch_session" method="post" class="d-inline">
-                                            <input type="hidden" name="session_id" value="{{ s_id }}">
-                                            <button type="submit" class="btn btn-sm btn-outline-primary">Switch</button>
-                                        </form>
+                                        <button class="btn btn-sm btn-outline-primary switch-session-btn" data-session-id="{{ s_id }}">Switch</button>
                                     {% endif %}
                                 </li>
                             {% endfor %}
@@ -1139,6 +1134,71 @@ def index():
                 });
             }
             
+            // Session management via AJAX
+            function setupSessionManagement() {
+                // Create new session
+                const createNewSessionBtn = document.getElementById('createNewSessionBtn');
+                if (createNewSessionBtn) {
+                    createNewSessionBtn.addEventListener('click', function() {
+                        // Display loading state
+                        createNewSessionBtn.disabled = true;
+                        createNewSessionBtn.innerHTML = 'Creating...';
+                        
+                        // Send AJAX request
+                        fetch('/new_session', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                // Refresh only the content, not the entire page
+                                window.location.href = '/?t=' + new Date().getTime();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error creating new session:', error);
+                            createNewSessionBtn.disabled = false;
+                            createNewSessionBtn.innerHTML = 'Create New Session';
+                        });
+                    });
+                }
+                
+                // Setup switch session buttons
+                const switchButtons = document.querySelectorAll('.switch-session-btn');
+                switchButtons.forEach(function(button) {
+                    button.addEventListener('click', function() {
+                        const sessionId = this.getAttribute('data-session-id');
+                        
+                        // Display loading state
+                        button.disabled = true;
+                        button.innerHTML = 'Switching...';
+                        
+                        // Create form data
+                        const formData = new FormData();
+                        formData.append('session_id', sessionId);
+                        
+                        // Send AJAX request
+                        fetch('/switch_session', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                // Refresh only the content, not the entire page
+                                window.location.href = '/?t=' + new Date().getTime();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error switching session:', error);
+                            button.disabled = false;
+                            button.innerHTML = 'Switch';
+                        });
+                    });
+                });
+            }
+            
             // Call functions when page loads
             window.onload = function() {
                 scrollChatToBottom();
@@ -1151,6 +1211,9 @@ def index():
                 
                 // Setup dark mode toggle
                 setupDarkModeToggle();
+                
+                // Setup session management
+                setupSessionManagement();
             };
         </script>
     </body>
@@ -1288,7 +1351,12 @@ def ask_question():
 def new_session():
     """Create a new session."""
     create_new_session()
-    return redirect('/')
+    
+    # Check if request wants JSON response (from AJAX)
+    if request.headers.get('Content-Type') == 'application/json':
+        return jsonify({"success": True}), 200
+    else:
+        return redirect('/')
 
 @app.route('/switch_session', methods=['POST'])
 def switch_session():
@@ -1297,8 +1365,12 @@ def switch_session():
     
     if session_id:
         storage["current_session"] = session_id
-        
-    return redirect('/')
+    
+    # Check if request wants JSON response (from AJAX)
+    if request.headers.get('Content-Type') == 'application/json':
+        return jsonify({"success": True}), 200
+    else:
+        return redirect('/')
 
 @app.route('/view_diagram/<int:diagram_index>')
 def view_diagram(diagram_index):
