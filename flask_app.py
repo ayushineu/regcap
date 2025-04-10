@@ -493,8 +493,9 @@ def detect_diagram_request(question):
 
 # Chat history and diagrams
 def save_chat_history(question, answer):
-    """Save chat history to storage."""
+    """Save chat history to storage with timestamp."""
     session_id = get_current_session()
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     
     try:
         if "sessions" not in storage:
@@ -507,8 +508,13 @@ def save_chat_history(question, answer):
                 "chat_history": [],
                 "diagrams": []
             }
-            
-        storage["sessions"][session_id]["chat_history"].append((question, answer))
+        
+        # Add timestamp to the question and answer
+        timestamped_question = f"[{timestamp}] {question}"
+        timestamped_answer = f"[{timestamp}] {answer}"
+        
+        storage["sessions"][session_id]["chat_history"].append((timestamped_question, timestamped_answer))
+        print(f"Saved chat history with timestamp: {timestamp}")
         return True
     except Exception as e:
         print(f"Error saving chat history: {e}")
@@ -880,6 +886,30 @@ def index():
                 }
             });
             
+            // Auto-refresh handling for background processing
+            function checkForUpdates() {
+                // If we have a message with "Processing your question...", refresh the page after 2 seconds
+                const botMessages = document.querySelectorAll('.bot-message');
+                let hasProcessingMessage = false;
+                
+                for (let i = 0; i < botMessages.length; i++) {
+                    if (botMessages[i].textContent.includes('Processing your question...')) {
+                        hasProcessingMessage = true;
+                        break;
+                    }
+                }
+                
+                if (hasProcessingMessage) {
+                    // Refresh the page to check for updates
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 2000);
+                }
+            }
+            
+            // Run the check when the page loads
+            window.addEventListener('load', checkForUpdates);
+            
             // Tab functionality
             function openTab(evt, tabName) {
                 var i, tabContent, tabs;
@@ -1219,6 +1249,38 @@ def view_diagram(diagram_index):
     </body>
     </html>
     """, diagram_code=diagram_code, explanation=explanation, diagram_type=diagram_type)
+
+@app.route('/debug_api', methods=['GET'])
+def debug_api():
+    """Check OpenAI API connection."""
+    try:
+        # Import the OpenAI key status
+        api_key = os.environ.get("OPENAI_API_KEY")
+        api_key_status = "Present" if api_key else "Missing"
+        
+        # Test a simple API call with timeout
+        response = client.chat.completions.create(
+            model="gpt-4o", # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
+            messages=[{"role": "user", "content": "Say hello"}],
+            max_tokens=10,
+            timeout=10
+        )
+        
+        return f"""
+        <h1>API Debug Information</h1>
+        <p>API Key Status: {api_key_status}</p>
+        <p>API Connection: Working</p>
+        <p>Response: {response.choices[0].message.content}</p>
+        <p>Current Time: {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}</p>
+        """
+    except Exception as e:
+        return f"""
+        <h1>API Debug Information</h1>
+        <p>API Key Status: {api_key_status}</p>
+        <p>API Connection: Error</p>
+        <p>Error Details: {str(e)}</p>
+        <p>Current Time: {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}</p>
+        """
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
