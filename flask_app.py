@@ -759,13 +759,15 @@ def index():
             .diagram-explanation {
                 margin-top: 10px;
                 padding: 10px;
-                background-color: var(--diagram-bg);
+                background-color: var(--card-bg);
+                color: var(--text-color);
                 border-radius: 5px;
             }
             .diagram-visual {
                 margin-top: 20px;
                 padding: 10px;
-                background-color: var(--bg-color);
+                background-color: var(--diagram-bg);
+                color: var(--text-color);
                 border: 1px solid var(--border-color);
                 border-radius: 5px;
             }
@@ -895,7 +897,7 @@ def index():
                                 <div class="diagram-explanation">
                                     <strong>Explanation:</strong> {{ explanation }}
                                 </div>
-                                <div class="diagram-visual mt-3 mb-3" style="background-color: var(--diagram-bg); padding: 15px; border-radius: 5px;">
+                                <div class="diagram-visual mt-3 mb-3">
                                     <div class="mermaid">
 {{ diagram_code }}
                                     </div>
