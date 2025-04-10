@@ -17,30 +17,11 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Diagnostic App"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "Minimal Test"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "Regulatory Chatbot"
-
-[[workflows.workflow]]
-name = "Diagnostic App"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "streamlit run diagnostic_app.py --server.port 5000"
-waitForPort = 5000
 
 [[workflows.workflow]]
 name = "Minimal Test"
