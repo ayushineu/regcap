@@ -616,23 +616,24 @@ def index():
             .chat-container {
                 height: 400px;
                 overflow-y: auto;
-                border: 1px solid #ddd;
-                padding: 15px;
-                border-radius: 5px;
+                padding: 15px 0;
                 margin-bottom: 20px;
             }
             .user-message, .bot-message {
                 margin-bottom: 15px;
                 padding: 10px;
                 border-radius: 5px;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.12);
             }
             .user-message {
                 background-color: #e6f7ff;
                 margin-left: 20%;
+                border-left: 3px solid #1890ff;
             }
             .bot-message {
-                background-color: #f0f0f0;
+                background-color: #f5f5f5;
                 margin-right: 20%;
+                border-left: 3px solid #52c41a;
             }
             .document-section, .diagram-section {
                 margin-top: 30px;
