@@ -638,9 +638,9 @@ def index():
                 --bot-msg-bg: #2d2d2d;
                 --bot-msg-border: #66bb6a;
                 --session-bg: #343a40;
-                --diagram-bg: #264e36;
+                --diagram-bg: #343a40;
                 --app-heading: #42a5f5;
-                --card-bg: #2d2d2d;
+                --card-bg: #343a40;
                 --notification-bg: #664500;
                 --notification-text: #ffe8cc;
             }
@@ -719,6 +719,12 @@ def index():
             .tab.active:hover {
                 background-color: #0069d9;
             }
+            [data-theme="dark"] .tab:hover {
+                background-color: #4a4a4a;
+            }
+            [data-theme="dark"] .tab.active:hover {
+                background-color: #0069d9;
+            }
             #diagrams-tab-button {
                 background-color: var(--tab-bg);
                 border: 1px solid var(--border-color);
@@ -729,8 +735,8 @@ def index():
                 border-color: var(--tab-active-bg);
             }
             [data-theme="dark"] #diagrams-tab-button {
-                background-color: #2d2d2d;
-                border: 1px solid #444;
+                background-color: var(--tab-bg);
+                border: 1px solid var(--border-color);
             }
             [data-theme="dark"] #diagrams-tab-button.active {
                 background-color: #0069d9;
