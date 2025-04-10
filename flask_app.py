@@ -604,14 +604,50 @@ def index():
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>RegCap GPT | Regulatory Intelligence</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.css">
         <style>
+            :root {
+                --bg-color: #ffffff;
+                --text-color: #212529;
+                --border-color: #ddd;
+                --tab-bg: #f5f5f5;
+                --tab-active-bg: #007bff;
+                --tab-active-color: white;
+                --user-msg-bg: #e6f7ff;
+                --user-msg-border: #1890ff;
+                --bot-msg-bg: #f5f5f5;
+                --bot-msg-border: #52c41a;
+                --session-bg: #f8f9fa;
+                --diagram-bg: #e9f7ef;
+                --app-heading: #0056b3;
+            }
+            
+            [data-theme="dark"] {
+                --bg-color: #212529;
+                --text-color: #f8f9fa;
+                --border-color: #495057;
+                --tab-bg: #343a40;
+                --tab-active-bg: #0d6efd;
+                --tab-active-color: white;
+                --user-msg-bg: #0d47a1;
+                --user-msg-border: #42a5f5;
+                --bot-msg-bg: #2d2d2d;
+                --bot-msg-border: #66bb6a;
+                --session-bg: #343a40;
+                --diagram-bg: #264e36;
+                --app-heading: #42a5f5;
+            }
+            
             body {
                 font-family: Arial, sans-serif;
                 line-height: 1.6;
                 padding: 20px;
                 max-width: 1200px;
                 margin: 0 auto;
+                background-color: var(--bg-color);
+                color: var(--text-color);
+                transition: all 0.3s ease;
             }
             .chat-container {
                 height: 400px;
@@ -626,20 +662,21 @@ def index():
                 box-shadow: 0 1px 3px rgba(0,0,0,0.12);
             }
             .user-message {
-                background-color: #e6f7ff;
+                background-color: var(--user-msg-bg);
                 margin-left: 20%;
-                border-left: 3px solid #1890ff;
+                border-left: 3px solid var(--user-msg-border);
             }
             .bot-message {
-                background-color: #f5f5f5;
+                background-color: var(--bot-msg-bg);
                 margin-right: 20%;
-                border-left: 3px solid #52c41a;
+                border-left: 3px solid var(--bot-msg-border);
             }
             .document-section, .diagram-section {
                 margin-top: 30px;
                 padding: 20px;
-                border: 1px solid #ddd;
+                border: 1px solid var(--border-color);
                 border-radius: 5px;
+                background-color: var(--bg-color);
             }
             .app-container {
                 display: flex;
@@ -649,15 +686,15 @@ def index():
                 display: flex;
                 flex-direction: column;
                 width: 200px;
-                border-right: 1px solid #ddd;
+                border-right: 1px solid var(--border-color);
                 margin-right: 20px;
                 padding-right: 10px;
             }
             .tab {
                 padding: 15px;
                 cursor: pointer;
-                background-color: #f5f5f5;
-                border: 1px solid #ddd;
+                background-color: var(--tab-bg);
+                border: 1px solid var(--border-color);
                 margin-bottom: 5px;
                 border-radius: 5px;
                 font-weight: bold;
@@ -665,9 +702,9 @@ def index():
                 text-align: left;
             }
             .tab.active {
-                background-color: #007bff;
-                color: white;
-                border-color: #007bff;
+                background-color: var(--tab-active-bg);
+                color: var(--tab-active-color);
+                border-color: var(--tab-active-bg);
             }
             .tab:hover {
                 background-color: #e3e3e3;
@@ -693,8 +730,9 @@ def index():
             .session-info {
                 margin-bottom: 20px;
                 padding: 10px;
-                background-color: #f8f9fa;
+                background-color: var(--session-bg);
                 border-radius: 5px;
+                border: 1px solid var(--border-color);
             }
             .document-list {
                 margin-top: 15px;
@@ -705,44 +743,62 @@ def index():
             .diagram-item {
                 margin-bottom: 30px;
                 padding: 15px;
-                border: 1px solid #eee;
+                border: 1px solid var(--border-color);
                 border-radius: 5px;
+                background-color: var(--bg-color);
             }
             .diagram-code {
                 margin-top: 10px;
                 padding: 10px;
-                background-color: #f8f9fa;
+                background-color: var(--session-bg);
                 border-radius: 5px;
                 overflow-x: auto;
             }
             .diagram-explanation {
                 margin-top: 10px;
                 padding: 10px;
-                background-color: #e9f7ef;
+                background-color: var(--diagram-bg);
                 border-radius: 5px;
             }
             .diagram-visual {
                 margin-top: 20px;
                 padding: 10px;
-                background-color: white;
-                border: 1px solid #ddd;
+                background-color: var(--bg-color);
+                border: 1px solid var(--border-color);
                 border-radius: 5px;
             }
             .footer {
                 margin-top: 50px;
                 text-align: center;
-                color: #6c757d;
+                color: var(--text-color);
                 font-size: 0.9rem;
+                opacity: 0.7;
+            }
+            
+            /* Dark mode specific bootstrap overrides */
+            [data-theme="dark"] .form-control {
+                background-color: #333;
+                border-color: #555;
+                color: #fff;
+            }
+            [data-theme="dark"] .list-group-item {
+                background-color: #333;
+                border-color: #555;
+                color: #fff;
             }
         </style>
     </head>
     <body>
         <div class="container">
-            <div class="mt-4 mb-4 d-flex align-items-center">
-                <div class="logo-container me-3" style="background-color: #0056b3; width: 48px; height: 48px; border-radius: 10px; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 20px;">RC</div>
+            <div class="mt-4 mb-4 d-flex justify-content-between align-items-center">
                 <div>
-                    <h1 class="mb-0" style="color: #0056b3;">RegCap GPT</h1>
+                    <h1 class="mb-0" style="color: var(--app-heading);">RegCap GPT</h1>
                     <p class="text-muted mb-0" style="font-size: 1.1rem;">Regulatory Intelligence</p>
+                </div>
+                <div>
+                    <button id="darkModeToggle" class="btn btn-outline-secondary">
+                        <i class="fa fa-moon-o"></i> Dark Mode
+                    </button>
                 </div>
             </div>
             
@@ -1012,6 +1068,50 @@ def index():
                 }
             }
             
+            // Dark mode toggle functionality
+            function setupDarkModeToggle() {
+                const darkModeToggle = document.getElementById('darkModeToggle');
+                const htmlElement = document.documentElement;
+                
+                // Check for saved theme preference or respect OS preference
+                const savedTheme = localStorage.getItem('theme');
+                const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                
+                // Apply dark theme if saved or OS prefers dark
+                if (savedTheme === 'dark' || (!savedTheme && prefersDarkMode)) {
+                    htmlElement.setAttribute('data-theme', 'dark');
+                    darkModeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
+                    // Update Mermaid theme
+                    mermaid.initialize({ theme: 'dark' });
+                }
+                
+                // Toggle theme when button is clicked
+                darkModeToggle.addEventListener('click', function() {
+                    if (htmlElement.getAttribute('data-theme') === 'dark') {
+                        htmlElement.removeAttribute('data-theme');
+                        localStorage.setItem('theme', 'light');
+                        darkModeToggle.innerHTML = '<i class="fa fa-moon-o"></i> Dark Mode';
+                        // Update Mermaid theme
+                        mermaid.initialize({ theme: 'default' });
+                    } else {
+                        htmlElement.setAttribute('data-theme', 'dark');
+                        localStorage.setItem('theme', 'dark');
+                        darkModeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
+                        // Update Mermaid theme
+                        mermaid.initialize({ theme: 'dark' });
+                    }
+                    
+                    // Reinitialize Mermaid diagrams with the new theme
+                    try {
+                        setTimeout(function() {
+                            initMermaidDiagrams();
+                        }, 100);
+                    } catch (error) {
+                        console.error("Error updating Mermaid diagrams after theme change:", error);
+                    }
+                });
+            }
+            
             // Call functions when page loads
             window.onload = function() {
                 scrollChatToBottom();
@@ -1021,6 +1121,9 @@ def index():
                 
                 // Show diagram notification
                 setTimeout(checkAndShowDiagramNotification, 500);
+                
+                // Setup dark mode toggle
+                setupDarkModeToggle();
             };
         </script>
     </body>
