@@ -1294,6 +1294,15 @@ def ask_question():
                 
                 if success:
                     mermaid_code, explanation = result
+                    
+                    # Sanitize the mermaid code to ensure consistent syntax
+                    if diagram_type == "flowchart":
+                        # Fix mixed flowchart TD and graph TD syntax
+                        if "flowchart TD" in mermaid_code and "graph TD" in mermaid_code:
+                            mermaid_code = mermaid_code.replace("graph TD", "")
+                        elif "graph TD" in mermaid_code and not mermaid_code.strip().startswith("graph TD"):
+                            mermaid_code = mermaid_code.replace("graph TD;", "")
+                    
                     # Get the index of this diagram (it's the latest one)
                     diagram_count = len(get_diagrams()) - 1  # -1 because we just added it and indexes are 0-based
                     
@@ -1381,6 +1390,14 @@ def view_diagram(diagram_index):
         return "Diagram not found", 404
         
     diagram_code, explanation, diagram_type = diagrams[diagram_index]
+    
+    # Sanitize the mermaid code to ensure consistent syntax
+    if diagram_type == "flowchart":
+        # Fix mixed flowchart TD and graph TD syntax
+        if "flowchart TD" in diagram_code and "graph TD" in diagram_code:
+            diagram_code = diagram_code.replace("graph TD", "")
+        elif "graph TD" in diagram_code and not diagram_code.strip().startswith("graph TD"):
+            diagram_code = diagram_code.replace("graph TD;", "")
     
     return render_template_string("""
     <!DOCTYPE html>

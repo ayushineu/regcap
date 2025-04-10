@@ -149,6 +149,17 @@ Remember to focus ONLY on what is explicitly stated in the documents.
         # Validate the diagram code
         if "diagram_code" not in result or not result["diagram_code"]:
             return False, "Could not generate a diagram from the document content."
+            
+        # Ensure consistent diagram syntax (avoid mixing flowchart TD and graph TD)
+        diagram_code = result["diagram_code"]
+        if diagram_type == "flowchart":
+            # Clean up common syntax issues that cause rendering problems
+            if "flowchart TD" in diagram_code and "graph TD" in diagram_code:
+                # Remove the duplicate declaration
+                result["diagram_code"] = diagram_code.replace("graph TD", "").replace("graph TD;", "")
+            elif diagram_code.strip().startswith("graph TD") and not "flowchart TD" in diagram_code:
+                # Standardize on flowchart TD syntax
+                result["diagram_code"] = diagram_code.replace("graph TD", "flowchart TD")
         
         return True, result
     
