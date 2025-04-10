@@ -640,37 +640,48 @@ def index():
                 border: 1px solid #ddd;
                 border-radius: 5px;
             }
+            .app-container {
+                display: flex;
+                min-height: 80vh;
+            }
             .tabs {
                 display: flex;
-                border-bottom: 1px solid #ddd;
-                margin-bottom: 20px;
+                flex-direction: column;
+                width: 200px;
+                border-right: 1px solid #ddd;
+                margin-right: 20px;
+                padding-right: 10px;
             }
             .tab {
-                padding: 10px 20px;
+                padding: 15px;
                 cursor: pointer;
                 background-color: #f5f5f5;
                 border: 1px solid #ddd;
-                border-bottom: none;
-                margin-right: 5px;
-                border-top-left-radius: 5px;
-                border-top-right-radius: 5px;
+                margin-bottom: 5px;
+                border-radius: 5px;
                 font-weight: bold;
                 transition: all 0.3s ease;
+                text-align: left;
             }
             .tab.active {
-                background-color: white;
-                border-bottom: 1px solid white;
+                background-color: #007bff;
+                color: white;
+                border-color: #007bff;
             }
             .tab:hover {
                 background-color: #e3e3e3;
+            }
+            .tab.active:hover {
+                background-color: #0069d9;
             }
             #diagrams-tab-button {
                 background-color: #f0f7ff;
                 border: 1px solid #c0d5e8;
             }
             #diagrams-tab-button.active {
-                background-color: white;
-                border-bottom: 1px solid white;
+                background-color: #007bff;
+                color: white;
+                border-color: #007bff;
             }
             .tab-content {
                 display: none;
@@ -736,22 +747,26 @@ def index():
                 </form>
             </div>
             
-            <!-- Tabs -->
-            <div class="tabs">
-                <div id="chat-tab-button" class="tab active" onclick="openTab(event, 'chat-tab')">Chat</div>
-                <div id="documents-tab-button" class="tab" onclick="openTab(event, 'documents-tab')">Documents</div>
-                <div id="diagrams-tab-button" class="tab" onclick="openTab(event, 'diagrams-tab')">
-                    <span style="position: relative;">
-                        Diagrams
-                        <div style="position: absolute; top: -8px; right: -8px; background-color: #ff9900; color: white; border-radius: 50%; width: 18px; height: 18px; display: none; font-size: 12px; text-align: center; line-height: 18px;" id="diagrams-notification">!</div>
-                    </span>
+            <!-- App Container with Sidebar Tabs -->
+            <div class="app-container">
+                <!-- Sidebar Tabs -->
+                <div class="tabs">
+                    <div id="chat-tab-button" class="tab active" onclick="openTab(event, 'chat-tab')">Chat</div>
+                    <div id="documents-tab-button" class="tab" onclick="openTab(event, 'documents-tab')">Documents</div>
+                    <div id="diagrams-tab-button" class="tab" onclick="openTab(event, 'diagrams-tab')">
+                        <span style="position: relative;">
+                            Diagrams
+                            <div style="position: absolute; top: 3px; right: 5px; background-color: #ff9900; color: white; border-radius: 50%; width: 18px; height: 18px; display: none; font-size: 12px; text-align: center; line-height: 18px;" id="diagrams-notification">!</div>
+                        </span>
+                    </div>
+                    <div id="sessions-tab-button" class="tab" onclick="openTab(event, 'sessions-tab')">Sessions</div>
                 </div>
-                <div id="sessions-tab-button" class="tab" onclick="openTab(event, 'sessions-tab')">Sessions</div>
-            </div>
-            
-            <!-- Chat Tab -->
-            <div id="chat-tab" class="tab-content active">
-                <div class="chat-container" id="chat-messages">
+                
+                <!-- Tab Content Container -->
+                <div class="tab-content-container" style="flex: 1;">
+                    <!-- Chat Tab -->
+                    <div id="chat-tab" class="tab-content active">
+                        <div class="chat-container" id="chat-messages">
                     {% if chat_history %}
                         {% for question, answer in chat_history %}
                             <div class="user-message">
@@ -856,6 +871,9 @@ def index():
                     {% else %}
                         <p>No sessions available.</p>
                     {% endif %}
+                </div>
+            </div>
+            
                 </div>
             </div>
             
@@ -1253,11 +1271,11 @@ def view_diagram(diagram_index):
 @app.route('/debug_api', methods=['GET'])
 def debug_api():
     """Check OpenAI API connection."""
+    # Import the OpenAI key status
+    api_key = os.environ.get("OPENAI_API_KEY")
+    api_key_status = "Present" if api_key else "Missing"
+    
     try:
-        # Import the OpenAI key status
-        api_key = os.environ.get("OPENAI_API_KEY")
-        api_key_status = "Present" if api_key else "Missing"
-        
         # Test a simple API call with timeout
         response = client.chat.completions.create(
             model="gpt-4o", # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
