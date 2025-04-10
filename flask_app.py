@@ -602,7 +602,7 @@ def index():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Regulatory Document Chatbot</title>
+        <title>RegCap GPT | Regulatory Intelligence</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.css">
         <style>
@@ -738,7 +738,13 @@ def index():
     </head>
     <body>
         <div class="container">
-            <h1 class="mt-4 mb-4">Regulatory Document Chatbot</h1>
+            <div class="mt-4 mb-4 d-flex align-items-center">
+                <div class="logo-container me-3" style="background-color: #0056b3; width: 48px; height: 48px; border-radius: 10px; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 20px;">RC</div>
+                <div>
+                    <h1 class="mb-0" style="color: #0056b3;">RegCap GPT</h1>
+                    <p class="text-muted mb-0" style="font-size: 1.1rem;">Regulatory Intelligence</p>
+                </div>
+            </div>
             
             <!-- Session Information -->
             <div class="session-info">
@@ -779,7 +785,7 @@ def index():
                         {% endfor %}
                     {% else %}
                         <div class="bot-message">
-                            <strong>Bot:</strong> Hello! I'm your regulatory document assistant. Upload documents and ask me questions about them.
+                            <strong>Bot:</strong> Welcome to RegCap GPT! I'm your regulatory intelligence assistant. Upload regulatory documents and ask me questions about them.
                         </div>
                     {% endif %}
                 </div>
@@ -879,7 +885,7 @@ def index():
             </div>
             
             <div class="footer mt-5">
-                <p>Regulatory Document Chatbot &copy; 2025</p>
+                <p>RegCap GPT &copy; 2025 | Regulatory Intelligence</p>
             </div>
         </div>
         
@@ -1180,7 +1186,7 @@ def view_diagram(diagram_index):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>View Diagram</title>
+        <title>RegCap GPT - View Diagram</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
         <style>
             body {
