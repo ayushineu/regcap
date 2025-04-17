@@ -1343,27 +1343,37 @@ def ask_question():
         nonlocal question
         
         try:
+            print(f"Starting to process question: {question}")
             # Check if this is a diagram request
             is_diagram_request, diagram_type = detect_diagram_request(question)
+            print(f"Diagram request: {is_diagram_request}, type: {diagram_type}")
             
             # Get document chunks
+            print("Getting document chunks...")
             chunks = get_all_document_chunks()
+            print(f"Found {len(chunks) if chunks else 0} document chunks")
             
             if not chunks:
                 answer = "Please upload documents first so I can answer your questions based on them."
                 update_chat_history(question, answer)
+                print("No document chunks found, returning error message")
                 return
             
             # Create or get vector store
+            print("Creating vector store...")
             vector_store = create_vector_store(chunks)
+            print(f"Vector store created: {vector_store is not None}")
             
             if not vector_store:
                 answer = "There was an error processing your documents. Please try again."
                 update_chat_history(question, answer)
+                print("Error creating vector store, returning error message")
                 return
                 
             # Find relevant chunks
+            print("Finding similar chunks...")
             similar_chunks = get_similar_chunks(question, vector_store)
+            print(f"Found {len(similar_chunks)} similar chunks")
             
             if is_diagram_request:
                 # Generate diagram
