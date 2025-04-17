@@ -652,6 +652,47 @@ def list_all_sessions():
         print(f"Error listing sessions: {e}")
         return {}
 
+# Logging and status tracking functions
+def log_message(message):
+    """Add a message to the logs with timestamp."""
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    process_log_storage["logs"].append({
+        "timestamp": timestamp,
+        "message": message
+    })
+    print(message)  # Also print to console
+
+def update_question_status(question_id, stage=None, progress=None, done=None, error=None):
+    """Update the status of a question being processed."""
+    if question_id not in process_log_storage["question_status"]:
+        # Initialize with default values
+        process_log_storage["question_status"][question_id] = {
+            "start_time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+            "stage": "Starting",
+            "progress": 5,
+            "done": False,
+            "error": None
+        }
+    
+    # Update provided fields
+    if stage:
+        process_log_storage["question_status"][question_id]["stage"] = stage
+        log_message(f"Question {question_id}: {stage}")
+    
+    if progress is not None:
+        process_log_storage["question_status"][question_id]["progress"] = progress
+    
+    if done is not None:
+        process_log_storage["question_status"][question_id]["done"] = done
+        if done:
+            log_message(f"Question {question_id}: Processing complete")
+    
+    if error:
+        process_log_storage["question_status"][question_id]["error"] = error
+        log_message(f"Question {question_id} ERROR: {error}")
+    
+    return process_log_storage["question_status"][question_id]
+
 # Flask routes
 @app.route('/')
 def index():
@@ -1387,6 +1428,7 @@ def ask_question():
     """Handle questions from the user."""
     import threading
     import time
+    import uuid
     
     question = request.form.get('question', '')
     
@@ -1396,13 +1438,24 @@ def ask_question():
         else:
             return redirect('/')
     
+    # Generate a unique ID for this question
+    question_id = str(uuid.uuid4())
+    
+    # Initialize question status
+    update_question_status(question_id, stage="Initialized", progress=5)
+    log_message(f"New question received: '{question[:50]}...' (ID: {question_id})")
+    
     # Save the question immediately to avoid losing it
-    answer = "Processing your question..."
+    answer = "<div class='processing-message'>Processing your question... <div class='spinner-border spinner-border-sm text-primary' role='status'><span class='visually-hidden'>Loading...</span></div></div>"
     save_chat_history(question, answer)
     
-    # If this is an AJAX request, return success immediately
+    # If this is an AJAX request, return success immediately with the question ID
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return jsonify({"success": True, "message": "Processing question in background"})
+        return jsonify({
+            "success": True, 
+            "message": "Processing question in background",
+            "question_id": question_id
+        })
     
     # Start processing in a separate thread
     def process_question():
@@ -1740,6 +1793,12 @@ def view_diagram(diagram_index):
     </html>
     """, diagram_code=diagram_code, explanation=explanation, diagram_type=diagram_type)
 
+# Logs storage
+process_log_storage = {
+    "logs": [],
+    "question_status": {}
+}
+
 @app.route('/debug_api', methods=['GET'])
 def debug_api():
     """Check OpenAI API connection."""
@@ -1771,6 +1830,126 @@ def debug_api():
         <p>Error Details: {str(e)}</p>
         <p>Current Time: {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}</p>
         """
+        
+@app.route('/logs', methods=['GET'])
+def view_logs():
+    """View system logs."""
+    # Get up to 500 most recent logs (to avoid overwhelming the browser)
+    logs = process_log_storage["logs"][-500:] if process_log_storage["logs"] else []
+    
+    # Get current status of questions being processed
+    active_questions = []
+    for q_id, status in process_log_storage["question_status"].items():
+        if not status.get("done", False):
+            active_questions.append({
+                "id": q_id,
+                "stage": status.get("stage", "Unknown"),
+                "progress": status.get("progress", 0),
+                "start_time": status.get("start_time", "Unknown")
+            })
+    
+    # Create a readable timestamp with seconds precision
+    current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    
+    return render_template_string("""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>RegCap GPT - System Logs</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+        <meta http-equiv="refresh" content="5"> <!-- Auto-refresh every 5 seconds -->
+        <style>
+            body {
+                padding: 20px;
+            }
+            .log-container {
+                height: 600px;
+                overflow: auto;
+                background-color: #f8f9fa;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                padding: 15px;
+                margin-bottom: 20px;
+                font-family: monospace;
+            }
+            .log-entry {
+                margin-bottom: 5px;
+            }
+            .log-entry:hover {
+                background-color: #e9ecef;
+            }
+            .timestamp {
+                color: #6c757d;
+                margin-right: 10px;
+            }
+            .active-question {
+                background-color: #d1e7dd;
+                border: 1px solid #badbcc;
+                border-radius: 5px;
+                padding: 10px;
+                margin-bottom: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1 class="mb-4">RegCap GPT - System Logs</h1>
+            <div class="mb-3">
+                <p class="lead">Current time: <span class="fw-bold">{{ current_time }}</span></p>
+                <a href="/" class="btn btn-primary mb-3">Back to Main App</a>
+                <button class="btn btn-secondary mb-3 ms-2" onClick="window.location.reload();">Refresh Logs</button>
+            </div>
+            
+            <h2>Active Questions ({{ active_questions|length }})</h2>
+            {% if active_questions %}
+                {% for question in active_questions %}
+                <div class="active-question">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>ID:</strong> {{ question.id }}
+                            <strong class="ms-3">Stage:</strong> {{ question.stage }}
+                            <strong class="ms-3">Start Time:</strong> {{ question.start_time }}
+                        </div>
+                        <div class="badge bg-primary">{{ question.progress }}%</div>
+                    </div>
+                    <div class="progress mt-2" style="height: 10px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" 
+                             style="width: {{ question.progress }}%;" aria-valuenow="{{ question.progress }}" 
+                             aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No questions currently being processed.</p>
+            {% endif %}
+            
+            <h2>System Logs</h2>
+            <div class="log-container">
+                {% if logs %}
+                    {% for log in logs %}
+                        <div class="log-entry">
+                            <span class="timestamp">{{ log.timestamp }}</span>
+                            <span class="message">{{ log.message }}</span>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No logs available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </body>
+    </html>
+    """, logs=logs, active_questions=active_questions, current_time=current_time)
+
+@app.route('/question_status/<question_id>', methods=['GET'])
+def get_question_status(question_id):
+    """Get the status of a specific question."""
+    if question_id in process_log_storage["question_status"]:
+        return jsonify(process_log_storage["question_status"][question_id])
+    else:
+        return jsonify({"error": "Question not found", "done": True})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
