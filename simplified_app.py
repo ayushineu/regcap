@@ -891,15 +891,35 @@ def view_diagram(diagram_index):
     diagram_code, explanation, diagram_type = unique_diagrams[diagram_index]
     
     # Create a simplified version of the diagram
-    simplified_code = """
-flowchart TD
-    A[Start] --> B[Identify Activities]
-    B --> C[Involve Business Experts]
-    C --> D[Engage Technical Experts]
-    D --> E[Develop Data Dictionary]
-    E --> F[Define Message Models]
-    F --> G[Complete & Register]
-    G --> H[End]
+    # Use extremely simple syntax that works in any mermaid version
+    if diagram_type == "flowchart":
+        simplified_code = """
+graph TD
+    A(Start) --> B(Identify Activities)
+    B --> C(Involve Business Experts)
+    C --> D(Engage Technical Experts)
+    D --> E(Develop Data Dictionary)
+    E --> F(Define Message Models)
+    F --> G(Complete & Register)
+    G --> H(End)
+"""
+    elif diagram_type == "sequence":
+        simplified_code = """
+sequenceDiagram
+    participant User
+    participant System
+    User->>System: Submit Request
+    System->>System: Process Request
+    System->>User: Return Response
+"""
+    else:  # Default to flowchart
+        simplified_code = """
+graph TD
+    A(ISO 20022 Workflow Process)
+    A --> B(Identify Activities)
+    B --> C(Involve Business Experts)
+    C --> D(Engage Technical Experts)
+    D --> E(Complete & Register)
 """
     
     # Apply extra fixes for complex diagrams
@@ -1040,15 +1060,16 @@ flowchart TD
     </div>
     
     <script>
-        // Configure mermaid with permissive settings
+        // Configure mermaid with the most permissive, basic settings
         mermaid.initialize({
-            startOnLoad: true,
+            startOnLoad: false,  // Important: manually control initialization
             securityLevel: 'loose',
             logLevel: 'error',
             theme: 'default',
             flowchart: {
                 htmlLabels: true,
-                useMaxWidth: true
+                useMaxWidth: true,
+                curve: 'linear'  // Simpler edges for better compatibility
             }
         });
         
@@ -1071,26 +1092,42 @@ flowchart TD
                     this.classList.add('active');
                     var tabId = this.getAttribute('data-tab');
                     document.getElementById(tabId).classList.add('active');
-                    
-                    // If switching to simplified, make sure it's initialized
-                    if (tabId === 'simplified') {
-                        try {
-                            mermaid.init(undefined, document.getElementById('simplified-diagram'));
-                        } catch (e) {
-                            console.error('Error rendering simplified diagram:', e);
-                        }
-                    }
                 });
             }
             
-            // Try to render the generated diagram
-            try {
-                mermaid.init(undefined, document.getElementById('generated-diagram'));
-            } catch (e) {
-                console.error('Error rendering diagram:', e);
-                
-                // If generated fails, switch to simplified
-                document.querySelector('[data-tab="simplified"]').click();
+            // Always render the simplified diagram first as it's more reliable
+            var simpleDiagram = document.getElementById('simplified-diagram');
+            if (simpleDiagram) {
+                try {
+                    mermaid.render('simplified-svg', simpleDiagram.textContent, function(svgCode) {
+                        simpleDiagram.innerHTML = svgCode;
+                    });
+                } catch (e) {
+                    console.error('Error rendering simplified diagram:', e);
+                    // If even simplified fails, just show an error message
+                    simpleDiagram.innerHTML = '<div class="alert alert-danger">Unable to render any diagram. Please view the raw code.</div>';
+                }
+            }
+            
+            // Try to render the generated diagram with a direct fallback
+            var generatedDiagram = document.getElementById('generated-diagram');
+            if (generatedDiagram) {
+                try {
+                    mermaid.render('generated-svg', generatedDiagram.textContent, function(svgCode) {
+                        generatedDiagram.innerHTML = svgCode;
+                    });
+                } catch (e) {
+                    console.error('Error rendering generated diagram:', e);
+                    // If failed, auto-switch to simplified tab
+                    var simplifiedTab = document.querySelector('[data-tab="simplified"]');
+                    if (simplifiedTab) {
+                        setTimeout(function() {
+                            simplifiedTab.click();
+                            // Also show a notice in the generated tab
+                            generatedDiagram.innerHTML = '<div class="alert alert-warning">The generated diagram had syntax errors and could not be displayed. Switched to simplified view.</div>';
+                        }, 100);
+                    }
+                }
             }
         });
     </script>
