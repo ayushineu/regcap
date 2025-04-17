@@ -223,14 +223,6 @@ def index():
                         <textarea class="form-control" id="question" name="question" rows="3" required></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary">Ask</button>
-                    <div id="status" class="mt-2" style="display: none;">
-                        <div class="d-flex align-items-center">
-                            <div class="spinner-border spinner-border-sm me-2" role="status">
-                                <span class="visually-hidden">Processing...</span>
-                            </div>
-                            <span>Processing your question...</span>
-                        </div>
-                    </div>
                 </form>
             </div>
             
@@ -399,7 +391,6 @@ def index():
             
             // Form handling
             const questionForm = document.getElementById('question-form');
-            const statusDiv = document.getElementById('status');
             if (questionForm) {
                 questionForm.addEventListener('submit', function(e) {
                     e.preventDefault();
@@ -407,8 +398,7 @@ def index():
                     const question = document.getElementById('question').value.trim();
                     if (!question) return;
                     
-                    // Show loading status
-                    statusDiv.style.display = 'block';
+                    // Disable submit button while processing
                     const submitButton = this.querySelector('button[type="submit"]');
                     submitButton.disabled = true;
                     
@@ -433,7 +423,6 @@ def index():
                     
                     if (isDuplicate) {
                         alert('This question has already been asked. Please check the existing answers or ask a different question.');
-                        statusDiv.style.display = 'none';
                         submitButton.disabled = false;
                         return;
                     }
@@ -488,14 +477,12 @@ def index():
                             }, 20000);
                         } else {
                             alert('Error: ' + (data.error || 'Unknown error'));
-                            statusDiv.style.display = 'none';
                             submitButton.disabled = false;
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
                         alert('Error processing request: ' + error.message);
-                        statusDiv.style.display = 'none';
                         submitButton.disabled = false;
                     });
                     
