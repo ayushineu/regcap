@@ -412,8 +412,33 @@ def index():
                     const submitButton = this.querySelector('button[type="submit"]');
                     submitButton.disabled = true;
                     
-                    // Add temporary message to the chat
+                    // Get the existing chat history from the page
                     const chatContainer = document.getElementById('chatMessages');
+                    
+                    // Check if the question already exists in the chat
+                    const existingMessages = chatContainer.querySelectorAll('.user-message');
+                    let isDuplicate = false;
+                    
+                    existingMessages.forEach(msg => {
+                        const msgText = msg.textContent.replace('You:', '').trim();
+                        if (msgText.toLowerCase() === question.toLowerCase()) {
+                            isDuplicate = true;
+                            // Highlight the existing message
+                            msg.style.backgroundColor = '#ffffdd';
+                            setTimeout(() => {
+                                msg.style.backgroundColor = '';
+                            }, 3000);
+                        }
+                    });
+                    
+                    if (isDuplicate) {
+                        alert('This question has already been asked. Please check the existing answers or ask a different question.');
+                        statusDiv.style.display = 'none';
+                        submitButton.disabled = false;
+                        return;
+                    }
+                    
+                    // Add the new message to the chat
                     const userMessage = document.createElement('div');
                     userMessage.className = 'user-message';
                     userMessage.innerHTML = '<strong>You:</strong> ' + question;
@@ -457,10 +482,10 @@ def index():
                                 }, 7000);
                             }
                             
-                            // Wait 10 seconds then reload to see the answer
+                            // Wait a bit longer (20 seconds) to ensure processing completes
                             setTimeout(() => {
                                 window.location.reload();
-                            }, 10000);
+                            }, 20000);
                         } else {
                             alert('Error: ' + (data.error || 'Unknown error'));
                             statusDiv.style.display = 'none';
