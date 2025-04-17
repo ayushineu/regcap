@@ -8,7 +8,7 @@ deploymentTarget = "autoscale"
 run = ["streamlit", "run", "app.py", "--server.port", "5000"]
 
 [workflows]
-runButton = "Regulatory Chatbot"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -18,6 +18,10 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "Regulatory Chatbot"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Tab Test"
 
 [[workflows.workflow]]
 name = "Regulatory Chatbot"
@@ -33,6 +37,21 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "python flask_app.py"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Tab Test"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python minimal_tab_fix.py"
+waitForPort = 5001
 
 [[ports]]
 localPort = 5000

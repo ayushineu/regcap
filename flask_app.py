@@ -941,15 +941,15 @@ def index():
             <div class="app-container">
                 <!-- Sidebar Tabs -->
                 <div class="tabs">
-                    <div id="chat-tab-button" class="tab active" onclick="openTab(event, 'chat-tab')">Chat</div>
-                    <div id="documents-tab-button" class="tab" onclick="openTab(event, 'documents-tab')">Documents</div>
-                    <div id="diagrams-tab-button" class="tab" onclick="openTab(event, 'diagrams-tab')">
+                    <div id="chat-tab-button" class="tab active" onclick="switchTab(event, 'chat-tab')">Chat</div>
+                    <div id="documents-tab-button" class="tab" onclick="switchTab(event, 'documents-tab')">Documents</div>
+                    <div id="diagrams-tab-button" class="tab" onclick="switchTab(event, 'diagrams-tab')">
                         <span style="position: relative;">
                             Diagrams
                             <div style="position: absolute; top: 3px; right: 5px; background-color: #ff9900; color: white; border-radius: 50%; width: 18px; height: 18px; display: none; font-size: 12px; text-align: center; line-height: 18px;" id="diagrams-notification">!</div>
                         </span>
                     </div>
-                    <div id="sessions-tab-button" class="tab" onclick="openTab(event, 'sessions-tab')">Sessions</div>
+                    <div id="sessions-tab-button" class="tab" onclick="switchTab(event, 'sessions-tab')">Sessions</div>
                 </div>
                 
                 <!-- Tab Content Container -->
@@ -1107,10 +1107,40 @@ def index():
                 }
             });
             
-            // Auto-refresh was removed from here because it was causing issues
-            // with constant page refreshes
+            // Simple tab switching function
+            function switchTab(evt, tabName) {
+                console.log('Switching to tab:', tabName);
+                
+                // Hide all tab contents
+                var tabContents = document.getElementsByClassName('tab-content');
+                for (var i = 0; i < tabContents.length; i++) {
+                    tabContents[i].className = tabContents[i].className.replace(' active', '');
+                }
+                
+                // Remove active class from all tabs
+                var tabs = document.getElementsByClassName('tab');
+                for (var i = 0; i < tabs.length; i++) {
+                    tabs[i].className = tabs[i].className.replace(' active', '');
+                }
+                
+                // Show the selected tab content and mark tab as active
+                document.getElementById(tabName).className += ' active';
+                evt.currentTarget.className += ' active';
+                
+                // Hide notification when diagrams tab is opened
+                if (tabName === 'diagrams-tab') {
+                    document.getElementById('diagrams-notification').style.display = 'none';
+                    
+                    // Force re-render mermaid diagrams when tab is opened
+                    try {
+                        mermaid.init(undefined, '.mermaid');
+                    } catch(e) {
+                        console.error("Error re-rendering mermaid diagrams:", e);
+                    }
+                }
+            }
             
-            // Make the openTab function globally accessible
+            // Legacy openTab function - kept for backward compatibility
             window.openTab = function(evt, tabName) {
                 var i, tabContent, tabs;
                 tabContent = document.getElementsByClassName("tab-content");
