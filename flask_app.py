@@ -1325,27 +1325,35 @@ def index():
                         })
                         .then(response => {
                             if (response.ok) {
-                                // Add placeholder message to the chat
-                                const chatMessages = document.getElementById('chat-messages');
-                                const userMsg = document.createElement('div');
-                                userMsg.className = 'message user-message';
-                                userMsg.textContent = question;
-                                chatMessages.appendChild(userMsg);
-                                
-                                const botMsg = document.createElement('div');
-                                botMsg.className = 'message bot-message';
-                                botMsg.innerHTML = '<div class="processing-message">Processing your question... <div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
-                                chatMessages.appendChild(botMsg);
-                                
-                                scrollChatToBottom();
-                                
-                                // Clear input
-                                questionInput.value = '';
-                                
-                                // Simply re-enable the button after a delay
-                                setTimeout(function() {
-                                    askButton.disabled = false;
-                                    statusDiv.style.display = 'none';
+                                return response.json().then(data => {
+                                    console.log('Question submitted:', data);
+                                    
+                                    // Add placeholder message to the chat
+                                    const chatMessages = document.getElementById('chat-messages');
+                                    const userMsg = document.createElement('div');
+                                    userMsg.className = 'message user-message';
+                                    userMsg.textContent = question;
+                                    chatMessages.appendChild(userMsg);
+                                    
+                                    const botMsg = document.createElement('div');
+                                    botMsg.className = 'message bot-message';
+                                    botMsg.innerHTML = '<div class="processing-message">Processing your question... <div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+                                    chatMessages.appendChild(botMsg);
+                                    
+                                    // Set up status polling if we have a question ID
+                                    if (data.question_id) {
+                                        startStatusPolling(data.question_id, botMsg);
+                                    }
+                                    
+                                    scrollChatToBottom();
+                                    
+                                    // Clear input
+                                    questionInput.value = '';
+                                    
+                                    // Simply re-enable the button after a delay
+                                    setTimeout(function() {
+                                        askButton.disabled = false;
+                                        statusDiv.style.display = 'none';
                                     
                                     // Add a small refresh button next to the "Processing" text in the chat
                                     const processingMsgs = document.querySelectorAll('.processing-message');
@@ -1374,6 +1382,106 @@ def index():
                         });
                     });
                 }
+            }
+            
+            // Function to poll for status updates
+            function startStatusPolling(questionId, botMsg) {
+                console.log('Starting status polling for question:', questionId);
+                
+                // Add status indicator to the bot message
+                const statusDiv = document.createElement('div');
+                statusDiv.className = 'status-indicator mt-2';
+                statusDiv.innerHTML = `
+                    <div class="card p-2 bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="status-text small">Initializing...</span>
+                            <span class="status-percentage badge bg-primary">5%</span>
+                        </div>
+                        <div class="progress mt-1" style="height: 4px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                 role="progressbar" style="width: 5%;" 
+                                 aria-valuenow="5" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                `;
+                
+                botMsg.appendChild(statusDiv);
+                
+                const statusText = statusDiv.querySelector('.status-text');
+                const statusPercentage = statusDiv.querySelector('.status-percentage');
+                const progressBar = statusDiv.querySelector('.progress-bar');
+                
+                let pollCount = 0;
+                let lastStage = '';
+                
+                // Set up the polling interval
+                const pollInterval = setInterval(() => {
+                    pollCount++;
+                    
+                    // Check the status
+                    fetch(`/get_question_status/${questionId}`)
+                    .then(response => response.json())
+                    .then(status => {
+                        console.log('Question status:', status);
+                        
+                        // Update the UI with the status
+                        if (status.stage && status.stage !== lastStage) {
+                            statusText.innerText = status.stage;
+                            lastStage = status.stage;
+                        }
+                        
+                        if (status.progress !== undefined) {
+                            const progress = status.progress;
+                            statusPercentage.innerText = `${progress}%`;
+                            progressBar.style.width = `${progress}%`;
+                            progressBar.setAttribute('aria-valuenow', progress);
+                            
+                            // Update color based on progress
+                            if (progress > 75) {
+                                progressBar.className = 'progress-bar progress-bar-striped progress-bar-animated bg-success';
+                            } else if (progress > 50) {
+                                progressBar.className = 'progress-bar progress-bar-striped progress-bar-animated bg-info';
+                            }
+                        }
+                        
+                        // If the question is done processing or there's an error, stop polling
+                        if (status.done || status.error) {
+                            console.log('Question processing complete:', status);
+                            clearInterval(pollInterval);
+                            
+                            // Set final status display
+                            if (status.error) {
+                                statusDiv.querySelector('.card').className = 'card p-2 bg-danger-subtle';
+                                statusText.className = 'status-text small text-danger';
+                                statusText.innerText = status.error;
+                            } else {
+                                // If done successfully, hide the status after a few seconds
+                                setTimeout(() => {
+                                    statusDiv.style.display = 'none';
+                                }, 3000);
+                            }
+                            
+                            // Refresh the page to show the answer
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error polling status:', error);
+                        // Don't stop polling on error, just log it
+                    });
+                    
+                    // If we've been polling for a long time without completion,
+                    // still reload but at a slower interval (after 30 seconds)
+                    if (pollCount > 60) { // 30 seconds (if polling every 500ms)
+                        clearInterval(pollInterval);
+                        console.log('Polling timeout reached, refreshing page');
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                }, 500); // Poll every 500ms
             }
             
             // Call functions when page loads
