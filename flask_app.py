@@ -941,15 +941,15 @@ def index():
             <div class="app-container">
                 <!-- Sidebar Tabs -->
                 <div class="tabs">
-                    <div id="chat-tab-button" class="tab active" data-tab="chat-tab">Chat</div>
-                    <div id="documents-tab-button" class="tab" data-tab="documents-tab">Documents</div>
-                    <div id="diagrams-tab-button" class="tab" data-tab="diagrams-tab">
+                    <div id="chat-tab-button" class="tab active" onclick="switchTab(event, 'chat-tab')">Chat</div>
+                    <div id="documents-tab-button" class="tab" onclick="switchTab(event, 'documents-tab')">Documents</div>
+                    <div id="diagrams-tab-button" class="tab" onclick="switchTab(event, 'diagrams-tab')">
                         <span style="position: relative;">
                             Diagrams
                             <div style="position: absolute; top: 3px; right: 5px; background-color: #ff9900; color: white; border-radius: 50%; width: 18px; height: 18px; display: none; font-size: 12px; text-align: center; line-height: 18px;" id="diagrams-notification">!</div>
                         </span>
                     </div>
-                    <div id="sessions-tab-button" class="tab" data-tab="sessions-tab">Sessions</div>
+                    <div id="sessions-tab-button" class="tab" onclick="switchTab(event, 'sessions-tab')">Sessions</div>
                 </div>
                 
                 <!-- Tab Content Container -->
@@ -1107,62 +1107,41 @@ def index():
                 }
             });
             
-            // Tab navigation - modern event listener approach
-            document.addEventListener('DOMContentLoaded', function() {
-                console.log('Setting up tab navigation');
+            // Simple global function for tab switching - same as the working minimal_tab_fix.py
+            function switchTab(evt, tabId) {
+                console.log('Switching to tab:', tabId);
                 
-                // Get all tab buttons
-                const tabButtons = document.querySelectorAll('.tab');
+                // Hide all tab contents
+                var tabContents = document.getElementsByClassName('tab-content');
+                for (var i = 0; i < tabContents.length; i++) {
+                    tabContents[i].className = tabContents[i].className.replace(' active', '');
+                }
                 
-                // Add click event listeners to each tab button
-                tabButtons.forEach(function(button) {
-                    button.addEventListener('click', function() {
-                        const tabId = this.getAttribute('data-tab');
-                        console.log('Tab clicked:', tabId);
-                        
-                        if (!tabId) {
-                            console.error('No data-tab attribute found on tab button');
-                            return;
-                        }
-                        
-                        // Hide all tab contents
-                        document.querySelectorAll('.tab-content').forEach(function(content) {
-                            content.classList.remove('active');
-                        });
-                        
-                        // Remove active class from all tabs
-                        document.querySelectorAll('.tab').forEach(function(tab) {
-                            tab.classList.remove('active');
-                        });
-                        
-                        // Show the selected tab content
-                        const selectedTab = document.getElementById(tabId);
-                        if (selectedTab) {
-                            selectedTab.classList.add('active');
-                        } else {
-                            console.error('Tab content not found:', tabId);
-                        }
-                        
-                        // Mark current tab as active
-                        this.classList.add('active');
-                        
-                        // Special handling for diagrams tab
-                        if (tabId === 'diagrams-tab') {
-                            const notification = document.getElementById('diagrams-notification');
-                            if (notification) {
-                                notification.style.display = 'none';
-                            }
-                            
-                            // Force re-render mermaid diagrams
-                            try {
-                                mermaid.init(undefined, '.mermaid');
-                            } catch(e) {
-                                console.error('Error re-rendering mermaid diagrams:', e);
-                            }
-                        }
-                    });
-                });
-            });
+                // Remove active class from all tabs
+                var tabs = document.getElementsByClassName('tab');
+                for (var i = 0; i < tabs.length; i++) {
+                    tabs[i].className = tabs[i].className.replace(' active', '');
+                }
+                
+                // Show the selected tab content and mark tab as active
+                document.getElementById(tabId).className += ' active';
+                evt.currentTarget.className += ' active';
+                
+                // Special handling for diagrams tab
+                if (tabId === 'diagrams-tab') {
+                    const notification = document.getElementById('diagrams-notification');
+                    if (notification) {
+                        notification.style.display = 'none';
+                    }
+                    
+                    // Force re-render mermaid diagrams
+                    try {
+                        mermaid.init(undefined, '.mermaid');
+                    } catch(e) {
+                        console.error('Error re-rendering mermaid diagrams:', e);
+                    }
+                }
+            }
             
             // Scroll chat to bottom
             function scrollChatToBottom() {

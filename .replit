@@ -25,7 +25,7 @@ args = "Tab Test"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Simplified App"
+args = "New App"
 
 [[workflows.workflow]]
 name = "Regulatory Chatbot"
@@ -58,7 +58,7 @@ args = "python minimal_tab_fix.py"
 waitForPort = 5001
 
 [[workflows.workflow]]
-name = "Simplified App"
+name = "New App"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -69,8 +69,8 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python simplified_flask_app.py"
-waitForPort = 5002
+args = "python new_flask_app.py"
+waitForPort = 5003
 
 [[ports]]
 localPort = 5000
@@ -79,3 +79,11 @@ externalPort = 80
 [[ports]]
 localPort = 5001
 externalPort = 3000
+
+[[ports]]
+localPort = 5002
+externalPort = 3001
+
+[[ports]]
+localPort = 5003
+externalPort = 3002
