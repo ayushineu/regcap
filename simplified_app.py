@@ -648,15 +648,13 @@ def index():
             background-color: #fef3c7;
             color: #92400e;
             border-left: 4px solid #f59e0b;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
+            padding: 0.5rem 1rem;
+            margin-bottom: 1rem;
             border-radius: var(--border-radius);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
+            font-size: 0.875rem;
         }
         
         [data-theme="dark"] .beta-banner {
@@ -691,8 +689,8 @@ def index():
         <!-- Beta Banner -->
         <div id="betaBanner" class="beta-banner">
             <div class="beta-banner-content">
-                <span style="font-size: 1.25rem;">🚧</span>
-                <span><strong>Beta Notice:</strong> RegCap GPT is currently in active development. Some features may be limited or evolving. Thank you for testing and sharing feedback!</span>
+                <span style="font-size: 1rem;">🚧</span>
+                <span><strong>Beta Notice:</strong> RegCap GPT is currently in active development. Some features may be limited or evolving.</span>
             </div>
             <button class="beta-close-btn" onclick="document.getElementById('betaBanner').style.display='none';">&times;</button>
         </div>
