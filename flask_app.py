@@ -1931,6 +1931,14 @@ process_log_storage = {
     "question_status": {}
 }
 
+@app.route('/get_question_status/<question_id>', methods=['GET'])
+def get_question_status(question_id):
+    """Get the status of a specific question."""
+    if question_id in process_log_storage["question_status"]:
+        return jsonify(process_log_storage["question_status"][question_id])
+    else:
+        return jsonify({"error": "Question not found", "done": True})
+
 @app.route('/debug_api', methods=['GET'])
 def debug_api():
     """Check OpenAI API connection."""
@@ -2075,13 +2083,7 @@ def view_logs():
     </html>
     """, logs=logs, active_questions=active_questions, current_time=current_time)
 
-@app.route('/question_status/<question_id>', methods=['GET'])
-def get_question_status(question_id):
-    """Get the status of a specific question."""
-    if question_id in process_log_storage["question_status"]:
-        return jsonify(process_log_storage["question_status"][question_id])
-    else:
-        return jsonify({"error": "Question not found", "done": True})
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
