@@ -868,7 +868,15 @@ def index():
                         <label for="question" class="form-label">Your Question:</label>
                         <textarea class="form-control" id="question" name="question" rows="3" required></textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary">Ask</button>
+                    <button type="submit" class="btn btn-primary" id="ask-button">Ask</button>
+                    <div id="question-status" class="mt-2" style="display: none;">
+                        <div class="d-flex align-items-center">
+                            <div class="spinner-border spinner-border-sm me-2" role="status">
+                                <span class="visually-hidden">Processing...</span>
+                            </div>
+                            <span>Processing your question...</span>
+                        </div>
+                    </div>
                 </form>
             </div>
             
@@ -1199,6 +1207,74 @@ def index():
                 });
             }
             
+            // Setup AJAX form submission for questions
+            function setupQuestionFormAjax() {
+                const questionForm = document.getElementById('question-form');
+                const askButton = document.getElementById('ask-button');
+                const statusDiv = document.getElementById('question-status');
+                const questionInput = document.getElementById('question');
+                
+                if (questionForm) {
+                    questionForm.addEventListener('submit', function(e) {
+                        e.preventDefault(); // Prevent regular form submission
+                        
+                        const question = questionInput.value.trim();
+                        if (!question) return; // Don't submit empty questions
+                        
+                        // Show loading status and disable button
+                        askButton.disabled = true;
+                        statusDiv.style.display = 'block';
+                        
+                        // Create the form data from the question
+                        const formData = new FormData();
+                        formData.append('question', question);
+                        
+                        // Send AJAX request with x-requested-with header
+                        fetch('/ask', {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                // Add placeholder message to the chat
+                                const chatMessages = document.getElementById('chat-messages');
+                                const userMsg = document.createElement('div');
+                                userMsg.className = 'message user-message';
+                                userMsg.textContent = question;
+                                chatMessages.appendChild(userMsg);
+                                
+                                const botMsg = document.createElement('div');
+                                botMsg.className = 'message bot-message';
+                                botMsg.innerHTML = '<div class="processing-message">Processing your question... <div class="spinner-border spinner-border-sm text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+                                chatMessages.appendChild(botMsg);
+                                
+                                scrollChatToBottom();
+                                
+                                // Clear input
+                                questionInput.value = '';
+                                
+                                // Start polling for updates
+                                setTimeout(function() {
+                                    window.location.reload();
+                                }, 1500);
+                            } else {
+                                console.error('Failed to submit question');
+                                statusDiv.textContent = 'Error submitting question. Please try again.';
+                                askButton.disabled = false;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error submitting question:', error);
+                            statusDiv.textContent = 'Error: ' + error.message;
+                            askButton.disabled = false;
+                        });
+                    });
+                }
+            }
+            
             // Call functions when page loads
             window.onload = function() {
                 scrollChatToBottom();
@@ -1214,6 +1290,9 @@ def index():
                 
                 // Setup session management
                 setupSessionManagement();
+                
+                // Setup AJAX question form
+                setupQuestionFormAjax();
             };
         </script>
     </body>
@@ -1252,11 +1331,18 @@ def ask_question():
     question = request.form.get('question', '')
     
     if not question:
-        return redirect('/')
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({"error": "Question is required"}), 400
+        else:
+            return redirect('/')
     
     # Save the question immediately to avoid losing it
     answer = "Processing your question..."
     save_chat_history(question, answer)
+    
+    # If this is an AJAX request, return success immediately
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({"success": True, "message": "Processing question in background"})
     
     # Start processing in a separate thread
     def process_question():
