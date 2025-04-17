@@ -997,44 +997,8 @@ def index():
                 }
             });
             
-            // Auto-refresh handling for background processing
-            function checkForUpdates() {
-                // If we have a message with "Processing your question...", refresh the page after 3 seconds
-                const botMessages = document.querySelectorAll('.bot-message');
-                let hasProcessingMessage = false;
-                
-                for (let i = 0; i < botMessages.length; i++) {
-                    if (botMessages[i].textContent.includes('Processing your question...')) {
-                        hasProcessingMessage = true;
-                        break;
-                    }
-                }
-                
-                if (hasProcessingMessage) {
-                    // Refresh the page to check for updates, with a longer delay
-                    setTimeout(function() {
-                        window.location.reload();
-                    }, 3000);
-                    return true; // Return true if we scheduled a refresh
-                }
-                return false; // Return false if no refresh was scheduled
-            }
-            
-            // Run the check when the page loads, but only set up auto-refresh
-            // if we actually need to poll for an answer
-            let refreshInterval;
-            window.addEventListener('load', function() {
-                // Initial check
-                const needsRefresh = checkForUpdates();
-                
-                // Only set up interval if we actually need to refresh
-                if (needsRefresh) {
-                    // No need for interval since setTimeout will handle refresh
-                } else {
-                    // No processing messages found, no need for auto-refresh
-                    // console.log("No processing messages found, no auto-refresh needed");
-                }
-            });
+            // Auto-refresh was removed from here because it was causing issues
+            // with constant page refreshes
             
             // Tab functionality
             function openTab(evt, tabName) {
@@ -1271,9 +1235,10 @@ def index():
                                 // Clear input
                                 questionInput.value = '';
                                 
-                                // Start polling for updates
+                                // Re-enable the button after a delay, but don't refresh automatically
                                 setTimeout(function() {
-                                    window.location.reload();
+                                    askButton.disabled = false;
+                                    statusDiv.innerHTML = '<div class="alert alert-success">Question submitted! <a href="javascript:window.location.reload()">Click here to check for an answer</a>.</div>';
                                 }, 1500);
                             } else {
                                 console.error('Failed to submit question');
