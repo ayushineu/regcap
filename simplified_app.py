@@ -641,15 +641,6 @@ def index():
                         <textarea class="form-control" id="question" name="question" rows="3" required></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary" id="askButton">Ask</button>
-                    <div id="processingIndicator" style="display:none; margin-top: 15px;" class="alert alert-info">
-                        <div class="d-flex align-items-center">
-                            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                            <span class="processing">Processing your question...</span>
-                        </div>
-                    </div>
-                    <div id="lastQuestion" style="display:none; margin-top: 15px;" class="alert alert-secondary">
-                        <strong>Last question: </strong><span id="lastQuestionText"></span>
-                    </div>
                 </form>
             </div>
             
@@ -869,22 +860,8 @@ graph TD
                     var submitButton = this.querySelector('button[type="submit"]');
                     submitButton.disabled = true;
                     
-                    // Show processing indicator
-                    var processingIndicator = document.getElementById('processingIndicator');
-                    if (processingIndicator) {
-                        processingIndicator.style.display = 'block';
-                    }
-                    
                     // Save the question text to display if page reloads
                     localStorage.setItem('lastQuestion', question);
-                    
-                    // Show the last question indicator
-                    var lastQuestion = document.getElementById('lastQuestion');
-                    var lastQuestionText = document.getElementById('lastQuestionText');
-                    if (lastQuestion && lastQuestionText) {
-                        lastQuestionText.textContent = question;
-                        lastQuestion.style.display = 'block';
-                    }
                     
                     // Add user message to chat
                     var chatContainer = document.getElementById('chatMessages');
@@ -915,23 +892,9 @@ graph TD
                     })
                     .then(function(data) {
                         if (data.success) {
-                            // Show processing stages with longer timeouts
                             var processingSpan = document.querySelector('.processing');
                             if (processingSpan) {
-                                // Stage 1
-                                setTimeout(function() {
-                                    processingSpan.innerHTML = "Finding information in documents... <div class='spinner-border spinner-border-sm' role='status'></div>";
-                                }, 2000);
-                                
-                                // Stage 2
-                                setTimeout(function() {
-                                    processingSpan.innerHTML = "Creating vector embeddings... <div class='spinner-border spinner-border-sm' role='status'></div>";
-                                }, 5000);
-                                
-                                // Stage 3
-                                setTimeout(function() {
-                                    processingSpan.innerHTML = "Generating answer... <div class='spinner-border spinner-border-sm' role='status'></div>";
-                                }, 8000);
+                                processingSpan.innerHTML = "Processing your question... <div class='spinner-border spinner-border-sm' role='status'></div>";
                             }
                             
                             // Get the question ID
@@ -1120,19 +1083,8 @@ graph TD
                 }
             }
             
-            // Check for last question in localStorage
-            var lastQuestion = localStorage.getItem('lastQuestion');
-            if (lastQuestion) {
-                var lastQuestionDiv = document.getElementById('lastQuestion');
-                var lastQuestionText = document.getElementById('lastQuestionText');
-                if (lastQuestionDiv && lastQuestionText) {
-                    lastQuestionText.textContent = lastQuestion;
-                    lastQuestionDiv.style.display = 'block';
-                }
-                
-                // Clear it after showing (it will be set again when submitting a new question)
-                localStorage.removeItem('lastQuestion');
-            }
+            // We'll keep the last question in localStorage for future use if needed
+            localStorage.removeItem('lastQuestion');
         });
     </script>
 </body>
