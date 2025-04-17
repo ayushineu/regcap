@@ -1460,49 +1460,57 @@ def ask_question():
     # Start processing in a separate thread
     def process_question():
         nonlocal question
+        nonlocal question_id
         
         try:
-            print(f"Starting to process question: {question}")
+            update_question_status(question_id, stage="Starting question processing", progress=10)
+            
             # Check if this is a diagram request
+            update_question_status(question_id, stage="Checking if diagram request", progress=15)
             is_diagram_request, diagram_type = detect_diagram_request(question)
-            print(f"Diagram request: {is_diagram_request}, type: {diagram_type}")
+            log_message(f"Question {question_id}: Diagram request: {is_diagram_request}, type: {diagram_type}")
             
             # Get document chunks
-            print("Getting document chunks...")
+            update_question_status(question_id, stage="Loading document chunks", progress=20)
             chunks = get_all_document_chunks()
-            print(f"Found {len(chunks) if chunks else 0} document chunks")
+            log_message(f"Question {question_id}: Found {len(chunks) if chunks else 0} document chunks")
             
             if not chunks:
                 answer = "Please upload documents first so I can answer your questions based on them."
                 update_chat_history(question, answer)
-                print("No document chunks found, returning error message")
+                update_question_status(question_id, stage="Failed - No documents", progress=100, done=True, 
+                                     error="No document chunks found")
                 return
             
             # Create or get vector store
-            print("Creating vector store...")
+            update_question_status(question_id, stage="Creating vector store and computing embeddings", progress=30)
             vector_store = create_vector_store(chunks)
-            print(f"Vector store created: {vector_store is not None}")
+            log_message(f"Question {question_id}: Vector store created: {vector_store is not None}")
             
             if not vector_store:
                 answer = "There was an error processing your documents. Please try again."
                 update_chat_history(question, answer)
-                print("Error creating vector store, returning error message")
+                update_question_status(question_id, stage="Failed - Vector store error", progress=100, done=True,
+                                     error="Error creating vector store")
                 return
                 
             # Find relevant chunks
-            print("Finding similar chunks...")
+            update_question_status(question_id, stage="Finding similar chunks", progress=60)
             similar_chunks = get_similar_chunks(question, vector_store)
-            print(f"Found {len(similar_chunks)} similar chunks")
+            log_message(f"Question {question_id}: Found {len(similar_chunks)} similar chunks")
             
             if is_diagram_request:
                 # Generate diagram
+                update_question_status(question_id, stage="Generating diagram", progress=75)
                 if diagram_type is None:
                     diagram_type = "flowchart"  # Default to flowchart if type is None
-                    
+                
+                log_message(f"Question {question_id}: Generating {diagram_type} diagram")
                 success, result = generate_diagram(question, similar_chunks, diagram_type)
                 
                 if success:
                     mermaid_code, explanation = result
+                    log_message(f"Question {question_id}: Diagram generated successfully")
                     
                     # Sanitize the mermaid code to ensure consistent syntax
                     if diagram_type == "flowchart":
@@ -1527,18 +1535,34 @@ def ask_question():
                     (Or click on the "Diagrams" tab above to access all diagrams.)
                     </div>
                     """
+                    update_question_status(question_id, stage="Complete - Diagram generated", progress=100, done=True)
                 else:
                     answer = result
+                    update_question_status(question_id, stage="Failed - Diagram generation error", progress=100, done=True, 
+                                         error=f"Error generating diagram: {result}")
             else:
-                # Generate text answer with timeout mechanism
+                # Generate text answer
+                update_question_status(question_id, stage="Generating answer from OpenAI", progress=75)
+                log_message(f"Question {question_id}: Generating text answer")
+                
+                # Track the start time to measure how long the API call takes
+                start_time = time.time()
                 answer = generate_answer(question, similar_chunks)
+                elapsed_time = time.time() - start_time
+                
+                log_message(f"Question {question_id}: Answer generated in {elapsed_time:.2f} seconds")
+                update_question_status(question_id, stage="Complete - Answer generated", progress=100, done=True)
             
             # Update the chat history with the actual answer
             update_chat_history(question, answer)
             
         except Exception as e:
             # Handle any unexpected errors
-            print(f"Error processing question: {e}")
+            error_message = f"Error processing question: {e}"
+            log_message(f"Question {question_id} ERROR: {error_message}")
+            update_question_status(question_id, stage="Failed - Unexpected error", progress=100, 
+                                 done=True, error=error_message)
+            
             answer = f"I encountered an error while processing your question. Please try again or try asking a different question."
             update_chat_history(question, answer)
     
