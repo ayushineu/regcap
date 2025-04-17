@@ -669,91 +669,70 @@ def index():
                 });
             });
             
-            // Advanced Mermaid diagram handling with better error recovery
+            // Simple Mermaid diagram rendering function
             function renderDiagrams() {
-                // Initialize with optimal configuration
+                // Set configuration
                 mermaid.initialize({ 
-                    startOnLoad: false,
+                    startOnLoad: true,
                     theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default',
                     securityLevel: 'loose',
-                    logLevel: 'error',
-                    fontFamily: 'arial, sans-serif',
-                    flowchart: {
-                        htmlLabels: true,
-                        curve: 'basis',
-                        padding: 15
-                    }
+                    logLevel: 'error'
                 });
                 
-                // Find all diagram containers and render them individually
-                document.querySelectorAll('.mermaid').forEach((diagram, index) => {
-                    const diagramText = diagram.textContent.trim();
-                    const targetDiv = document.getElementById(`diagram-svg-${index}`);
+                // Process each diagram container
+                document.querySelectorAll('.mermaid').forEach(function(element, index) {
+                    // Get associated containers
+                    const svgContainer = document.getElementById(`diagram-svg-${index}`);
                     const errorContainer = document.getElementById(`error-container-${index}`);
+                    const diagramCode = element.textContent.trim();
                     
-                    if (!targetDiv) return;
+                    if (!svgContainer) return;
                     
                     try {
-                        // Try to render using the newer Promise-based API
-                        mermaid.render(`diagram-svg-content-${index}`, diagramText)
-                            .then(result => {
-                                targetDiv.innerHTML = result.svg;
-                                if (errorContainer) errorContainer.style.display = 'none';
-                            })
-                            .catch(err => {
-                                console.error(`Error rendering diagram ${index}:`, err);
-                                handleRenderingError(diagramText, targetDiv, errorContainer, index);
-                            });
+                        // Try to render the diagram
+                        const fixedCode = fixDiagramSyntax(diagramCode);
+                        element.textContent = fixedCode;
+                        
+                        // Use mermaid's render method
+                        mermaid.render(`mermaid-svg-${index}`, fixedCode, function(svgCode) {
+                            svgContainer.innerHTML = svgCode;
+                            if (errorContainer) {
+                                errorContainer.style.display = 'none';
+                            }
+                        });
                     } catch (err) {
-                        console.error(`Initial mermaid error for diagram ${index}:`, err);
-                        handleRenderingError(diagramText, targetDiv, errorContainer, index);
+                        console.error('Error rendering diagram:', err);
+                        // Show error message
+                        if (errorContainer) {
+                            errorContainer.style.display = 'block';
+                        }
+                        // Display fallback message in the SVG container
+                        svgContainer.innerHTML = '<div class="alert alert-warning">Diagram cannot be displayed here. Please use the "View in New Tab" button below.</div>';
                     }
                 });
-                
-                // Handler for diagram rendering errors
-                function handleRenderingError(code, targetDiv, errorContainer, index) {
-                    // Show error container
-                    if (errorContainer) errorContainer.style.display = 'block';
-                    
-                    // Try alternative rendering as a last resort
-                    try {
-                        const fixedCode = fixFlowchartSyntax(code);
-                        mermaid.render(`diagram-svg-fallback-${index}`, fixedCode)
-                            .then(result => {
-                                targetDiv.innerHTML = result.svg;
-                            })
-                            .catch(e => {
-                                console.error(`Fallback rendering failed for diagram ${index}:`, e);
-                                targetDiv.innerHTML = '<div class="alert alert-warning">Diagram rendering failed. Please use "View in New Tab" for a better viewing experience.</div>';
-                            });
-                    } catch (e) {
-                        console.error(`Fallback mechanism failed for diagram ${index}:`, e);
-                    }
+            }
+            
+            // Helper function to fix common diagram syntax issues
+            function fixDiagramSyntax(code) {
+                if (!code || code.trim() === '') {
+                    return 'flowchart TD\nA[Empty Diagram]';
                 }
                 
-                // Extra syntax fixing function for flowcharts
-                function fixFlowchartSyntax(code) {
-                    // Try to detect and fix common syntax issues
-                    let fixed = code;
-                    
-                    // Ensure proper flowchart declaration
-                    if (!fixed.startsWith('flowchart')) {
-                        fixed = 'flowchart TD\n' + fixed;
-                    }
-                    
-                    // Add quotes to node text with spaces
-                    fixed = fixed.replace(/\[([^\]]+)\]/g, function(match, p1) {
-                        if (p1.includes(' ') && !p1.startsWith('"') && !p1.endsWith('"')) {
-                            return '["' + p1 + '"]';
-                        }
-                        return match;
-                    });
-                    
-                    // Fix arrow syntax
-                    fixed = fixed.replace(/(\w+)--(\w+)/g, '$1 --> $2');
-                    
-                    return fixed;
+                let fixed = code.trim();
+                
+                // Remove markdown markers
+                if (fixed.includes('```')) {
+                    fixed = fixed.replace(/```mermaid/g, '');
+                    fixed = fixed.replace(/```/g, '');
                 }
+                
+                // Ensure proper flowchart declaration
+                if (!fixed.startsWith('flowchart') && !fixed.startsWith('graph') && 
+                    !fixed.startsWith('sequenceDiagram') && !fixed.startsWith('mindmap')) {
+                    fixed = 'flowchart TD\n' + fixed;
+                }
+                
+                return fixed;
             }
             
             // Check if we have diagrams and show notification
@@ -1017,87 +996,62 @@ def view_diagram(diagram_index):
     <a href="/" class="btn btn-primary">Back to Main App</a>
     
     <script>
-        // Initialize mermaid with optimal configuration
+        // Initialize mermaid with simple configuration
         mermaid.initialize({
-            startOnLoad: false,
+            startOnLoad: true,
             theme: 'default',
             securityLevel: 'loose',
-            logLevel: 'error',
-            fontFamily: 'arial, sans-serif',
-            fontSize: 16,
-            flowchart: {
-                htmlLabels: true,
-                curve: 'basis',
-                padding: 15
+            logLevel: 'error'
+        });
+        
+        // Simple rendering function
+        document.addEventListener('DOMContentLoaded', function() {
+            const diagramElement = document.querySelector('.mermaid');
+            const targetDiv = document.getElementById('diagram-svg');
+            const errorContainer = document.getElementById('error-container');
+            const diagramCode = diagramElement.textContent.trim();
+            
+            try {
+                // Try to fix and render
+                const fixedCode = fixDiagramSyntax(diagramCode);
+                diagramElement.textContent = fixedCode;
+                
+                // Use callback-based rendering
+                mermaid.render('standalone-diagram-svg', fixedCode, function(svgCode) {
+                    targetDiv.innerHTML = svgCode;
+                    errorContainer.style.display = 'none';
+                });
+            } catch (err) {
+                console.error('Error rendering diagram:', err);
+                // Show error info
+                errorContainer.style.display = 'block';
+                // Show a basic error message
+                targetDiv.innerHTML = '<div class="alert alert-warning">Diagram could not be rendered.</div>';
             }
         });
         
-        // Render diagram with best practices
-        document.addEventListener('DOMContentLoaded', function() {
-            const diagramText = document.querySelector('.mermaid').textContent.trim();
-            const targetDiv = document.getElementById('diagram-svg');
-            
-            try {
-                mermaid.render('diagram-svg-content', diagramText)
-                    .then(result => {
-                        targetDiv.innerHTML = result.svg;
-                    })
-                    .catch(err => {
-                        console.error('Mermaid rendering error:', err);
-                        handleRenderingError();
-                    });
-            } catch (err) {
-                console.error('Initial mermaid error:', err);
-                handleRenderingError();
+        // Helper to fix diagram syntax
+        function fixDiagramSyntax(code) {
+            if (!code || code.trim() === '') {
+                return 'flowchart TD\nA[Empty Diagram]';
             }
             
-            function handleRenderingError() {
-                // Show error container with raw code
-                document.getElementById('error-container').style.display = 'block';
-                
-                // Try alternative rendering as a last resort
-                try {
-                    const fixedCode = fixFlowchartSyntax(diagramText);
-                    mermaid.render('diagram-svg-fallback', fixedCode)
-                        .then(result => {
-                            targetDiv.innerHTML = result.svg;
-                            // Still show the raw code but indicate success
-                            document.getElementById('error-container').classList.add('bg-success-subtle');
-                            document.getElementById('error-container').querySelector('h4').textContent = 'Diagram Fixed';
-                        })
-                        .catch(e => {
-                            console.error('Fallback rendering failed:', e);
-                            targetDiv.innerHTML = '<div class="alert alert-warning">Unable to render diagram. Please check the raw code below.</div>';
-                        });
-                } catch (e) {
-                    console.error('Fallback mechanism failed:', e);
-                }
+            let fixed = code.trim();
+            
+            // Remove markdown markers
+            if (fixed.includes('```')) {
+                fixed = fixed.replace(/```mermaid/g, '');
+                fixed = fixed.replace(/```/g, '');
             }
             
-            // Extra syntax fixing function for flowcharts
-            function fixFlowchartSyntax(code) {
-                // Try to detect and fix common syntax issues
-                let fixed = code;
-                
-                // Ensure proper flowchart declaration
-                if (!fixed.startsWith('flowchart')) {
-                    fixed = 'flowchart TD\n' + fixed;
-                }
-                
-                // Add quotes to node text with spaces
-                fixed = fixed.replace(/\[([^\]]+)\]/g, function(match, p1) {
-                    if (p1.includes(' ') && !p1.startsWith('"') && !p1.endsWith('"')) {
-                        return '["' + p1 + '"]';
-                    }
-                    return match;
-                });
-                
-                // Fix arrow syntax
-                fixed = fixed.replace(/(\w+)--(\w+)/g, '$1 --> $2');
-                
-                return fixed;
+            // Ensure proper diagram declaration
+            if (!fixed.startsWith('flowchart') && !fixed.startsWith('graph') && 
+                !fixed.startsWith('sequenceDiagram') && !fixed.startsWith('mindmap')) {
+                fixed = 'flowchart TD\n' + fixed;
             }
-        });
+            
+            return fixed;
+        }
     </script>
 </body>
 </html>
