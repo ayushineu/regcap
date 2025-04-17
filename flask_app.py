@@ -1235,10 +1235,24 @@ def index():
                                 // Clear input
                                 questionInput.value = '';
                                 
-                                // Re-enable the button after a delay, but don't refresh automatically
+                                // Simply re-enable the button after a delay
                                 setTimeout(function() {
                                     askButton.disabled = false;
-                                    statusDiv.innerHTML = '<div class="alert alert-success">Question submitted! <a href="javascript:window.location.reload()">Click here to check for an answer</a>.</div>';
+                                    statusDiv.style.display = 'none';
+                                    
+                                    // Add a small refresh button next to the "Processing" text in the chat
+                                    const processingMsgs = document.querySelectorAll('.processing-message');
+                                    processingMsgs.forEach(msg => {
+                                        // Only add refresh button if it doesn't already have one
+                                        if (!msg.querySelector('.refresh-btn')) {
+                                            const refreshBtn = document.createElement('button');
+                                            refreshBtn.className = 'btn btn-sm btn-outline-primary refresh-btn ms-2';
+                                            refreshBtn.innerHTML = '<i class="fa fa-refresh"></i>';
+                                            refreshBtn.title = "Check for answer";
+                                            refreshBtn.onclick = function() { window.location.reload(); };
+                                            msg.appendChild(refreshBtn);
+                                        }
+                                    });
                                 }, 1500);
                             } else {
                                 console.error('Failed to submit question');
