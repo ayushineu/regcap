@@ -404,17 +404,9 @@ def index():
                             </div>
                             <div class="card-body">
                                 <p><strong>Explanation:</strong> {{ explanation }}</p>
-                                <!-- Improved diagram container with better rendering -->
+                                <!-- Simple diagram container -->
                                 <div class="diagram-container">
-                                    <div class="svg-container" id="diagram-svg-{{ loop.index0 }}"></div>
-                                    <pre class="mermaid" style="display: none;">{{ diagram_code }}</pre>
-                                </div>
-                                <!-- Error container that shows only when there's a rendering problem -->
-                                <div class="error-container" id="error-container-{{ loop.index0 }}" style="display:none;">
-                                    <div class="alert alert-warning">
-                                        <h5>Diagram Rendering Issue</h5>
-                                        <p>The diagram couldn't be rendered directly in this view.</p>
-                                    </div>
+                                    <pre class="mermaid">{{ diagram_code }}</pre>
                                 </div>
                             </div>
                             <div class="card-footer">
@@ -459,64 +451,52 @@ def index():
     </div>
     
     <script>
-        // Initialize mermaid
-        mermaid.initialize({ startOnLoad: true });
-        
-        // Wait for DOM to be fully loaded
+        // Very basic script for tab switching
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded');
-            
-            // Tab switching
-            const tabButtons = document.querySelectorAll('.tab-button');
-            tabButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const tabId = this.getAttribute('data-tab');
-                    console.log('Switching to tab:', tabId);
+            // Basic tab switching
+            var tabButtons = document.querySelectorAll('.tab-button');
+            for (var i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].onclick = function() {
+                    var tabId = this.getAttribute('data-tab');
                     
-                    // Hide all tab contents
-                    document.querySelectorAll('.tab-content').forEach(content => {
-                        content.classList.remove('active');
-                    });
+                    // Hide all tabs
+                    var tabContents = document.querySelectorAll('.tab-content');
+                    for (var j = 0; j < tabContents.length; j++) {
+                        tabContents[j].classList.remove('active');
+                    }
                     
-                    // Remove active class from buttons
-                    tabButtons.forEach(btn => {
-                        btn.classList.remove('active');
-                    });
+                    // Remove active class from all buttons
+                    for (var j = 0; j < tabButtons.length; j++) {
+                        tabButtons[j].classList.remove('active');
+                    }
                     
                     // Show selected tab
                     document.getElementById(tabId).classList.add('active');
                     this.classList.add('active');
                     
-                    // Special handling for diagrams
+                    // Diagram tab special handling
                     if (tabId === 'diagrams') {
-                        // Hide notification
-                        document.getElementById('diagramsNotification').style.display = 'none';
-                        
-                        // Re-render diagrams with our improved handling
-                        renderDiagrams();
+                        var notificationDot = document.getElementById('diagramsNotification');
+                        if (notificationDot) {
+                            notificationDot.style.display = 'none';
+                        }
+                        renderAllDiagrams();
                     }
-                });
-            });
+                };
+            }
             
             // Dark mode toggle
-            const darkModeToggle = document.getElementById('darkModeToggle');
+            var darkModeToggle = document.getElementById('darkModeToggle');
             if (darkModeToggle) {
-                console.log('Dark mode toggle found');
-                
                 // Check saved preference
-                const savedTheme = localStorage.getItem('theme');
-                const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                
-                // Apply theme based on saved preference or OS preference
-                if (savedTheme === 'dark' || (!savedTheme && prefersDarkMode)) {
+                var savedTheme = localStorage.getItem('theme');
+                if (savedTheme === 'dark') {
                     document.documentElement.setAttribute('data-theme', 'dark');
                     darkModeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
                 }
                 
                 // Toggle theme on click
-                darkModeToggle.addEventListener('click', function() {
-                    console.log('Dark mode toggle clicked');
-                    
+                darkModeToggle.onclick = function() {
                     if (document.documentElement.getAttribute('data-theme') === 'dark') {
                         document.documentElement.removeAttribute('data-theme');
                         localStorage.setItem('theme', 'light');
@@ -526,61 +506,31 @@ def index():
                         localStorage.setItem('theme', 'dark');
                         darkModeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
                     }
-                    
-                    // Re-render diagrams with new theme using our improved handler
-                    setTimeout(() => {
-                        renderDiagrams();
-                    }, 100);
-                });
-            } else {
-                console.error('Dark mode toggle not found');
+                };
             }
             
-            // Form handling
-            const questionForm = document.getElementById('question-form');
+            // Question form handling
+            var questionForm = document.getElementById('question-form');
             if (questionForm) {
-                questionForm.addEventListener('submit', function(e) {
+                questionForm.onsubmit = function(e) {
                     e.preventDefault();
                     
-                    const question = document.getElementById('question').value.trim();
+                    var question = document.getElementById('question').value.trim();
                     if (!question) return;
                     
-                    // Disable submit button while processing
-                    const submitButton = this.querySelector('button[type="submit"]');
+                    // Disable submit button
+                    var submitButton = this.querySelector('button[type="submit"]');
                     submitButton.disabled = true;
                     
-                    // Get the existing chat history from the page
-                    const chatContainer = document.getElementById('chatMessages');
-                    
-                    // Check if the question already exists in the chat
-                    const existingMessages = chatContainer.querySelectorAll('.user-message');
-                    let isDuplicate = false;
-                    
-                    existingMessages.forEach(msg => {
-                        const msgText = msg.textContent.replace('You:', '').trim();
-                        if (msgText.toLowerCase() === question.toLowerCase()) {
-                            isDuplicate = true;
-                            // Highlight the existing message
-                            msg.style.backgroundColor = '#ffffdd';
-                            setTimeout(() => {
-                                msg.style.backgroundColor = '';
-                            }, 3000);
-                        }
-                    });
-                    
-                    if (isDuplicate) {
-                        alert('This question has already been asked. Please check the existing answers or ask a different question.');
-                        submitButton.disabled = false;
-                        return;
-                    }
-                    
-                    // Add the new message to the chat
-                    const userMessage = document.createElement('div');
+                    // Add user message to chat
+                    var chatContainer = document.getElementById('chatMessages');
+                    var userMessage = document.createElement('div');
                     userMessage.className = 'user-message';
                     userMessage.innerHTML = '<strong>You:</strong> ' + question;
                     chatContainer.appendChild(userMessage);
                     
-                    const botMessage = document.createElement('div');
+                    // Add bot response placeholder
+                    var botMessage = document.createElement('div');
                     botMessage.className = 'bot-message';
                     botMessage.innerHTML = '<strong>Bot:</strong> <span class="processing">Processing your question... <div class="spinner-border spinner-border-sm" role="status"></div></span>';
                     chatContainer.appendChild(botMessage);
@@ -588,161 +538,97 @@ def index():
                     // Auto-scroll to bottom
                     chatContainer.scrollTop = chatContainer.scrollHeight;
                     
-                    // Create form data
-                    const formData = new FormData();
+                    // Submit the question
+                    var formData = new FormData();
                     formData.append('question', question);
                     
-                    // Send AJAX request
                     fetch('/ask', {
                         method: 'POST',
                         body: formData
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('Response:', data);
+                    .then(function(response) {
+                        return response.json();
+                    })
+                    .then(function(data) {
                         if (data.success) {
-                            // Show a fake processing indicator
-                            const processingSpan = document.querySelector('.processing');
-                            if (processingSpan) {
-                                // Simulate processing stages with timeouts
-                                setTimeout(() => {
-                                    processingSpan.innerHTML = "Finding information in documents... <div class='spinner-border spinner-border-sm' role='status'></div>";
-                                }, 2000);
-                                
-                                setTimeout(() => {
-                                    processingSpan.innerHTML = "Creating vector embeddings... <div class='spinner-border spinner-border-sm' role='status'></div>";
-                                }, 4000);
-                                
-                                setTimeout(() => {
-                                    processingSpan.innerHTML = "Generating answer... <div class='spinner-border spinner-border-sm' role='status'></div>";
-                                }, 7000);
-                            }
-                            
-                            // Wait a bit longer (20 seconds) to ensure processing completes
-                            setTimeout(() => {
+                            // Show fake progress
+                            setTimeout(function() {
                                 window.location.reload();
-                            }, 20000);
+                            }, 5000);
                         } else {
                             alert('Error: ' + (data.error || 'Unknown error'));
                             submitButton.disabled = false;
                         }
                     })
-                    .catch(error => {
+                    .catch(function(error) {
                         console.error('Error:', error);
-                        alert('Error processing request: ' + error.message);
+                        alert('Error processing request');
                         submitButton.disabled = false;
                     });
                     
                     // Clear the input
                     document.getElementById('question').value = '';
-                });
+                };
             }
             
-            // Session handling
-            document.getElementById('createNewSession')?.addEventListener('click', function() {
-                fetch('/new_session', {
-                    method: 'POST'
-                })
-                .then(response => {
-                    if (response.ok) {
-                        window.location.reload();
-                    }
-                });
-            });
+            // Session buttons
+            var createSessionBtn = document.getElementById('createNewSession');
+            if (createSessionBtn) {
+                createSessionBtn.onclick = function() {
+                    fetch('/new_session', {
+                        method: 'POST'
+                    })
+                    .then(function(response) {
+                        if (response.ok) {
+                            window.location.reload();
+                        }
+                    });
+                };
+            }
             
-            document.querySelectorAll('.switch-session').forEach(button => {
-                button.addEventListener('click', function() {
-                    const sessionId = this.getAttribute('data-session-id');
-                    
-                    const formData = new FormData();
+            var switchButtons = document.querySelectorAll('.switch-session');
+            for (var i = 0; i < switchButtons.length; i++) {
+                switchButtons[i].onclick = function() {
+                    var sessionId = this.getAttribute('data-session-id');
+                    var formData = new FormData();
                     formData.append('session_id', sessionId);
                     
                     fetch('/switch_session', {
                         method: 'POST',
                         body: formData
                     })
-                    .then(response => {
+                    .then(function(response) {
                         if (response.ok) {
                             window.location.reload();
                         }
                     });
-                });
-            });
+                };
+            }
             
-            // Simple Mermaid diagram rendering function
-            function renderDiagrams() {
-                // Set configuration
-                mermaid.initialize({ 
-                    startOnLoad: true,
-                    theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default',
-                    securityLevel: 'loose',
-                    logLevel: 'error'
-                });
-                
-                // Process each diagram container
-                document.querySelectorAll('.mermaid').forEach(function(element, index) {
-                    // Get associated containers
-                    const svgContainer = document.getElementById(`diagram-svg-${index}`);
-                    const errorContainer = document.getElementById(`error-container-${index}`);
-                    const diagramCode = element.textContent.trim();
-                    
-                    if (!svgContainer) return;
-                    
+            // Diagram rendering 
+            function renderAllDiagrams() {
+                var diagrams = document.querySelectorAll('.mermaid');
+                for (var i = 0; i < diagrams.length; i++) {
                     try {
-                        // Try to render the diagram
-                        const fixedCode = fixDiagramSyntax(diagramCode);
-                        element.textContent = fixedCode;
-                        
-                        // Use mermaid's render method
-                        mermaid.render(`mermaid-svg-${index}`, fixedCode, function(svgCode) {
-                            svgContainer.innerHTML = svgCode;
-                            if (errorContainer) {
-                                errorContainer.style.display = 'none';
-                            }
-                        });
-                    } catch (err) {
-                        console.error('Error rendering diagram:', err);
-                        // Show error message
-                        if (errorContainer) {
-                            errorContainer.style.display = 'block';
-                        }
-                        // Display fallback message in the SVG container
-                        svgContainer.innerHTML = '<div class="alert alert-warning">Diagram cannot be displayed here. Please use the "View in New Tab" button below.</div>';
+                        mermaid.init(undefined, diagrams[i]);
+                    } catch (e) {
+                        console.error('Error rendering diagram:', e);
                     }
-                });
+                }
             }
             
-            // Helper function to fix common diagram syntax issues
-            function fixDiagramSyntax(code) {
-                if (!code || code.trim() === '') {
-                    return 'flowchart TD\nA[Empty Diagram]';
+            // Initialize mermaid for diagrams
+            if (typeof mermaid !== 'undefined') {
+                mermaid.initialize({ startOnLoad: true });
+                
+                // Check if we have diagrams
+                var hasDiagrams = document.querySelectorAll('.mermaid').length > 0;
+                if (hasDiagrams) {
+                    var notificationDot = document.getElementById('diagramsNotification');
+                    if (notificationDot) {
+                        notificationDot.style.display = 'block';
+                    }
                 }
-                
-                let fixed = code.trim();
-                
-                // Remove markdown markers
-                if (fixed.includes('```')) {
-                    fixed = fixed.replace(/```mermaid/g, '');
-                    fixed = fixed.replace(/```/g, '');
-                }
-                
-                // Ensure proper flowchart declaration
-                if (!fixed.startsWith('flowchart') && !fixed.startsWith('graph') && 
-                    !fixed.startsWith('sequenceDiagram') && !fixed.startsWith('mindmap')) {
-                    fixed = 'flowchart TD\n' + fixed;
-                }
-                
-                return fixed;
-            }
-            
-            // Check if we have diagrams and show notification
-            const hasDiagrams = document.querySelectorAll('.mermaid').length > 0;
-            if (hasDiagrams) {
-                // Show notification dot
-                document.getElementById('diagramsNotification').style.display = 'block';
-                
-                // Try to render diagrams immediately
-                renderDiagrams();
             }
         });
     </script>
@@ -983,8 +869,7 @@ def view_diagram(diagram_index):
     </div>
     
     <div class="diagram-container">
-        <div class="svg-container" id="diagram-svg"></div>
-        <pre class="mermaid" style="display: none;">{{ diagram_code }}</pre>
+        <pre class="mermaid">{{ diagram_code }}</pre>
     </div>
     
     <div class="error-container" id="error-container">
@@ -996,62 +881,25 @@ def view_diagram(diagram_index):
     <a href="/" class="btn btn-primary">Back to Main App</a>
     
     <script>
-        // Initialize mermaid with simple configuration
+        // Basic mermaid initialization
         mermaid.initialize({
-            startOnLoad: true,
-            theme: 'default',
-            securityLevel: 'loose',
-            logLevel: 'error'
+            startOnLoad: true
         });
         
-        // Simple rendering function
+        // Keep it extremely simple
         document.addEventListener('DOMContentLoaded', function() {
-            const diagramElement = document.querySelector('.mermaid');
-            const targetDiv = document.getElementById('diagram-svg');
-            const errorContainer = document.getElementById('error-container');
-            const diagramCode = diagramElement.textContent.trim();
+            // Just show the diagram
+            var errorContainer = document.getElementById('error-container');
+            if (errorContainer) {
+                errorContainer.style.display = 'none';
+            }
             
-            try {
-                // Try to fix and render
-                const fixedCode = fixDiagramSyntax(diagramCode);
-                diagramElement.textContent = fixedCode;
-                
-                // Use callback-based rendering
-                mermaid.render('standalone-diagram-svg', fixedCode, function(svgCode) {
-                    targetDiv.innerHTML = svgCode;
-                    errorContainer.style.display = 'none';
-                });
-            } catch (err) {
-                console.error('Error rendering diagram:', err);
-                // Show error info
-                errorContainer.style.display = 'block';
-                // Show a basic error message
-                targetDiv.innerHTML = '<div class="alert alert-warning">Diagram could not be rendered.</div>';
+            // Make the mermaid element visible
+            var mermaidDiv = document.querySelector('.mermaid');
+            if (mermaidDiv) {
+                mermaidDiv.style.display = 'block';
             }
         });
-        
-        // Helper to fix diagram syntax
-        function fixDiagramSyntax(code) {
-            if (!code || code.trim() === '') {
-                return 'flowchart TD\nA[Empty Diagram]';
-            }
-            
-            let fixed = code.trim();
-            
-            // Remove markdown markers
-            if (fixed.includes('```')) {
-                fixed = fixed.replace(/```mermaid/g, '');
-                fixed = fixed.replace(/```/g, '');
-            }
-            
-            // Ensure proper diagram declaration
-            if (!fixed.startsWith('flowchart') && !fixed.startsWith('graph') && 
-                !fixed.startsWith('sequenceDiagram') && !fixed.startsWith('mindmap')) {
-                fixed = 'flowchart TD\n' + fixed;
-            }
-            
-            return fixed;
-        }
     </script>
 </body>
 </html>
