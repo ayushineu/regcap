@@ -8,6 +8,7 @@ deploymentTarget = "autoscale"
 run = ["streamlit", "run", "app.py", "--server.port", "5000"]
 
 [workflows]
+runButton = "Regulatory Chatbot"
 
 [[workflows.workflow]]
 name = "Project"
