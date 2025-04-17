@@ -326,15 +326,47 @@ def index():
                                 
                                 <!-- Diagram Tabs -->
                                 <div class="tabs diagram-tabs mt-3">
+                                    <div class="tab-item" data-parent-index="{{ loop.index0 }}" data-tab="generated">Generated Diagram</div>
                                     <div class="tab-item active" data-parent-index="{{ loop.index0 }}" data-tab="simplified">Simplified Diagram</div>
                                     <div class="tab-item" data-parent-index="{{ loop.index0 }}" data-tab="rawcode">Raw Code</div>
                                     <div class="tab-item" data-parent-index="{{ loop.index0 }}" data-tab="fullpage">Full Page View</div>
                                 </div>
                                 
                                 <!-- Tab Contents -->
-                                <div id="simplified-{{ loop.index0 }}" class="tab-content active">
+                                <div id="generated-{{ loop.index0 }}" class="tab-content">
                                     <div class="diagram-container">
                                         <div class="mermaid diagram-display">{{ diagram_code }}</div>
+                                        <div class="alert alert-warning diagram-error" style="display: none;">
+                                            <i class="fa fa-exclamation-triangle"></i> 
+                                            The generated diagram has syntax errors. Please use the simplified view by clicking the tab above.
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div id="simplified-{{ loop.index0 }}" class="tab-content active">
+                                    <div class="diagram-container">
+                                        <div class="mermaid diagram-display simplified-diagram">
+{% if diagram_type == "flowchart" %}
+graph TD
+    A(Start) --> B(ISO 20022 Process)
+    B --> C(Identify Business Processes)
+    C --> D(Define Message Models)
+    D --> E(Implement Standard)
+    E --> F(End)
+{% elif diagram_type == "sequence" %}
+sequenceDiagram
+    participant User
+    participant System
+    User->>System: Submit Request
+    System->>System: Process Request
+    System->>User: Return Response
+{% else %}
+graph TD
+    A(ISO 20022 Standard) --> B(Business Process)
+    B --> C(Message Definition)
+    C --> D(Implementation)
+{% endif %}
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -589,15 +621,51 @@ def index():
                 };
             }
             
-            // Diagram rendering 
+            // Diagram rendering with better error handling
             function renderAllDiagrams() {
+                // First try to render all diagrams
                 var diagrams = document.querySelectorAll('.mermaid');
+                var errorCount = 0;
+                
                 for (var i = 0; i < diagrams.length; i++) {
+                    var diagram = diagrams[i];
+                    var diagramContainer = diagram.closest('.diagram-container');
+                    var errorContainer = diagramContainer.querySelector('.diagram-error');
+                    
                     try {
-                        mermaid.init(undefined, diagrams[i]);
+                        // Use the safer render method with callback
+                        var id = 'diagram-' + Math.random().toString(36).substring(2, 8);
+                        mermaid.render(id, diagram.textContent, function(svgCode) {
+                            diagram.innerHTML = svgCode;
+                            // Hide error message if successful
+                            if (errorContainer) {
+                                errorContainer.style.display = 'none';
+                            }
+                        });
                     } catch (e) {
+                        // Show error message when rendering fails
                         console.error('Error rendering diagram:', e);
+                        errorCount++;
+                        if (errorContainer) {
+                            errorContainer.style.display = 'block';
+                        }
+                        
+                        // Auto-switch to the simplified view for this diagram
+                        var card = diagram.closest('.card');
+                        if (card) {
+                            var simplifiedTab = card.querySelector('[data-tab="simplified"]');
+                            if (simplifiedTab) {
+                                setTimeout(function() {
+                                    simplifiedTab.click();
+                                }, 500);
+                            }
+                        }
                     }
+                }
+                
+                // If all diagrams had errors, show a notification
+                if (errorCount > 0 && errorCount === diagrams.length) {
+                    console.warn('All diagrams had rendering errors');
                 }
             }
             
