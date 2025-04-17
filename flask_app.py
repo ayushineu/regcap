@@ -187,29 +187,55 @@ def get_all_document_chunks(session_id=None):
     return all_chunks
 
 # Vector store functions
+# Create a simple in-memory cache for embeddings
+embedding_cache = {}
+
 def get_embedding(text):
-    """Get embedding for text using OpenAI."""
+    """Get embedding for text using OpenAI with caching."""
     try:
-        text = text.replace("\n", " ")
-        max_retries = 5
+        # Clean and standardize the text
+        text = text.replace("\n", " ").strip()
+        
+        # Use a hash of the text as the cache key
+        cache_key = hash(text)
+        
+        # Check if we have a cached embedding
+        if cache_key in embedding_cache:
+            print(f"Using cached embedding (text length: {len(text)})")
+            return embedding_cache[cache_key]
+            
+        print(f"Generating new embedding for text (length: {len(text)})")
+        max_retries = 3  # Reduced number of retries
         retry_delay = 1.0  # seconds
         
         for attempt in range(max_retries):
             try:
+                start_time = time.time()
                 response = client.embeddings.create(
                     input=text,
-                    model="text-embedding-3-small"
+                    model="text-embedding-3-small",
+                    timeout=10  # Add a timeout of 10 seconds
                 )
-                return np.array(response.data[0].embedding, dtype=np.float32)
+                embedding = np.array(response.data[0].embedding, dtype=np.float32)
+                
+                # Cache the result
+                embedding_cache[cache_key] = embedding
+                
+                end_time = time.time()
+                print(f"Embedding generated in {end_time - start_time:.2f} seconds")
+                return embedding
             except Exception as e:
                 if "rate_limit_exceeded" in str(e) and attempt < max_retries - 1:
                     print(f"Rate limit exceeded, retrying in {retry_delay} seconds...")
                     time.sleep(retry_delay)
                     retry_delay *= 2  # Exponential backoff
                 else:
-                    raise
+                    print(f"Failed to get embedding on attempt {attempt+1}: {str(e)}")
+                    if attempt == max_retries - 1:
+                        raise
         
         # If we get here, all retries failed
+        print("All embedding attempts failed")
         return None
     except Exception as e:
         print(f"Error getting embedding: {e}")
@@ -218,25 +244,40 @@ def get_embedding(text):
 def create_vector_store(chunks):
     """Create a FAISS vector store from chunks."""
     if not chunks:
+        print("No chunks provided to create vector store")
         return None
         
     try:
+        print(f"Creating vector store for {len(chunks)} chunks")
+        start_time = time.time()
+        
         # Get embeddings for chunks
         chunk_texts = [chunk["content"] for chunk in chunks]
         embeddings = []
+        chunk_map = {}  # To keep track of which chunks correspond to which embeddings
         
         # Process in batches to avoid rate limits
-        batch_size = 5
+        batch_size = 10  # Increased batch size for efficiency
+        total_embeddings = 0
+        
+        print(f"Processing chunks in batches of {batch_size}")
         for i in range(0, len(chunk_texts), batch_size):
             batch = chunk_texts[i:i+batch_size]
-            batch_embeddings = [get_embedding(text) for text in batch]
+            batch_indices = list(range(i, min(i+batch_size, len(chunk_texts))))
             
-            # Skip any None values (failed embeddings)
-            batch_embeddings = [emb for emb in batch_embeddings if emb is not None]
-            embeddings.extend(batch_embeddings)
+            print(f"Processing batch {i//batch_size + 1}/{(len(chunk_texts) + batch_size - 1)//batch_size}: {len(batch)} chunks")
+            batch_start = time.time()
             
-            # Add a sleep to avoid rate limiting
-            time.sleep(0.5)
+            # Process each chunk in the batch
+            for j, (text, orig_idx) in enumerate(zip(batch, batch_indices)):
+                embedding = get_embedding(text)
+                if embedding is not None:
+                    embeddings.append(embedding)
+                    chunk_map[len(embeddings) - 1] = chunks[orig_idx]  # Map embedding index to original chunk
+                    total_embeddings += 1
+            
+            batch_end = time.time()
+            print(f"Batch processed in {batch_end - batch_start:.2f} seconds, total embeddings: {total_embeddings}")
         
         # Make sure we have at least one embedding
         if not embeddings:
@@ -245,6 +286,7 @@ def create_vector_store(chunks):
             
         # Create FAISS index
         dimension = len(embeddings[0])
+        print(f"Creating FAISS index with dimension {dimension}")
         index = faiss.IndexFlatL2(dimension)
         
         # Make sure all embeddings have the same shape
@@ -254,16 +296,19 @@ def create_vector_store(chunks):
         for i, embedding in enumerate(embeddings):
             if len(embedding) == dimension:
                 filtered_embeddings.append(embedding)
-                if i < len(chunks):
-                    filtered_chunks.append(chunks[i])
+                filtered_chunks.append(chunk_map[i])
         
         # Make sure we have at least one valid embedding after filtering
         if not filtered_embeddings:
             print("No consistent embeddings were found.")
             return None
-            
+        
+        print(f"Adding {len(filtered_embeddings)} embeddings to FAISS index")    
         embeddings_array = np.array(filtered_embeddings).astype('float32')
         index.add(embeddings_array)
+        
+        end_time = time.time()
+        print(f"Vector store created in {end_time - start_time:.2f} seconds")
         
         return {
             "index": index,
@@ -272,28 +317,49 @@ def create_vector_store(chunks):
         }
     except Exception as e:
         print(f"Error creating vector store: {e}")
+        import traceback
+        traceback.print_exc()
         return None
 
 def get_similar_chunks(query, vector_store, top_k=5):
     """Find chunks similar to query in vector store."""
     if not vector_store:
+        print("No vector store available for similarity search")
         return []
         
     try:
+        print(f"Finding chunks similar to: '{query[:50]}...'")
+        start_time = time.time()
+        
+        # Get embedding for the query
+        print("Generating embedding for query...")
         query_embedding = get_embedding(query)
         if query_embedding is None:
+            print("Failed to generate embedding for query")
             return []
             
         query_embedding = np.array([query_embedding]).astype('float32')
+        print("Query embedding generated successfully")
         
         # Search for similar chunks
+        print(f"Searching for top {top_k} similar chunks...")
         distances, indices = vector_store["index"].search(query_embedding, top_k)
         
         # Get the chunks
         similar_chunks = [vector_store["chunks"][idx] for idx in indices[0]]
+        
+        end_time = time.time()
+        print(f"Found {len(similar_chunks)} similar chunks in {end_time - start_time:.2f} seconds")
+        
+        # Print a preview of the chunks for debugging
+        for i, chunk in enumerate(similar_chunks):
+            print(f"Chunk {i+1} (distance: {distances[0][i]:.4f}): {chunk['content'][:100]}...")
+            
         return similar_chunks
     except Exception as e:
         print(f"Error getting similar chunks: {e}")
+        import traceback
+        traceback.print_exc()
         return []
 
 # OpenAI helper functions
