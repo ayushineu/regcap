@@ -691,7 +691,7 @@ def index():
         <div id="betaBanner" class="beta-banner">
             <div class="beta-banner-content">
                 <span style="font-size: 0.85rem;">🚧</span>
-                <span><strong>Beta Notice:</strong> RegCap GPT is currently in active development. Some features may be limited or evolving.</span>
+                <span><strong>Beta Notice:</strong> RegCap GPT is currently in active development. Some features may be limited or evolving. Thank you for testing and sharing feedback!</span>
             </div>
             <button class="beta-close-btn" onclick="document.getElementById('betaBanner').style.display='none';">&times;</button>
         </div>
