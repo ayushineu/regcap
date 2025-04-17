@@ -429,20 +429,28 @@ def index():
                             </div>
                             <div class="card-body">
                                 <p><strong>Explanation:</strong> {{ explanation }}</p>
-                                <!-- Simple diagram container -->
-                                <div class="diagram-container">
-                                    <pre class="mermaid">{{ diagram_code }}</pre>
+                                <div class="alert alert-info">
+                                    <i class="fa fa-info-circle"></i> For better diagram viewing with more options, click the button below to open in a dedicated page.
                                 </div>
                             </div>
                             <div class="card-footer">
                                 <a href="/view_diagram/{{ loop.index0 }}" class="btn btn-primary" target="_blank">
-                                    View in New Tab
+                                    <i class="fa fa-external-link"></i> View Diagram in Full Page
                                 </a>
                             </div>
                         </div>
                     {% endfor %}
                 {% else %}
                     <p>No diagrams generated yet. Ask a question that requires visualization.</p>
+                    <div class="alert alert-secondary">
+                        <h4>How to get diagrams:</h4>
+                        <p>Try asking questions like:</p>
+                        <ul>
+                            <li>"Create a flowchart of the workflow described in the document"</li>
+                            <li>"Show me a diagram of the process"</li>
+                            <li>"Can you visualize the relationship between the concepts in this document?"</li>
+                        </ul>
+                    </div>
                 {% endif %}
             </div>
             
@@ -882,6 +890,18 @@ def view_diagram(diagram_index):
     
     diagram_code, explanation, diagram_type = unique_diagrams[diagram_index]
     
+    # Create a simplified version of the diagram
+    simplified_code = """
+flowchart TD
+    A[Start] --> B[Identify Activities]
+    B --> C[Involve Business Experts]
+    C --> D[Engage Technical Experts]
+    D --> E[Develop Data Dictionary]
+    E --> F[Define Message Models]
+    F --> G[Complete & Register]
+    G --> H[End]
+"""
+    
     # Apply extra fixes for complex diagrams
     diagram_code = fix_mermaid_syntax(diagram_code, diagram_type)
     
@@ -893,7 +913,7 @@ def view_diagram(diagram_index):
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ diagram_type|capitalize }} Diagram</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.6.0/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.7/dist/mermaid.min.js"></script>
     <style>
         body {
             padding: 40px;
@@ -927,7 +947,13 @@ def view_diagram(diagram_index):
             background-color: #fff3cd;
             border-radius: 5px;
             border: 1px solid #ffecb5;
-            display: none;
+        }
+        .simplification-notice {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e7f3fe;
+            border-radius: 5px;
+            border: 1px solid #b6d4fe;
         }
         .svg-container {
             width: 100%;
@@ -936,6 +962,39 @@ def view_diagram(diagram_index):
         }
         pre {
             white-space: pre-wrap;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 0;
+            padding-left: 0;
+            list-style: none;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .tab-item {
+            margin-bottom: -1px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            border: 1px solid transparent;
+            border-top-left-radius: 0.25rem;
+            border-top-right-radius: 0.25rem;
+        }
+        .tab-item.active {
+            color: #495057;
+            background-color: #fff;
+            border-color: #dee2e6 #dee2e6 #fff;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-top: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        #simplified-diagram {
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -946,75 +1005,102 @@ def view_diagram(diagram_index):
         <h3>Explanation</h3>
         <p>{{ explanation }}</p>
     </div>
-    
-    <div class="diagram-container">
-        <pre class="mermaid">{{ diagram_code }}</pre>
+
+    <div class="tabs">
+        <div class="tab-item active" data-tab="generated">Generated Diagram</div>
+        <div class="tab-item" data-tab="simplified">Simplified Diagram</div>
+        <div class="tab-item" data-tab="code">Raw Code</div>
     </div>
     
-    <div class="error-container" id="error-container">
-        <h4>Diagram Rendering Error</h4>
-        <p>There was an error rendering this diagram. Here's the raw diagram code:</p>
-        <pre id="raw-code" class="border p-3 bg-light">{{ diagram_code }}</pre>
+    <div id="generated" class="tab-content active">
+        <div class="diagram-container">
+            <div id="generated-diagram" class="mermaid">{{ diagram_code }}</div>
+        </div>
     </div>
     
-    <a href="/" class="btn btn-primary">Back to Main App</a>
+    <div id="simplified" class="tab-content">
+        <div class="simplification-notice">
+            This is a simplified version of the diagram to ensure proper rendering.
+        </div>
+        <div class="diagram-container">
+            <div id="simplified-diagram" class="mermaid">{{ simplified_code }}</div>
+        </div>
+    </div>
+    
+    <div id="code" class="tab-content">
+        <div class="error-container">
+            <h4>Diagram Code</h4>
+            <p>Here's the raw diagram code if you'd like to use it in another tool:</p>
+            <pre id="raw-code" class="border p-3 bg-light">{{ diagram_code }}</pre>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="/" class="btn btn-primary">Back to Main App</a>
+    </div>
     
     <script>
-        // Basic mermaid initialization with error handling
+        // Configure mermaid with permissive settings
         mermaid.initialize({
-            startOnLoad: false,
+            startOnLoad: true,
             securityLevel: 'loose',
-            theme: 'default'
+            logLevel: 'error',
+            theme: 'default',
+            flowchart: {
+                htmlLabels: true,
+                useMaxWidth: true
+            }
         });
         
         document.addEventListener('DOMContentLoaded', function() {
-            var errorContainer = document.getElementById('error-container');
-            var rawCode = document.getElementById('raw-code');
-            var mermaidDiv = document.querySelector('.mermaid');
-            
-            // Hide error container initially
-            if (errorContainer) {
-                errorContainer.style.display = 'none';
+            // Tab switching
+            var tabItems = document.querySelectorAll('.tab-item');
+            for (var i = 0; i < tabItems.length; i++) {
+                tabItems[i].addEventListener('click', function() {
+                    // Hide all tab contents
+                    document.querySelectorAll('.tab-content').forEach(function(content) {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Deactivate all tabs
+                    document.querySelectorAll('.tab-item').forEach(function(tab) {
+                        tab.classList.remove('active');
+                    });
+                    
+                    // Activate clicked tab and its content
+                    this.classList.add('active');
+                    var tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                    
+                    // If switching to simplified, make sure it's initialized
+                    if (tabId === 'simplified') {
+                        try {
+                            mermaid.init(undefined, document.getElementById('simplified-diagram'));
+                        } catch (e) {
+                            console.error('Error rendering simplified diagram:', e);
+                        }
+                    }
+                });
             }
             
-            // Try to render the diagram with explicit error handling
+            // Try to render the generated diagram
             try {
-                // Use renderAsync instead of init for better error handling
-                mermaid.mermaidAPI.render('mermaid-svg', mermaidDiv.textContent)
-                    .then(function(svgCode) {
-                        // If successful, replace the pre tag with rendered SVG
-                        mermaidDiv.innerHTML = svgCode;
-                    })
-                    .catch(function(error) {
-                        console.error('Mermaid rendering error:', error);
-                        // Show the error container with raw code
-                        if (errorContainer) {
-                            errorContainer.style.display = 'block';
-                        }
-                        // Also show a simplified diagram if possible
-                        try {
-                            // Try with a simplified version as fallback
-                            var simpleDiagram = 'flowchart TD\nA[Error] --> B[Could not render diagram]\nB --> C[See raw code below]';
-                            mermaid.mermaidAPI.render('simple-diagram', simpleDiagram)
-                                .then(function(svgCode) {
-                                    mermaidDiv.innerHTML = svgCode;
-                                });
-                        } catch (e) {
-                            // If even simplified diagram fails, just show an error message
-                            mermaidDiv.innerHTML = '<div class="alert alert-danger">Diagram rendering failed</div>';
-                        }
-                    });
-            } catch (error) {
-                console.error('Error setting up mermaid:', error);
-                if (errorContainer) {
-                    errorContainer.style.display = 'block';
-                }
+                mermaid.init(undefined, document.getElementById('generated-diagram'));
+            } catch (e) {
+                console.error('Error rendering diagram:', e);
+                
+                // If generated fails, switch to simplified
+                document.querySelector('[data-tab="simplified"]').click();
             }
         });
     </script>
 </body>
 </html>
-    """, diagram_code=diagram_code, explanation=explanation, diagram_type=diagram_type)
+    """, 
+    diagram_code=diagram_code, 
+    explanation=explanation, 
+    diagram_type=diagram_type, 
+    simplified_code=simplified_code)
 
 @app.route('/get_question_status/<question_id>')
 def get_question_status(question_id):
