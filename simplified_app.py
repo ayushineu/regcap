@@ -654,6 +654,9 @@ def index():
             display: flex;
             justify-content: space-between;
             align-items: center;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         [data-theme="dark"] .beta-banner {
