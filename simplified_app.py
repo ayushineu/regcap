@@ -41,8 +41,9 @@ def fix_mermaid_syntax(diagram_code: str, diagram_type: str = "flowchart") -> st
         else:
             return "flowchart TD\nA[Empty Diagram]"
     
-    # Clean up whitespace
+    # Clean up whitespace and control characters
     diagram_code = diagram_code.strip()
+    diagram_code = re.sub(r'[\x00-\x1F\x7F]', '', diagram_code)  # Remove control characters
     
     # Remove markdown code block syntax if present
     if "```" in diagram_code:
@@ -57,17 +58,66 @@ def fix_mermaid_syntax(diagram_code: str, diagram_type: str = "flowchart") -> st
             if match:
                 diagram_code = match.group(1).strip()
     
+    # Normalize line endings
+    diagram_code = diagram_code.replace('\r\n', '\n').replace('\r', '\n')
+    
+    # Split into lines for processing
+    lines = diagram_code.split('\n')
+    cleaned_lines = []
+    
+    # Process each line
+    for line in lines:
+        # Skip empty lines
+        if not line.strip():
+            continue
+        # Remove excessive spaces
+        line = re.sub(r'\s+', ' ', line.strip())
+        cleaned_lines.append(line)
+    
+    if not cleaned_lines:
+        # If all lines were removed, return a default diagram
+        if diagram_type == "flowchart":
+            return "flowchart TD\nA[Empty Diagram]"
+        elif diagram_type == "sequence":
+            return "sequenceDiagram\nA->>B: Empty Diagram"
+        elif diagram_type == "mindmap":
+            return "mindmap\nroot(Empty Diagram)"
+        else:
+            return "flowchart TD\nA[Empty Diagram]"
+    
+    # Rebuild the diagram code
+    diagram_code = '\n'.join(cleaned_lines)
+    
     # Ensure proper diagram type declaration
     if diagram_type == "flowchart":
         if not (diagram_code.startswith("flowchart") or diagram_code.startswith("graph")):
             diagram_code = "flowchart TD\n" + diagram_code
         # Convert 'graph TD' to 'flowchart TD' for consistency
-        elif diagram_code.startswith("graph TD"):
-            diagram_code = diagram_code.replace("graph TD", "flowchart TD", 1)
+        elif diagram_code.startswith("graph"):
+            direction = "TD"
+            if "graph LR" in diagram_code:
+                direction = "LR"
+            elif "graph RL" in diagram_code:
+                direction = "RL"
+            elif "graph BT" in diagram_code:
+                direction = "BT"
+            diagram_code = diagram_code.replace(f"graph {direction}", f"flowchart {direction}", 1)
     elif diagram_type == "sequence" and not diagram_code.startswith("sequenceDiagram"):
         diagram_code = "sequenceDiagram\n" + diagram_code
     elif diagram_type == "mindmap" and not diagram_code.startswith("mindmap"):
         diagram_code = "mindmap\n" + diagram_code
+    
+    # Fix common syntax errors
+    # Fix missing brackets in node definitions
+    diagram_code = re.sub(r'(\s)(\w+)(\s*->)', r'\1\2["\2"]\3', diagram_code)
+    
+    # Fix arrow syntax (ensure proper spacing)
+    diagram_code = re.sub(r'(\w+|\])(\s*)-->', r'\1 --> ', diagram_code)
+    diagram_code = re.sub(r'(\w+|\])(\s*)==>', r'\1 ==> ', diagram_code)
+    diagram_code = re.sub(r'(\w+|\])(\s*)-.->', r'\1 -.-> ', diagram_code)
+    
+    # Fix class definitions (ensure proper syntax)
+    diagram_code = re.sub(r'class(\s+)(\w+)(\s+)(\w+)', r'class \2 \4', diagram_code)
     
     return diagram_code
 
@@ -324,9 +374,16 @@ def index():
                             </div>
                             <div class="card-body">
                                 <p><strong>Explanation:</strong> {{ explanation }}</p>
-                                <pre class="mermaid">
+                                <!-- Embedded diagram -->
+                                <div class="diagram-container">
+                                    <pre class="mermaid">
 {{ diagram_code }}
-                                </pre>
+                                    </pre>
+                                </div>
+                                <!-- Fallback image container in case of rendering issues -->
+                                <div class="fallback-diagram" id="fallback-diagram-{{ loop.index0 }}" style="display:none;">
+                                    <img id="diagram-img-{{ loop.index0 }}" src="" alt="Diagram" class="img-fluid" style="max-width: 100%; border: 1px solid #ddd; border-radius: 5px;">
+                                </div>
                             </div>
                             <div class="card-footer">
                                 <a href="/view_diagram/{{ loop.index0 }}" class="btn btn-primary" target="_blank">
@@ -403,12 +460,8 @@ def index():
                         // Hide notification
                         document.getElementById('diagramsNotification').style.display = 'none';
                         
-                        // Re-render diagrams
-                        try {
-                            mermaid.init(undefined, '.mermaid');
-                        } catch(e) {
-                            console.error('Error rendering diagrams:', e);
-                        }
+                        // Re-render diagrams with our improved handling
+                        renderDiagrams();
                     }
                 });
             });
@@ -442,11 +495,9 @@ def index():
                         darkModeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
                     }
                     
-                    // Re-render diagrams with new theme
+                    // Re-render diagrams with new theme using our improved handler
                     setTimeout(() => {
-                        try {
-                            mermaid.init(undefined, '.mermaid');
-                        } catch(e) {}
+                        renderDiagrams();
                     }, 100);
                 });
             } else {
@@ -586,10 +637,57 @@ def index():
                 });
             });
             
+            // Better Mermaid diagram handling
+            function renderDiagrams() {
+                // Clear previous renderings
+                mermaid.initialize({ 
+                    startOnLoad: true,
+                    theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default',
+                    securityLevel: 'loose',
+                    logLevel: 'error'
+                });
+                
+                try {
+                    // Try to render all diagrams
+                    mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+                } catch (e) {
+                    console.error('Error initializing mermaid diagrams:', e);
+                    
+                    // For each diagram, try to render individually and provide fallback
+                    document.querySelectorAll('.mermaid').forEach((diagram, index) => {
+                        try {
+                            // Try to render this specific diagram
+                            mermaid.render(`mermaid-svg-${index}`, diagram.textContent, (svgCode) => {
+                                // Replace content with rendered SVG
+                                diagram.innerHTML = svgCode;
+                            });
+                        } catch (err) {
+                            console.error(`Error rendering diagram ${index}:`, err);
+                            // Show fallback for this specific diagram
+                            const fallbackContainer = document.getElementById(`fallback-diagram-${index}`);
+                            if (fallbackContainer) {
+                                diagram.style.display = 'none';
+                                fallbackContainer.style.display = 'block';
+                                
+                                // Create a simple fallback message
+                                const msg = document.createElement('div');
+                                msg.className = 'alert alert-warning';
+                                msg.innerHTML = 'Diagram rendering failed in this view. Please use the "View in New Tab" button below to see the diagram.';
+                                fallbackContainer.appendChild(msg);
+                            }
+                        }
+                    });
+                }
+            }
+            
             // Check if we have diagrams and show notification
             const hasDiagrams = document.querySelectorAll('.mermaid').length > 0;
             if (hasDiagrams) {
+                // Show notification dot
                 document.getElementById('diagramsNotification').style.display = 'block';
+                
+                // Try to render diagrams immediately
+                renderDiagrams();
             }
         });
     </script>
@@ -817,8 +915,29 @@ def view_diagram(diagram_index):
         mermaid.initialize({
             startOnLoad: true,
             theme: 'default',
-            securityLevel: 'loose'
+            securityLevel: 'loose',
+            logLevel: 'error'
         });
+        
+        // Fallback rendering in case of errors
+        try {
+            mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+        } catch (e) {
+            console.error('Error initializing mermaid diagrams:', e);
+            
+            // Try individual rendering
+            document.querySelectorAll('.mermaid').forEach((diagram, index) => {
+                try {
+                    mermaid.render(`mermaid-svg-${index}`, diagram.textContent, (svgCode) => {
+                        diagram.innerHTML = svgCode;
+                    });
+                } catch (err) {
+                    console.error(`Error rendering diagram ${index}:`, err);
+                    // Show error message
+                    diagram.innerHTML = '<div class="alert alert-warning">There was an error rendering this diagram. Please try reloading the page.</div>';
+                }
+            });
+        }
     </script>
 </body>
 </html>
