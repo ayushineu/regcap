@@ -625,10 +625,32 @@ graph TD
                                 }, 8000);
                             }
                             
-                            // Wait longer before reloading
-                            setTimeout(function() {
-                                window.location.reload();
-                            }, 15000);
+                            // Get the question ID
+                            var questionId = data.question_id;
+                            
+                            // Poll for status updates every 2 seconds
+                            var statusInterval = setInterval(function() {
+                                fetch('/get_question_status/' + questionId)
+                                    .then(function(response) { return response.json(); })
+                                    .then(function(statusData) {
+                                        if (statusData.done) {
+                                            clearInterval(statusInterval);
+                                            // When done, wait a moment to ensure storage is saved, then reload
+                                            setTimeout(function() {
+                                                window.location.reload();
+                                            }, 1000);
+                                        } else if (statusData.stage) {
+                                            // Update stage information
+                                            var processingSpan = document.querySelector('.processing');
+                                            if (processingSpan) {
+                                                processingSpan.innerHTML = statusData.stage + "... <div class='spinner-border spinner-border-sm' role='status'></div>";
+                                            }
+                                        }
+                                    })
+                                    .catch(function(error) {
+                                        console.error('Error checking status:', error);
+                                    });
+                            }, 2000);
                         } else {
                             alert('Error: ' + (data.error || 'Unknown error'));
                             submitButton.disabled = false;
