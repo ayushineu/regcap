@@ -119,6 +119,22 @@ def fix_mermaid_syntax(diagram_code: str, diagram_type: str = "flowchart") -> st
     # Fix class definitions (ensure proper syntax)
     diagram_code = re.sub(r'class(\s+)(\w+)(\s+)(\w+)', r'class \2 \4', diagram_code)
     
+    # Ensure quotes for node texts with spaces
+    diagram_code = re.sub(r'\[(.*?)\]', lambda m: 
+                         '[' + m.group(1) + ']' if '"' in m.group(1) 
+                         else '["' + m.group(1) + '"]' if ' ' in m.group(1) and not m.group(1).startswith('"') 
+                         else '[' + m.group(1) + ']', diagram_code)
+    
+    # Fix subgraph syntax
+    diagram_code = re.sub(r'subgraph\s+([^"\n]+?)$', r'subgraph "\1"', diagram_code, flags=re.MULTILINE)
+    
+    # Clean up any invalid characters
+    diagram_code = re.sub(r'[^\x20-\x7E\n]', '', diagram_code)
+    
+    # Add direction to flowchart if missing
+    if diagram_code.startswith("flowchart") and "flowchart TD" not in diagram_code and "flowchart LR" not in diagram_code:
+        diagram_code = diagram_code.replace("flowchart", "flowchart TD", 1)
+    
     return diagram_code
 
 @app.route('/')
@@ -366,7 +382,16 @@ def index():
                         <label for="question" class="form-label">Your Question:</label>
                         <textarea class="form-control" id="question" name="question" rows="3" required></textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary">Ask</button>
+                    <button type="submit" class="btn btn-primary" id="askButton">Ask</button>
+                    <div id="processingIndicator" style="display:none; margin-top: 15px;" class="alert alert-info">
+                        <div class="d-flex align-items-center">
+                            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                            <span class="processing">Processing your question...</span>
+                        </div>
+                    </div>
+                    <div id="lastQuestion" style="display:none; margin-top: 15px;" class="alert alert-secondary">
+                        <strong>Last question: </strong><span id="lastQuestionText"></span>
+                    </div>
                 </form>
             </div>
             
@@ -522,6 +547,23 @@ def index():
                     var submitButton = this.querySelector('button[type="submit"]');
                     submitButton.disabled = true;
                     
+                    // Show processing indicator
+                    var processingIndicator = document.getElementById('processingIndicator');
+                    if (processingIndicator) {
+                        processingIndicator.style.display = 'block';
+                    }
+                    
+                    // Save the question text to display if page reloads
+                    localStorage.setItem('lastQuestion', question);
+                    
+                    // Show the last question indicator
+                    var lastQuestion = document.getElementById('lastQuestion');
+                    var lastQuestionText = document.getElementById('lastQuestionText');
+                    if (lastQuestion && lastQuestionText) {
+                        lastQuestionText.textContent = question;
+                        lastQuestion.style.display = 'block';
+                    }
+                    
                     // Add user message to chat
                     var chatContainer = document.getElementById('chatMessages');
                     var userMessage = document.createElement('div');
@@ -638,7 +680,11 @@ def index():
             
             // Initialize mermaid for diagrams
             if (typeof mermaid !== 'undefined') {
-                mermaid.initialize({ startOnLoad: true });
+                mermaid.initialize({ 
+                    startOnLoad: true,
+                    securityLevel: 'loose',
+                    theme: 'default'
+                });
                 
                 // Check if we have diagrams
                 var hasDiagrams = document.querySelectorAll('.mermaid').length > 0;
@@ -648,6 +694,20 @@ def index():
                         notificationDot.style.display = 'block';
                     }
                 }
+            }
+            
+            // Check for last question in localStorage
+            var lastQuestion = localStorage.getItem('lastQuestion');
+            if (lastQuestion) {
+                var lastQuestionDiv = document.getElementById('lastQuestion');
+                var lastQuestionText = document.getElementById('lastQuestionText');
+                if (lastQuestionDiv && lastQuestionText) {
+                    lastQuestionText.textContent = lastQuestion;
+                    lastQuestionDiv.style.display = 'block';
+                }
+                
+                // Clear it after showing (it will be set again when submitting a new question)
+                localStorage.removeItem('lastQuestion');
             }
         });
     </script>
@@ -900,23 +960,55 @@ def view_diagram(diagram_index):
     <a href="/" class="btn btn-primary">Back to Main App</a>
     
     <script>
-        // Basic mermaid initialization
+        // Basic mermaid initialization with error handling
         mermaid.initialize({
-            startOnLoad: true
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: 'default'
         });
         
-        // Keep it extremely simple
         document.addEventListener('DOMContentLoaded', function() {
-            // Just show the diagram
             var errorContainer = document.getElementById('error-container');
+            var rawCode = document.getElementById('raw-code');
+            var mermaidDiv = document.querySelector('.mermaid');
+            
+            // Hide error container initially
             if (errorContainer) {
                 errorContainer.style.display = 'none';
             }
             
-            // Make the mermaid element visible
-            var mermaidDiv = document.querySelector('.mermaid');
-            if (mermaidDiv) {
-                mermaidDiv.style.display = 'block';
+            // Try to render the diagram with explicit error handling
+            try {
+                // Use renderAsync instead of init for better error handling
+                mermaid.mermaidAPI.render('mermaid-svg', mermaidDiv.textContent)
+                    .then(function(svgCode) {
+                        // If successful, replace the pre tag with rendered SVG
+                        mermaidDiv.innerHTML = svgCode;
+                    })
+                    .catch(function(error) {
+                        console.error('Mermaid rendering error:', error);
+                        // Show the error container with raw code
+                        if (errorContainer) {
+                            errorContainer.style.display = 'block';
+                        }
+                        // Also show a simplified diagram if possible
+                        try {
+                            // Try with a simplified version as fallback
+                            var simpleDiagram = 'flowchart TD\nA[Error] --> B[Could not render diagram]\nB --> C[See raw code below]';
+                            mermaid.mermaidAPI.render('simple-diagram', simpleDiagram)
+                                .then(function(svgCode) {
+                                    mermaidDiv.innerHTML = svgCode;
+                                });
+                        } catch (e) {
+                            // If even simplified diagram fails, just show an error message
+                            mermaidDiv.innerHTML = '<div class="alert alert-danger">Diagram rendering failed</div>';
+                        }
+                    });
+            } catch (error) {
+                console.error('Error setting up mermaid:', error);
+                if (errorContainer) {
+                    errorContainer.style.display = 'block';
+                }
             }
         });
     </script>
