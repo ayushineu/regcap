@@ -229,6 +229,48 @@ def index():
             max-width: 100%;
             height: auto;
         }
+        
+        .explanation-container {
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            color: var(--primary-text);
+        }
+        
+        .explanation-container h4 {
+            color: var(--primary-text);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .explanation-container p {
+            color: var(--primary-text);
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        
+        .diagram-container {
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            margin: 15px 0;
+            background-color: var(--primary-bg);
+            overflow-x: auto;
+            max-height: 600px;
+            overflow-y: auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .text-dark {
+            color: #212529 !important;
+        }
+        
+        [data-theme="dark"] .text-dark {
+            color: #e0e0e0 !important;
+        }
     </style>
 </head>
 <body>
@@ -322,7 +364,10 @@ def index():
                                 <h3>{{ diagram_type|capitalize }} Diagram</h3>
                             </div>
                             <div class="card-body">
-                                <p><strong>Explanation:</strong> {{ explanation }}</p>
+                                <div class="explanation-container p-3 mb-4 bg-light border rounded">
+                                    <h4 class="mb-2">Explanation</h4>
+                                    <p class="text-dark">{{ explanation }}</p>
+                                </div>
                                 
                                 <!-- Diagram Tabs -->
                                 <div class="tabs diagram-tabs mt-3">
