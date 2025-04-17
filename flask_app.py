@@ -1853,43 +1853,7 @@ def view_diagram(diagram_index):
                 initializeDiagram();
             });
             
-            // Dark mode toggle functionality
-            function setupDarkModeToggle() {
-                const darkModeToggle = document.getElementById('darkModeToggle');
-                const htmlElement = document.documentElement;
-                
-                // Check for saved theme preference or respect OS preference
-                const savedTheme = localStorage.getItem('theme');
-                const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                
-                // Apply dark theme if saved or OS prefers dark
-                if (savedTheme === 'dark' || (!savedTheme && prefersDarkMode)) {
-                    htmlElement.setAttribute('data-theme', 'dark');
-                    darkModeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
-                    // Update Mermaid theme
-                    mermaid.initialize({ theme: 'dark' });
-                }
-                
-                // Toggle theme when button is clicked
-                darkModeToggle.addEventListener('click', function() {
-                    if (htmlElement.getAttribute('data-theme') === 'dark') {
-                        htmlElement.removeAttribute('data-theme');
-                        localStorage.setItem('theme', 'light');
-                        darkModeToggle.innerHTML = '<i class="fa fa-moon-o"></i> Dark Mode';
-                        // Update Mermaid theme
-                        mermaid.initialize({ theme: 'default' });
-                    } else {
-                        htmlElement.setAttribute('data-theme', 'dark');
-                        localStorage.setItem('theme', 'dark');
-                        darkModeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
-                        // Update Mermaid theme
-                        mermaid.initialize({ theme: 'dark' });
-                    }
-                    
-                    // Reinitialize diagram with new theme
-                    setTimeout(initializeDiagram, 100);
-                });
-            }
+            // Use the existing setupDarkModeToggle function
             
             // Function to initialize the diagram
             function initializeDiagram() {
