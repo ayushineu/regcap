@@ -1845,6 +1845,47 @@ def view_diagram(diagram_index):
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
         <script>
+            // Define setupDarkModeToggle function directly for this page
+            function setupDarkModeToggle() {
+                const darkModeToggle = document.getElementById('darkModeToggle');
+                const htmlElement = document.documentElement;
+                
+                // Check for saved theme preference or respect OS preference
+                const savedTheme = localStorage.getItem('theme');
+                const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                
+                // Apply dark theme if saved or OS prefers dark
+                if (savedTheme === 'dark' || (!savedTheme && prefersDarkMode)) {
+                    htmlElement.setAttribute('data-theme', 'dark');
+                    darkModeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
+                    // Update Mermaid theme
+                    mermaid.initialize({ theme: 'dark' });
+                }
+                
+                // Toggle theme when button is clicked
+                darkModeToggle.addEventListener('click', function() {
+                    if (htmlElement.getAttribute('data-theme') === 'dark') {
+                        htmlElement.removeAttribute('data-theme');
+                        localStorage.setItem('theme', 'light');
+                        darkModeToggle.innerHTML = '<i class="fa fa-moon-o"></i> Dark Mode';
+                        // Update Mermaid theme
+                        mermaid.initialize({ theme: 'default' });
+                    } else {
+                        htmlElement.setAttribute('data-theme', 'dark');
+                        localStorage.setItem('theme', 'dark');
+                        darkModeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
+                        // Update Mermaid theme
+                        mermaid.initialize({ theme: 'dark' });
+                    }
+                    
+                    // Reinitialize diagram with the new theme
+                    setTimeout(function() {
+                        initializeDiagram();
+                    }, 100);
+                });
+            }
+            
+            // Initialize the page when loaded
             document.addEventListener('DOMContentLoaded', function() {
                 // Setup dark mode toggle
                 setupDarkModeToggle();
@@ -1852,8 +1893,6 @@ def view_diagram(diagram_index):
                 // Initialize the diagram
                 initializeDiagram();
             });
-            
-            // Use the existing setupDarkModeToggle function
             
             // Function to initialize the diagram
             function initializeDiagram() {
