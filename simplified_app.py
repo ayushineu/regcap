@@ -82,8 +82,22 @@ def index():
     sessions = list_all_sessions()
     
     # Process diagrams to fix any Mermaid syntax issues
+    # Only process unique diagrams to avoid duplicates
+    seen_diagrams = set()
     diagrams = []
+    
     for diagram_code, explanation, diagram_type in raw_diagrams:
+        # Create a unique identifier for this diagram
+        diagram_id = f"{explanation}-{diagram_type}"
+        
+        # Skip if we've already seen this diagram
+        if diagram_id in seen_diagrams:
+            continue
+            
+        # Mark this diagram as seen
+        seen_diagrams.add(diagram_id)
+        
+        # Fix Mermaid syntax and add to the list
         fixed_code = fix_mermaid_syntax(diagram_code, diagram_type)
         diagrams.append((fixed_code, explanation, diagram_type))
     
@@ -730,12 +744,25 @@ def switch_session():
 @app.route('/view_diagram/<int:diagram_index>')
 def view_diagram(diagram_index):
     """Show a single diagram on a dedicated page."""
-    diagrams = get_diagrams()
+    raw_diagrams = get_diagrams()
     
-    if not diagrams or diagram_index >= len(diagrams):
+    if not raw_diagrams:
         return redirect(url_for('index'))
     
-    diagram_code, explanation, diagram_type = diagrams[diagram_index]
+    # De-duplicate diagrams just like in the index route
+    seen_diagrams = set()
+    unique_diagrams = []
+    
+    for diagram_code, explanation, diagram_type in raw_diagrams:
+        diagram_id = f"{explanation}-{diagram_type}"
+        if diagram_id not in seen_diagrams:
+            seen_diagrams.add(diagram_id)
+            unique_diagrams.append((diagram_code, explanation, diagram_type))
+    
+    if diagram_index >= len(unique_diagrams):
+        return redirect(url_for('index'))
+    
+    diagram_code, explanation, diagram_type = unique_diagrams[diagram_index]
     
     # Fix any Mermaid syntax issues for the standalone view
     diagram_code = fix_mermaid_syntax(diagram_code, diagram_type)
