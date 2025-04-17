@@ -551,10 +551,29 @@ def index():
                     })
                     .then(function(data) {
                         if (data.success) {
-                            // Show fake progress
+                            // Show processing stages with longer timeouts
+                            var processingSpan = document.querySelector('.processing');
+                            if (processingSpan) {
+                                // Stage 1
+                                setTimeout(function() {
+                                    processingSpan.innerHTML = "Finding information in documents... <div class='spinner-border spinner-border-sm' role='status'></div>";
+                                }, 2000);
+                                
+                                // Stage 2
+                                setTimeout(function() {
+                                    processingSpan.innerHTML = "Creating vector embeddings... <div class='spinner-border spinner-border-sm' role='status'></div>";
+                                }, 5000);
+                                
+                                // Stage 3
+                                setTimeout(function() {
+                                    processingSpan.innerHTML = "Generating answer... <div class='spinner-border spinner-border-sm' role='status'></div>";
+                                }, 8000);
+                            }
+                            
+                            // Wait longer before reloading
                             setTimeout(function() {
                                 window.location.reload();
-                            }, 5000);
+                            }, 15000);
                         } else {
                             alert('Error: ' + (data.error || 'Unknown error'));
                             submitButton.disabled = false;
