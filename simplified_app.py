@@ -409,6 +409,23 @@ def index():
                     
                     // Show loading status
                     statusDiv.style.display = 'block';
+                    const submitButton = this.querySelector('button[type="submit"]');
+                    submitButton.disabled = true;
+                    
+                    // Add temporary message to the chat
+                    const chatContainer = document.getElementById('chatMessages');
+                    const userMessage = document.createElement('div');
+                    userMessage.className = 'user-message';
+                    userMessage.innerHTML = '<strong>You:</strong> ' + question;
+                    chatContainer.appendChild(userMessage);
+                    
+                    const botMessage = document.createElement('div');
+                    botMessage.className = 'bot-message';
+                    botMessage.innerHTML = '<strong>Bot:</strong> <span class="processing">Processing your question... <div class="spinner-border spinner-border-sm" role="status"></div></span>';
+                    chatContainer.appendChild(botMessage);
+                    
+                    // Auto-scroll to bottom
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
                     
                     // Create form data
                     const formData = new FormData();
@@ -423,18 +440,88 @@ def index():
                     .then(data => {
                         console.log('Response:', data);
                         if (data.success) {
-                            // Reload the page to show the new message
-                            window.location.reload();
+                            // Start polling for status if we have a question ID
+                            if (data.question_id) {
+                                pollQuestionStatus(data.question_id);
+                            } else {
+                                // If no polling, wait 3 seconds then reload
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 3000);
+                            }
                         } else {
-                            alert('Error: ' + data.error);
+                            alert('Error: ' + (data.error || 'Unknown error'));
                             statusDiv.style.display = 'none';
+                            submitButton.disabled = false;
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
+                        alert('Error processing request: ' + error.message);
                         statusDiv.style.display = 'none';
+                        submitButton.disabled = false;
                     });
+                    
+                    // Clear the input
+                    document.getElementById('question').value = '';
                 });
+            }
+            
+            // Function to poll for question status
+            function pollQuestionStatus(questionId) {
+                let pollCount = 0;
+                const maxPolls = 30; // Maximum number of polling attempts
+                const pollInterval = 2000; // Poll every 2 seconds
+                
+                console.log('Starting to poll for question status:', questionId);
+                
+                function poll() {
+                    pollCount++;
+                    console.log(`Polling attempt ${pollCount}/${maxPolls}`);
+                    
+                    fetch(`/get_question_status/${questionId}`)
+                        .then(response => response.json())
+                        .then(status => {
+                            console.log('Status:', status);
+                            
+                            // Update processing message with current stage
+                            if (status.stage) {
+                                const processingElements = document.querySelectorAll('.processing');
+                                if (processingElements.length > 0) {
+                                    const lastElement = processingElements[processingElements.length - 1];
+                                    lastElement.innerHTML = `${status.stage}... ${status.progress ? status.progress + '%' : ''} <div class="spinner-border spinner-border-sm" role="status"></div>`;
+                                }
+                            }
+                            
+                            // Check if done
+                            if (status.done) {
+                                console.log('Processing complete');
+                                window.location.reload();
+                                return;
+                            }
+                            
+                            // Continue polling if not done and haven't exceeded max attempts
+                            if (pollCount < maxPolls) {
+                                setTimeout(poll, pollInterval);
+                            } else {
+                                console.log('Exceeded maximum polling attempts');
+                                window.location.reload();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error polling:', error);
+                            
+                            // Continue polling despite error
+                            if (pollCount < maxPolls) {
+                                setTimeout(poll, pollInterval);
+                            } else {
+                                window.location.reload();
+                            }
+                        });
+                }
+                
+                // Start polling
+                setTimeout(poll, 1000); // Wait 1 second before first poll
             }
             
             // Session handling
@@ -529,10 +616,8 @@ def ask_question():
     processing_thread.daemon = True
     processing_thread.start()
     
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return jsonify({"success": True, "question_id": question_id})
-    else:
-        return redirect(url_for('index'))
+    # AJAX handling - always return JSON for simplicity
+    return jsonify({"success": True, "question_id": question_id})
 
 def process_question(question, question_id):
     """Process a question in the background."""
