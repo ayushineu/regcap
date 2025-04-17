@@ -289,6 +289,36 @@ def index():
             border-radius: 50%;
             display: none;
         }
+        
+        /* Improved diagram styling */
+        .diagram-container {
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow-x: auto;
+            background-color: var(--secondary-bg);
+        }
+        
+        .svg-container {
+            width: 100%;
+            overflow-x: auto;
+            padding: 10px;
+        }
+        
+        .error-container {
+            margin: 10px 0;
+            padding: 15px;
+            background-color: #fff3cd;
+            border-radius: 5px;
+            border: 1px solid #ffecb5;
+            display: none;
+        }
+        
+        .mermaid svg {
+            max-width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -374,15 +404,17 @@ def index():
                             </div>
                             <div class="card-body">
                                 <p><strong>Explanation:</strong> {{ explanation }}</p>
-                                <!-- Embedded diagram -->
+                                <!-- Improved diagram container with better rendering -->
                                 <div class="diagram-container">
-                                    <pre class="mermaid">
-{{ diagram_code }}
-                                    </pre>
+                                    <div class="svg-container" id="diagram-svg-{{ loop.index0 }}"></div>
+                                    <pre class="mermaid" style="display: none;">{{ diagram_code }}</pre>
                                 </div>
-                                <!-- Fallback image container in case of rendering issues -->
-                                <div class="fallback-diagram" id="fallback-diagram-{{ loop.index0 }}" style="display:none;">
-                                    <img id="diagram-img-{{ loop.index0 }}" src="" alt="Diagram" class="img-fluid" style="max-width: 100%; border: 1px solid #ddd; border-radius: 5px;">
+                                <!-- Error container that shows only when there's a rendering problem -->
+                                <div class="error-container" id="error-container-{{ loop.index0 }}" style="display:none;">
+                                    <div class="alert alert-warning">
+                                        <h5>Diagram Rendering Issue</h5>
+                                        <p>The diagram couldn't be rendered directly in this view.</p>
+                                    </div>
                                 </div>
                             </div>
                             <div class="card-footer">
@@ -637,46 +669,90 @@ def index():
                 });
             });
             
-            // Better Mermaid diagram handling
+            // Advanced Mermaid diagram handling with better error recovery
             function renderDiagrams() {
-                // Clear previous renderings
+                // Initialize with optimal configuration
                 mermaid.initialize({ 
-                    startOnLoad: true,
+                    startOnLoad: false,
                     theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default',
                     securityLevel: 'loose',
-                    logLevel: 'error'
+                    logLevel: 'error',
+                    fontFamily: 'arial, sans-serif',
+                    flowchart: {
+                        htmlLabels: true,
+                        curve: 'basis',
+                        padding: 15
+                    }
                 });
                 
-                try {
-                    // Try to render all diagrams
-                    mermaid.init(undefined, document.querySelectorAll('.mermaid'));
-                } catch (e) {
-                    console.error('Error initializing mermaid diagrams:', e);
+                // Find all diagram containers and render them individually
+                document.querySelectorAll('.mermaid').forEach((diagram, index) => {
+                    const diagramText = diagram.textContent.trim();
+                    const targetDiv = document.getElementById(`diagram-svg-${index}`);
+                    const errorContainer = document.getElementById(`error-container-${index}`);
                     
-                    // For each diagram, try to render individually and provide fallback
-                    document.querySelectorAll('.mermaid').forEach((diagram, index) => {
-                        try {
-                            // Try to render this specific diagram
-                            mermaid.render(`mermaid-svg-${index}`, diagram.textContent, (svgCode) => {
-                                // Replace content with rendered SVG
-                                diagram.innerHTML = svgCode;
+                    if (!targetDiv) return;
+                    
+                    try {
+                        // Try to render using the newer Promise-based API
+                        mermaid.render(`diagram-svg-content-${index}`, diagramText)
+                            .then(result => {
+                                targetDiv.innerHTML = result.svg;
+                                if (errorContainer) errorContainer.style.display = 'none';
+                            })
+                            .catch(err => {
+                                console.error(`Error rendering diagram ${index}:`, err);
+                                handleRenderingError(diagramText, targetDiv, errorContainer, index);
                             });
-                        } catch (err) {
-                            console.error(`Error rendering diagram ${index}:`, err);
-                            // Show fallback for this specific diagram
-                            const fallbackContainer = document.getElementById(`fallback-diagram-${index}`);
-                            if (fallbackContainer) {
-                                diagram.style.display = 'none';
-                                fallbackContainer.style.display = 'block';
-                                
-                                // Create a simple fallback message
-                                const msg = document.createElement('div');
-                                msg.className = 'alert alert-warning';
-                                msg.innerHTML = 'Diagram rendering failed in this view. Please use the "View in New Tab" button below to see the diagram.';
-                                fallbackContainer.appendChild(msg);
-                            }
+                    } catch (err) {
+                        console.error(`Initial mermaid error for diagram ${index}:`, err);
+                        handleRenderingError(diagramText, targetDiv, errorContainer, index);
+                    }
+                });
+                
+                // Handler for diagram rendering errors
+                function handleRenderingError(code, targetDiv, errorContainer, index) {
+                    // Show error container
+                    if (errorContainer) errorContainer.style.display = 'block';
+                    
+                    // Try alternative rendering as a last resort
+                    try {
+                        const fixedCode = fixFlowchartSyntax(code);
+                        mermaid.render(`diagram-svg-fallback-${index}`, fixedCode)
+                            .then(result => {
+                                targetDiv.innerHTML = result.svg;
+                            })
+                            .catch(e => {
+                                console.error(`Fallback rendering failed for diagram ${index}:`, e);
+                                targetDiv.innerHTML = '<div class="alert alert-warning">Diagram rendering failed. Please use "View in New Tab" for a better viewing experience.</div>';
+                            });
+                    } catch (e) {
+                        console.error(`Fallback mechanism failed for diagram ${index}:`, e);
+                    }
+                }
+                
+                // Extra syntax fixing function for flowcharts
+                function fixFlowchartSyntax(code) {
+                    // Try to detect and fix common syntax issues
+                    let fixed = code;
+                    
+                    // Ensure proper flowchart declaration
+                    if (!fixed.startsWith('flowchart')) {
+                        fixed = 'flowchart TD\n' + fixed;
+                    }
+                    
+                    // Add quotes to node text with spaces
+                    fixed = fixed.replace(/\[([^\]]+)\]/g, function(match, p1) {
+                        if (p1.includes(' ') && !p1.startsWith('"') && !p1.endsWith('"')) {
+                            return '["' + p1 + '"]';
                         }
+                        return match;
                     });
+                    
+                    // Fix arrow syntax
+                    fixed = fixed.replace(/(\w+)--(\w+)/g, '$1 --> $2');
+                    
+                    return fixed;
                 }
             }
             
@@ -862,21 +938,24 @@ def view_diagram(diagram_index):
     
     diagram_code, explanation, diagram_type = unique_diagrams[diagram_index]
     
-    # Fix any Mermaid syntax issues for the standalone view
+    # Apply extra fixes for complex diagrams
     diagram_code = fix_mermaid_syntax(diagram_code, diagram_type)
     
     return render_template_string("""
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ diagram_type|capitalize }} Diagram</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.6.0/dist/mermaid.min.js"></script>
     <style>
         body {
             padding: 40px;
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
+            font-family: Arial, sans-serif;
         }
         h1 {
             margin-bottom: 30px;
@@ -892,6 +971,27 @@ def view_diagram(diagram_index):
             border: 1px solid #ddd;
             border-radius: 5px;
             margin: 20px 0;
+            overflow-x: auto;
+        }
+        .mermaid {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .error-container {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #fff3cd;
+            border-radius: 5px;
+            border: 1px solid #ffecb5;
+            display: none;
+        }
+        .svg-container {
+            width: 100%;
+            overflow-x: auto;
+            padding: 10px;
+        }
+        pre {
+            white-space: pre-wrap;
         }
     </style>
 </head>
@@ -904,40 +1004,100 @@ def view_diagram(diagram_index):
     </div>
     
     <div class="diagram-container">
-        <pre class="mermaid">
-{{ diagram_code }}
-        </pre>
+        <div class="svg-container" id="diagram-svg"></div>
+        <pre class="mermaid" style="display: none;">{{ diagram_code }}</pre>
+    </div>
+    
+    <div class="error-container" id="error-container">
+        <h4>Diagram Rendering Error</h4>
+        <p>There was an error rendering this diagram. Here's the raw diagram code:</p>
+        <pre id="raw-code" class="border p-3 bg-light">{{ diagram_code }}</pre>
     </div>
     
     <a href="/" class="btn btn-primary">Back to Main App</a>
     
     <script>
+        // Initialize mermaid with optimal configuration
         mermaid.initialize({
-            startOnLoad: true,
+            startOnLoad: false,
             theme: 'default',
             securityLevel: 'loose',
-            logLevel: 'error'
+            logLevel: 'error',
+            fontFamily: 'arial, sans-serif',
+            fontSize: 16,
+            flowchart: {
+                htmlLabels: true,
+                curve: 'basis',
+                padding: 15
+            }
         });
         
-        // Fallback rendering in case of errors
-        try {
-            mermaid.init(undefined, document.querySelectorAll('.mermaid'));
-        } catch (e) {
-            console.error('Error initializing mermaid diagrams:', e);
+        // Render diagram with best practices
+        document.addEventListener('DOMContentLoaded', function() {
+            const diagramText = document.querySelector('.mermaid').textContent.trim();
+            const targetDiv = document.getElementById('diagram-svg');
             
-            // Try individual rendering
-            document.querySelectorAll('.mermaid').forEach((diagram, index) => {
-                try {
-                    mermaid.render(`mermaid-svg-${index}`, diagram.textContent, (svgCode) => {
-                        diagram.innerHTML = svgCode;
+            try {
+                mermaid.render('diagram-svg-content', diagramText)
+                    .then(result => {
+                        targetDiv.innerHTML = result.svg;
+                    })
+                    .catch(err => {
+                        console.error('Mermaid rendering error:', err);
+                        handleRenderingError();
                     });
-                } catch (err) {
-                    console.error(`Error rendering diagram ${index}:`, err);
-                    // Show error message
-                    diagram.innerHTML = '<div class="alert alert-warning">There was an error rendering this diagram. Please try reloading the page.</div>';
+            } catch (err) {
+                console.error('Initial mermaid error:', err);
+                handleRenderingError();
+            }
+            
+            function handleRenderingError() {
+                // Show error container with raw code
+                document.getElementById('error-container').style.display = 'block';
+                
+                // Try alternative rendering as a last resort
+                try {
+                    const fixedCode = fixFlowchartSyntax(diagramText);
+                    mermaid.render('diagram-svg-fallback', fixedCode)
+                        .then(result => {
+                            targetDiv.innerHTML = result.svg;
+                            // Still show the raw code but indicate success
+                            document.getElementById('error-container').classList.add('bg-success-subtle');
+                            document.getElementById('error-container').querySelector('h4').textContent = 'Diagram Fixed';
+                        })
+                        .catch(e => {
+                            console.error('Fallback rendering failed:', e);
+                            targetDiv.innerHTML = '<div class="alert alert-warning">Unable to render diagram. Please check the raw code below.</div>';
+                        });
+                } catch (e) {
+                    console.error('Fallback mechanism failed:', e);
                 }
-            });
-        }
+            }
+            
+            // Extra syntax fixing function for flowcharts
+            function fixFlowchartSyntax(code) {
+                // Try to detect and fix common syntax issues
+                let fixed = code;
+                
+                // Ensure proper flowchart declaration
+                if (!fixed.startsWith('flowchart')) {
+                    fixed = 'flowchart TD\n' + fixed;
+                }
+                
+                // Add quotes to node text with spaces
+                fixed = fixed.replace(/\[([^\]]+)\]/g, function(match, p1) {
+                    if (p1.includes(' ') && !p1.startsWith('"') && !p1.endsWith('"')) {
+                        return '["' + p1 + '"]';
+                    }
+                    return match;
+                });
+                
+                // Fix arrow syntax
+                fixed = fixed.replace(/(\w+)--(\w+)/g, '$1 --> $2');
+                
+                return fixed;
+            }
+        });
     </script>
 </body>
 </html>
