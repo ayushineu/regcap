@@ -10,6 +10,7 @@ import threading
 import openai
 import numpy as np
 import faiss
+import re
 from werkzeug.utils import secure_filename
 from flask_app import (
     SimpleStorage, get_current_session, create_new_session, 
@@ -27,6 +28,49 @@ app.secret_key = os.urandom(24)
 # Initialize OpenAI client
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
+def fix_mermaid_syntax(diagram_code: str, diagram_type: str = "flowchart") -> str:
+    """Fix common Mermaid syntax issues to ensure proper rendering."""
+    if not diagram_code:
+        # Default empty diagram based on type
+        if diagram_type == "flowchart":
+            return "flowchart TD\nA[Empty Diagram]"
+        elif diagram_type == "sequence":
+            return "sequenceDiagram\nA->>B: Empty Diagram"
+        elif diagram_type == "mindmap":
+            return "mindmap\nroot(Empty Diagram)"
+        else:
+            return "flowchart TD\nA[Empty Diagram]"
+    
+    # Clean up whitespace
+    diagram_code = diagram_code.strip()
+    
+    # Remove markdown code block syntax if present
+    if "```" in diagram_code:
+        # Extract content between ```mermaid and ```
+        if "```mermaid" in diagram_code:
+            match = re.search(r'```mermaid\n(.*?)```', diagram_code, re.DOTALL)
+            if match:
+                diagram_code = match.group(1).strip()
+        else:
+            # Extract content between ``` and ```
+            match = re.search(r'```\n?(.*?)```', diagram_code, re.DOTALL)
+            if match:
+                diagram_code = match.group(1).strip()
+    
+    # Ensure proper diagram type declaration
+    if diagram_type == "flowchart":
+        if not (diagram_code.startswith("flowchart") or diagram_code.startswith("graph")):
+            diagram_code = "flowchart TD\n" + diagram_code
+        # Convert 'graph TD' to 'flowchart TD' for consistency
+        elif diagram_code.startswith("graph TD"):
+            diagram_code = diagram_code.replace("graph TD", "flowchart TD", 1)
+    elif diagram_type == "sequence" and not diagram_code.startswith("sequenceDiagram"):
+        diagram_code = "sequenceDiagram\n" + diagram_code
+    elif diagram_type == "mindmap" and not diagram_code.startswith("mindmap"):
+        diagram_code = "mindmap\n" + diagram_code
+    
+    return diagram_code
+
 @app.route('/')
 def index():
     """Render the main application page."""
@@ -34,8 +78,14 @@ def index():
     session_id = get_current_session()
     documents = get_document_chunks()
     chat_history = get_chat_history()
-    diagrams = get_diagrams()
+    raw_diagrams = get_diagrams()
     sessions = list_all_sessions()
+    
+    # Process diagrams to fix any Mermaid syntax issues
+    diagrams = []
+    for diagram_code, explanation, diagram_type in raw_diagrams:
+        fixed_code = fix_mermaid_syntax(diagram_code, diagram_type)
+        diagrams.append((fixed_code, explanation, diagram_type))
     
     return render_template_string("""
 <!DOCTYPE html>
@@ -260,9 +310,9 @@ def index():
                             </div>
                             <div class="card-body">
                                 <p><strong>Explanation:</strong> {{ explanation }}</p>
-                                <div class="mermaid">
-                                    {{ diagram_code }}
-                                </div>
+                                <pre class="mermaid">
+{{ diagram_code }}
+                                </pre>
                             </div>
                             <div class="card-footer">
                                 <a href="/view_diagram/{{ loop.index0 }}" class="btn btn-primary" target="_blank">
@@ -621,12 +671,29 @@ def process_question(question, question_id):
         
         # Generate answer or diagram
         if is_diagram_request:
-            update_question_status(question_id, stage=f"Generating {diagram_type} diagram", progress=60)
-            diagram_code, explanation = generate_diagram(question, similar_chunks, diagram_type)
-            answer = f"I've created a {diagram_type} diagram based on your request. Please click on the \"Diagrams\" tab above to view it."
+            # Default to flowchart if diagram_type is None
+            actual_diagram_type = diagram_type if diagram_type else "flowchart"
+            update_question_status(question_id, stage=f"Generating {actual_diagram_type} diagram", progress=60)
             
-            # Save the diagram
-            save_diagram(diagram_code, explanation, diagram_type)
+            try:
+                success, result = generate_diagram(question, similar_chunks, actual_diagram_type)
+                
+                if success:
+                    diagram_code, explanation = result
+                    # Fix any Mermaid syntax issues
+                    diagram_code = fix_mermaid_syntax(diagram_code, actual_diagram_type)
+                    answer = f"I've created a {actual_diagram_type} diagram based on your request. Please click on the \"Diagrams\" tab above to view it."
+                    
+                    # Save the diagram
+                    save_diagram(diagram_code, explanation, actual_diagram_type)
+                else:
+                    # Handle error case
+                    answer = f"I couldn't generate a diagram: {result}"
+            except Exception as e:
+                # Handle any errors during diagram generation
+                error_msg = str(e)
+                log_message(f"Error generating diagram: {error_msg}")
+                answer = f"I had trouble creating the diagram. Error: {error_msg}"
         else:
             update_question_status(question_id, stage="Generating answer", progress=60)
             answer = generate_answer(question, similar_chunks)
@@ -670,6 +737,9 @@ def view_diagram(diagram_index):
     
     diagram_code, explanation, diagram_type = diagrams[diagram_index]
     
+    # Fix any Mermaid syntax issues for the standalone view
+    diagram_code = fix_mermaid_syntax(diagram_code, diagram_type)
+    
     return render_template_string("""
 <!DOCTYPE html>
 <html>
@@ -709,9 +779,9 @@ def view_diagram(diagram_index):
     </div>
     
     <div class="diagram-container">
-        <div class="mermaid">
+        <pre class="mermaid">
 {{ diagram_code }}
-        </div>
+        </pre>
     </div>
     
     <a href="/" class="btn btn-primary">Back to Main App</a>
