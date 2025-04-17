@@ -1073,21 +1073,48 @@ graph TD
             margin-bottom: 0;
             padding-left: 0;
             list-style: none;
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 5px;
         }
         .tab-item {
-            margin-bottom: -1px;
-            padding: 0.5rem 1rem;
+            margin-bottom: 5px;
+            padding: 0.75rem 1.25rem;
             cursor: pointer;
-            background-color: #f8f9fa;
-            border: 1px solid transparent;
-            border-top-left-radius: 0.25rem;
-            border-top-right-radius: 0.25rem;
+            background-color: var(--secondary-bg);
+            color: var(--primary-text);
+            border: 1px solid var(--border-color);
+            border-radius: 0.25rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-block;
+            text-align: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            position: relative;
+            z-index: 1;
+        }
+        .tab-item:hover {
+            background-color: var(--primary-btn);
+            color: #fff;
+            border-color: var(--primary-btn);
         }
         .tab-item.active {
-            color: #495057;
-            background-color: #fff;
-            border-color: #dee2e6 #dee2e6 #fff;
+            color: #fff;
+            background-color: var(--primary-btn);
+            border-color: var(--primary-btn);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-weight: 600;
+        }
+        
+        [data-theme="dark"] .tab-item {
+            background-color: #2c2c2c;
+            color: #e0e0e0;
+            border-color: #444;
+        }
+        
+        [data-theme="dark"] .tab-item:hover {
+            background-color: var(--primary-btn);
+            color: #fff;
         }
         .tab-content {
             display: none;
