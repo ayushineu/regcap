@@ -999,7 +999,7 @@ def index():
             
             // Auto-refresh handling for background processing
             function checkForUpdates() {
-                // If we have a message with "Processing your question...", refresh the page after 2 seconds
+                // If we have a message with "Processing your question...", refresh the page after 3 seconds
                 const botMessages = document.querySelectorAll('.bot-message');
                 let hasProcessingMessage = false;
                 
@@ -1011,15 +1011,30 @@ def index():
                 }
                 
                 if (hasProcessingMessage) {
-                    // Refresh the page to check for updates
+                    // Refresh the page to check for updates, with a longer delay
                     setTimeout(function() {
                         window.location.reload();
-                    }, 2000);
+                    }, 3000);
+                    return true; // Return true if we scheduled a refresh
                 }
+                return false; // Return false if no refresh was scheduled
             }
             
-            // Run the check when the page loads
-            window.addEventListener('load', checkForUpdates);
+            // Run the check when the page loads, but only set up auto-refresh
+            // if we actually need to poll for an answer
+            let refreshInterval;
+            window.addEventListener('load', function() {
+                // Initial check
+                const needsRefresh = checkForUpdates();
+                
+                // Only set up interval if we actually need to refresh
+                if (needsRefresh) {
+                    // No need for interval since setTimeout will handle refresh
+                } else {
+                    // No processing messages found, no need for auto-refresh
+                    // console.log("No processing messages found, no auto-refresh needed");
+                }
+            });
             
             // Tab functionality
             function openTab(evt, tabName) {
