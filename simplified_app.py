@@ -440,15 +440,27 @@ def index():
                     .then(data => {
                         console.log('Response:', data);
                         if (data.success) {
-                            // Start polling for status if we have a question ID
-                            if (data.question_id) {
-                                pollQuestionStatus(data.question_id);
-                            } else {
-                                // If no polling, wait 3 seconds then reload
+                            // Show a fake processing indicator
+                            const processingSpan = document.querySelector('.processing');
+                            if (processingSpan) {
+                                // Simulate processing stages with timeouts
                                 setTimeout(() => {
-                                    window.location.reload();
-                                }, 3000);
+                                    processingSpan.innerHTML = "Finding information in documents... <div class='spinner-border spinner-border-sm' role='status'></div>";
+                                }, 2000);
+                                
+                                setTimeout(() => {
+                                    processingSpan.innerHTML = "Creating vector embeddings... <div class='spinner-border spinner-border-sm' role='status'></div>";
+                                }, 4000);
+                                
+                                setTimeout(() => {
+                                    processingSpan.innerHTML = "Generating answer... <div class='spinner-border spinner-border-sm' role='status'></div>";
+                                }, 7000);
                             }
+                            
+                            // Wait 10 seconds then reload to see the answer
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 10000);
                         } else {
                             alert('Error: ' + (data.error || 'Unknown error'));
                             statusDiv.style.display = 'none';
@@ -465,63 +477,6 @@ def index():
                     // Clear the input
                     document.getElementById('question').value = '';
                 });
-            }
-            
-            // Function to poll for question status
-            function pollQuestionStatus(questionId) {
-                let pollCount = 0;
-                const maxPolls = 30; // Maximum number of polling attempts
-                const pollInterval = 2000; // Poll every 2 seconds
-                
-                console.log('Starting to poll for question status:', questionId);
-                
-                function poll() {
-                    pollCount++;
-                    console.log(`Polling attempt ${pollCount}/${maxPolls}`);
-                    
-                    fetch(`/get_question_status/${questionId}`)
-                        .then(response => response.json())
-                        .then(status => {
-                            console.log('Status:', status);
-                            
-                            // Update processing message with current stage
-                            if (status.stage) {
-                                const processingElements = document.querySelectorAll('.processing');
-                                if (processingElements.length > 0) {
-                                    const lastElement = processingElements[processingElements.length - 1];
-                                    lastElement.innerHTML = `${status.stage}... ${status.progress ? status.progress + '%' : ''} <div class="spinner-border spinner-border-sm" role="status"></div>`;
-                                }
-                            }
-                            
-                            // Check if done
-                            if (status.done) {
-                                console.log('Processing complete');
-                                window.location.reload();
-                                return;
-                            }
-                            
-                            // Continue polling if not done and haven't exceeded max attempts
-                            if (pollCount < maxPolls) {
-                                setTimeout(poll, pollInterval);
-                            } else {
-                                console.log('Exceeded maximum polling attempts');
-                                window.location.reload();
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error polling:', error);
-                            
-                            // Continue polling despite error
-                            if (pollCount < maxPolls) {
-                                setTimeout(poll, pollInterval);
-                            } else {
-                                window.location.reload();
-                            }
-                        });
-                }
-                
-                // Start polling
-                setTimeout(poll, 1000); // Wait 1 second before first poll
             }
             
             // Session handling

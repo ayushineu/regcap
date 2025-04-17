@@ -1,0 +1,101 @@
+(index):416 
+            
+            
+           GET https://4126795e-7c0e-431d-b627-b08e0c43ec1d-00-1p3x14mxoeutq.riker.replit.dev:3001/get_question_status/84c90bc5-5158-4fb9-8454-65158a2827cc 404 (Not Found)
+poll @ (index):416Understand this error
+(index):419 Status: {error: 'Question not found'}
+(index):414 Polling attempt 8/30
+(index):416 
+            
+            
+           GET https://4126795e-7c0e-431d-b627-b08e0c43ec1d-00-1p3x14mxoeutq.riker.replit.dev:3001/get_question_status/84c90bc5-5158-4fb9-8454-65158a2827cc 404 (Not Found)
+poll @ (index):416
+setTimeout
+(anonymous) @ (index):439
+Promise.then
+poll @ (index):418Understand this error
+(index):419 Status: {error: 'Question not found'}
+(index):414 Polling attempt 9/30
+(index):416 
+            
+            
+           GET https://4126795e-7c0e-431d-b627-b08e0c43ec1d-00-1p3x14mxoeutq.riker.replit.dev:3001/get_question_status/84c90bc5-5158-4fb9-8454-65158a2827cc 404 (Not Found)
+poll @ (index):416
+setTimeout
+(anonymous) @ (index):439
+Promise.then
+poll @ (index):418
+setTimeout
+(anonymous) @ (index):439
+Promise.then
+poll @ (index):418Understand this error
+(index):419 Status: {error: 'Question not found'}
+(index):414 Polling attempt 10/30
+(index):416 
+            
+            
+           GET https://4126795e-7c0e-431d-b627-b08e0c43ec1d-00-1p3x14mxoeutq.riker.replit.dev:3001/get_question_status/84c90bc5-5158-4fb9-8454-65158a2827cc 404 (Not Found)
+poll @ (index):416
+setTimeout
+(anonymous) @ (index):439
+Promise.then
+poll @ (index):418
+setTimeout
+(anonymous) @ (index):439
+Promise.then
+poll @ (index):418
+setTimeout
+(anonymous) @ (index):439
+Promise.then
+poll @ (index):418Understand this error
+(index):419 Status: {error: 'Question not found'}
+(index):414 Polling attempt 11/30
+(index):416 
+            
+            
+           GET https://4126795e-7c0e-431d-b627-b08e0c43ec1d-00-1p3x14mxoeutq.riker.replit.dev:3001/get_question_status/84c90bc5-5158-4fb9-8454-65158a2827cc 404 (Not Found)
+poll @ (index):416
+setTimeout
+(anonymous) @ (index):439
+Promise.then
+poll @ (index):418
+setTimeout
+(anonymous) @ (index):439
+Promise.then
+poll @ (index):418
+setTimeout
+(anonymous) @ (index):439
+Promise.then
+poll @ (index):418
+setTimeout
+(anonymous) @ (index):439
+Promise.then
+poll @ (index):418Understand this error
+(index):419 Status: {error: 'Question not found'}
+(index):414 Polling attempt 12/30
+(index):416 
+            
+            
+           GET https://4126795e-7c0e-431d-b627-b08e0c43ec1d-00-1p3x14mxoeutq.riker.replit.dev:3001/get_question_status/84c90bc5-5158-4fb9-8454-65158a2827cc 404 (Not Found)
+poll @ (index):416
+setTimeout
+(anonymous) @ (index):439
+Promise.then
+poll @ (index):418
+setTimeout
+(anonymous) @ (index):439
+Promise.then
+poll @ (index):418
+setTimeout
+(anonymous) @ (index):439
+Promise.then
+poll @ (index):418
+setTimeout
+(anonymous) @ (index):439
+Promise.then
+poll @ (index):418
+setTimeout
+(anonymous) @ (index):439
+Promise.then
+poll @ (index):418Understand this error
+(index):419 Status: {error: 'Question not found'}
