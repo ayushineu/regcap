@@ -20,8 +20,45 @@ from flask_app import (
     get_embedding, create_vector_store, get_similar_chunks,
     generate_answer, generate_diagram, detect_diagram_request,
     save_chat_history, get_chat_history, save_diagram, get_diagrams,
-    list_all_sessions, log_message, update_question_status
+    list_all_sessions, log_message
 )
+
+# Create our own question status tracking system independent of flask_app
+question_status_store = {}
+
+def update_question_status(question_id, stage=None, progress=None, done=None, error=None):
+    """Update the status of a question being processed."""
+    if not question_id:
+        return
+        
+    # Initialize if not exists
+    if question_id not in question_status_store:
+        question_status_store[question_id] = {
+            "start_time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+            "stage": "Starting",
+            "progress": 0,
+            "done": False,
+            "error": None
+        }
+    
+    # Update values
+    current_status = question_status_store[question_id]
+    
+    if stage:
+        current_status["stage"] = stage
+        print(f"Question {question_id}: {stage}")
+        
+    if progress is not None:
+        current_status["progress"] = progress
+        
+    if done is not None:
+        current_status["done"] = done
+        if done:
+            print(f"Question {question_id}: Processing complete")
+            
+    if error:
+        current_status["error"] = error
+        print(f"Question {question_id} ERROR: {error}")
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -1328,13 +1365,13 @@ graph TD
 @app.route('/get_question_status/<question_id>')
 def get_question_status(question_id):
     """Get the status of a specific question."""
-    storage = SimpleStorage()
-    status_key = f"question_status:{question_id}"
+    global question_status_store
     
-    if status_key in storage:
-        return jsonify(storage[status_key])
+    if question_id in question_status_store:
+        return jsonify(question_status_store[question_id])
     else:
-        return jsonify({"error": "Question not found"}), 404
+        # If question not in storage, assume it's completed or there was an error
+        return jsonify({"error": "Question not found", "done": True})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
