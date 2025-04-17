@@ -577,6 +577,14 @@ def ask_question():
 def process_question(question, question_id):
     """Process a question in the background."""
     try:
+        # Check if we already have this question in history to avoid duplicates
+        current_history = get_chat_history()
+        for q, _ in current_history:
+            # Use string similarity to detect duplicate questions
+            if question.lower().strip() == q.lower().strip():
+                print(f"Duplicate question detected: '{question}' - skipping processing")
+                return
+        
         # Update status to indicate we're starting
         update_question_status(question_id, stage="Starting", progress=0)
         
