@@ -245,7 +245,24 @@ with st.sidebar:
     st.header("Session Management")
     
     # Display current session
-    st.info(f"Current Session: {datetime.datetime.fromtimestamp(int(st.session_state['session_id'])).strftime('%Y-%m-%d %H:%M:%S')}")
+    session_id = st.session_state['session_id']
+    if isinstance(session_id, str) and session_id.startswith('session_'):
+        # New format session ID (string format 'session_timestamp')
+        try:
+            timestamp = session_id.split('_')[1]
+            formatted_time = datetime.datetime.fromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
+            st.info(f"Current Session: {formatted_time}")
+        except (IndexError, ValueError):
+            # If parsing fails, just show the session ID itself
+            st.info(f"Current Session: {session_id}")
+    else:
+        # Original format (numeric timestamp)
+        try:
+            formatted_time = datetime.datetime.fromtimestamp(int(session_id)).strftime('%Y-%m-%d %H:%M:%S')
+            st.info(f"Current Session: {formatted_time}")
+        except ValueError:
+            # If conversion fails, just show the session ID
+            st.info(f"Current Session: {session_id}")
     
     # New session button
     if st.button("Start New Session"):
