@@ -12,6 +12,7 @@ import numpy as np
 import faiss
 import re
 from werkzeug.utils import secure_filename
+from fix_mermaid import fix_mermaid_syntax
 from flask_app import (
     SimpleStorage, get_current_session, create_new_session, 
     encode_for_storage, decode_from_storage, extract_text_from_pdf,
@@ -28,114 +29,7 @@ app.secret_key = os.urandom(24)
 # Initialize OpenAI client
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
-def fix_mermaid_syntax(diagram_code: str, diagram_type: str = "flowchart") -> str:
-    """Fix common Mermaid syntax issues to ensure proper rendering."""
-    if not diagram_code:
-        # Default empty diagram based on type
-        if diagram_type == "flowchart":
-            return "flowchart TD\nA[Empty Diagram]"
-        elif diagram_type == "sequence":
-            return "sequenceDiagram\nA->>B: Empty Diagram"
-        elif diagram_type == "mindmap":
-            return "mindmap\nroot(Empty Diagram)"
-        else:
-            return "flowchart TD\nA[Empty Diagram]"
-    
-    # Clean up whitespace and control characters
-    diagram_code = diagram_code.strip()
-    diagram_code = re.sub(r'[\x00-\x1F\x7F]', '', diagram_code)  # Remove control characters
-    
-    # Remove markdown code block syntax if present
-    if "```" in diagram_code:
-        # Extract content between ```mermaid and ```
-        if "```mermaid" in diagram_code:
-            match = re.search(r'```mermaid\n(.*?)```', diagram_code, re.DOTALL)
-            if match:
-                diagram_code = match.group(1).strip()
-        else:
-            # Extract content between ``` and ```
-            match = re.search(r'```\n?(.*?)```', diagram_code, re.DOTALL)
-            if match:
-                diagram_code = match.group(1).strip()
-    
-    # Normalize line endings
-    diagram_code = diagram_code.replace('\r\n', '\n').replace('\r', '\n')
-    
-    # Split into lines for processing
-    lines = diagram_code.split('\n')
-    cleaned_lines = []
-    
-    # Process each line
-    for line in lines:
-        # Skip empty lines
-        if not line.strip():
-            continue
-        # Remove excessive spaces
-        line = re.sub(r'\s+', ' ', line.strip())
-        cleaned_lines.append(line)
-    
-    if not cleaned_lines:
-        # If all lines were removed, return a default diagram
-        if diagram_type == "flowchart":
-            return "flowchart TD\nA[Empty Diagram]"
-        elif diagram_type == "sequence":
-            return "sequenceDiagram\nA->>B: Empty Diagram"
-        elif diagram_type == "mindmap":
-            return "mindmap\nroot(Empty Diagram)"
-        else:
-            return "flowchart TD\nA[Empty Diagram]"
-    
-    # Rebuild the diagram code
-    diagram_code = '\n'.join(cleaned_lines)
-    
-    # Ensure proper diagram type declaration
-    if diagram_type == "flowchart":
-        if not (diagram_code.startswith("flowchart") or diagram_code.startswith("graph")):
-            diagram_code = "flowchart TD\n" + diagram_code
-        # Convert 'graph TD' to 'flowchart TD' for consistency
-        elif diagram_code.startswith("graph"):
-            direction = "TD"
-            if "graph LR" in diagram_code:
-                direction = "LR"
-            elif "graph RL" in diagram_code:
-                direction = "RL"
-            elif "graph BT" in diagram_code:
-                direction = "BT"
-            diagram_code = diagram_code.replace(f"graph {direction}", f"flowchart {direction}", 1)
-    elif diagram_type == "sequence" and not diagram_code.startswith("sequenceDiagram"):
-        diagram_code = "sequenceDiagram\n" + diagram_code
-    elif diagram_type == "mindmap" and not diagram_code.startswith("mindmap"):
-        diagram_code = "mindmap\n" + diagram_code
-    
-    # Fix common syntax errors
-    # Fix missing brackets in node definitions
-    diagram_code = re.sub(r'(\s)(\w+)(\s*->)', r'\1\2["\2"]\3', diagram_code)
-    
-    # Fix arrow syntax (ensure proper spacing)
-    diagram_code = re.sub(r'(\w+|\])(\s*)-->', r'\1 --> ', diagram_code)
-    diagram_code = re.sub(r'(\w+|\])(\s*)==>', r'\1 ==> ', diagram_code)
-    diagram_code = re.sub(r'(\w+|\])(\s*)-.->', r'\1 -.-> ', diagram_code)
-    
-    # Fix class definitions (ensure proper syntax)
-    diagram_code = re.sub(r'class(\s+)(\w+)(\s+)(\w+)', r'class \2 \4', diagram_code)
-    
-    # Ensure quotes for node texts with spaces
-    diagram_code = re.sub(r'\[(.*?)\]', lambda m: 
-                         '[' + m.group(1) + ']' if '"' in m.group(1) 
-                         else '["' + m.group(1) + '"]' if ' ' in m.group(1) and not m.group(1).startswith('"') 
-                         else '[' + m.group(1) + ']', diagram_code)
-    
-    # Fix subgraph syntax
-    diagram_code = re.sub(r'subgraph\s+([^"\n]+?)$', r'subgraph "\1"', diagram_code, flags=re.MULTILINE)
-    
-    # Clean up any invalid characters
-    diagram_code = re.sub(r'[^\x20-\x7E\n]', '', diagram_code)
-    
-    # Add direction to flowchart if missing
-    if diagram_code.startswith("flowchart") and "flowchart TD" not in diagram_code and "flowchart LR" not in diagram_code:
-        diagram_code = diagram_code.replace("flowchart", "flowchart TD", 1)
-    
-    return diagram_code
+# Using the imported fix_mermaid_syntax function from fix_mermaid.py
 
 @app.route('/')
 def index():
