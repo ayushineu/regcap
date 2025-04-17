@@ -703,6 +703,9 @@ def index():
     diagrams = get_diagrams()
     documents = get_document_chunks()
     
+    # Reset any error status in the current session
+    update_question_status(None, stage=None, progress=None, done=None, error=None)
+    
     return render_template_string("""
     <!DOCTYPE html>
     <html lang="en">
@@ -1107,8 +1110,8 @@ def index():
             // Auto-refresh was removed from here because it was causing issues
             // with constant page refreshes
             
-            // Tab functionality
-            function openTab(evt, tabName) {
+            // Make the openTab function globally accessible
+            window.openTab = function(evt, tabName) {
                 var i, tabContent, tabs;
                 tabContent = document.getElementsByClassName("tab-content");
                 for (i = 0; i < tabContent.length; i++) {
@@ -1184,8 +1187,8 @@ def index():
                 }
             }
             
-            // Dark mode toggle functionality
-            function setupDarkModeToggle() {
+            // Dark mode toggle functionality - using window for global scope
+            window.setupDarkModeToggle = function() {
                 const darkModeToggle = document.getElementById('darkModeToggle');
                 const htmlElement = document.documentElement;
                 
@@ -1845,8 +1848,8 @@ def view_diagram(diagram_index):
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
         <script>
-            // Define setupDarkModeToggle function directly for this page
-            function setupDarkModeToggle() {
+            // Make setupDarkModeToggle globally accessible
+            window.setupDarkModeToggle = function() {
                 const darkModeToggle = document.getElementById('darkModeToggle');
                 const htmlElement = document.documentElement;
                 
