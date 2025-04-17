@@ -230,7 +230,7 @@ def index():
             height: auto;
         }
         
-        .explanation-container {
+        .explanation-container, .explanation-card {
             background-color: var(--secondary-bg);
             border: 1px solid var(--border-color);
             border-radius: 4px;
@@ -240,16 +240,29 @@ def index():
             color: var(--primary-text);
         }
         
-        .explanation-container h4 {
+        .explanation-container h4, .explanation-card h4 {
             color: var(--primary-text);
             margin-bottom: 10px;
             font-weight: 600;
         }
         
-        .explanation-container p {
+        .explanation-container p, .explanation-card p, .explanation-text {
             color: var(--primary-text);
             font-size: 16px;
             line-height: 1.5;
+        }
+        
+        [data-theme="dark"] .explanation-card {
+            background-color: #2c2c2c;
+            border-color: #444;
+        }
+        
+        [data-theme="dark"] .explanation-card h4 {
+            color: #ffffff;
+        }
+        
+        [data-theme="dark"] .explanation-text {
+            color: #e0e0e0;
         }
         
         .diagram-container {
@@ -360,13 +373,13 @@ def index():
                 {% if diagrams %}
                     {% for diagram_code, explanation, diagram_type in diagrams %}
                         <div class="card mb-5">
-                            <div class="card-header">
-                                <h3>{{ diagram_type|capitalize }} Diagram</h3>
+                            <div class="card-header bg-primary text-white">
+                                <h3 class="m-0">{{ diagram_type|capitalize }} Diagram</h3>
                             </div>
                             <div class="card-body">
-                                <div class="explanation-container p-3 mb-4 bg-light border rounded">
-                                    <h4 class="mb-2">Explanation</h4>
-                                    <p class="text-dark">{{ explanation }}</p>
+                                <div class="explanation-card p-3 mb-4 border rounded">
+                                    <h4 class="mb-2 fw-bold">Explanation</h4>
+                                    <p class="explanation-text">{{ explanation }}</p>
                                 </div>
                                 
                                 <!-- Diagram Tabs -->
