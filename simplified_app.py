@@ -643,10 +643,56 @@ def index():
         .badge.bg-primary {
             background: linear-gradient(135deg, var(--primary-color), var(--primary-hover)) !important;
         }
+    /* Beta Banner Styles */
+        .beta-banner {
+            background-color: #fef3c7;
+            color: #92400e;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: var(--border-radius);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        [data-theme="dark"] .beta-banner {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .beta-banner-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .beta-close-btn {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 1.25rem;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        
+        .beta-close-btn:hover {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Beta Banner -->
+        <div id="betaBanner" class="beta-banner">
+            <div class="beta-banner-content">
+                <span style="font-size: 1.25rem;">🚧</span>
+                <span><strong>Beta Notice:</strong> RegCap GPT is currently in active development. Some features may be limited or evolving. Thank you for testing and sharing feedback!</span>
+            </div>
+            <button class="beta-close-btn" onclick="document.getElementById('betaBanner').style.display='none';">&times;</button>
+        </div>
         <div class="header">
             <h1>RegCap GPT</h1>
             <div>
