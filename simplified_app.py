@@ -269,7 +269,7 @@ def index():
             padding: 20px;
             border: 1px solid var(--border-color);
             border-radius: 5px;
-            margin: 15px 0;
+            margin: 30px 0;
             background-color: var(--primary-bg);
             overflow-x: auto;
             max-height: 600px;
@@ -383,7 +383,7 @@ def index():
                                 </div>
                                 
                                 <!-- Diagram Tabs -->
-                                <div class="diagram-tab-row mt-3">
+                                <div class="diagram-tab-row mt-5">
                                     <button class="diagram-tab-btn" data-parent-index="{{ loop.index0 }}" data-tab="generated">Generated Diagram</button>
                                     <button class="diagram-tab-btn active" data-parent-index="{{ loop.index0 }}" data-tab="simplified">Simplified Diagram</button>
                                     <button class="diagram-tab-btn" data-parent-index="{{ loop.index0 }}" data-tab="rawcode">Raw Code</button>
@@ -1083,7 +1083,7 @@ graph TD
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 25px;
             padding-bottom: 15px;
             border-bottom: 1px solid var(--border-color);
         }
