@@ -317,20 +317,41 @@ def index():
                 <h2>Diagrams</h2>
                 {% if diagrams %}
                     {% for diagram_code, explanation, diagram_type in diagrams %}
-                        <div class="card mb-4">
+                        <div class="card mb-5">
                             <div class="card-header">
                                 <h3>{{ diagram_type|capitalize }} Diagram</h3>
                             </div>
                             <div class="card-body">
                                 <p><strong>Explanation:</strong> {{ explanation }}</p>
-                                <div class="alert alert-info">
-                                    <i class="fa fa-info-circle"></i> For better diagram viewing with more options, click the button below to open in a dedicated page.
+                                
+                                <!-- Diagram Tabs -->
+                                <div class="tabs diagram-tabs mt-3">
+                                    <div class="tab-item active" data-parent-index="{{ loop.index0 }}" data-tab="simplified">Simplified Diagram</div>
+                                    <div class="tab-item" data-parent-index="{{ loop.index0 }}" data-tab="rawcode">Raw Code</div>
+                                    <div class="tab-item" data-parent-index="{{ loop.index0 }}" data-tab="fullpage">Full Page View</div>
                                 </div>
-                            </div>
-                            <div class="card-footer">
-                                <a href="/view_diagram/{{ loop.index0 }}" class="btn btn-primary" target="_blank">
-                                    <i class="fa fa-external-link"></i> View Diagram in Full Page
-                                </a>
+                                
+                                <!-- Tab Contents -->
+                                <div id="simplified-{{ loop.index0 }}" class="tab-content active">
+                                    <div class="diagram-container">
+                                        <div class="mermaid diagram-display">{{ diagram_code }}</div>
+                                    </div>
+                                </div>
+                                
+                                <div id="rawcode-{{ loop.index0 }}" class="tab-content">
+                                    <div class="code-container p-3 bg-light border rounded">
+                                        <pre class="m-0">{{ diagram_code }}</pre>
+                                    </div>
+                                </div>
+                                
+                                <div id="fullpage-{{ loop.index0 }}" class="tab-content">
+                                    <div class="alert alert-info">
+                                        <i class="fa fa-info-circle"></i> For better diagram viewing with more options, click the button below to open in a dedicated page.
+                                    </div>
+                                    <a href="/view_diagram/{{ loop.index0 }}" class="btn btn-primary" target="_blank">
+                                        <i class="fa fa-external-link"></i> Open Full Page View
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     {% endfor %}
@@ -580,12 +601,56 @@ def index():
                 }
             }
             
+            // Diagram tabs handling (the tabs within the diagrams tab)
+            var diagramTabItems = document.querySelectorAll('.diagram-tabs .tab-item');
+            for (var i = 0; i < diagramTabItems.length; i++) {
+                diagramTabItems[i].addEventListener('click', function() {
+                    var tabId = this.getAttribute('data-tab');
+                    var parentIndex = this.getAttribute('data-parent-index');
+                    
+                    // Hide all tab contents for this diagram
+                    var parentDiagramCard = this.closest('.card');
+                    var tabContents = parentDiagramCard.querySelectorAll('.tab-content');
+                    tabContents.forEach(function(content) {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Deactivate all tabs for this diagram
+                    var tabItems = parentDiagramCard.querySelectorAll('.tab-item');
+                    tabItems.forEach(function(item) {
+                        item.classList.remove('active');
+                    });
+                    
+                    // Activate clicked tab and its content
+                    this.classList.add('active');
+                    parentDiagramCard.querySelector('#' + tabId + '-' + parentIndex).classList.add('active');
+                    
+                    // Re-render mermaid if needed
+                    if (tabId === 'simplified') {
+                        try {
+                            var diagram = parentDiagramCard.querySelector('#simplified-' + parentIndex + ' .mermaid');
+                            if (diagram) {
+                                mermaid.init(undefined, diagram);
+                            }
+                        } catch (e) {
+                            console.error('Error rendering diagram in tab switch:', e);
+                        }
+                    }
+                });
+            }
+            
             // Initialize mermaid for diagrams
             if (typeof mermaid !== 'undefined') {
                 mermaid.initialize({ 
-                    startOnLoad: true,
+                    startOnLoad: false,  // Important: we'll manually render diagrams
                     securityLevel: 'loose',
-                    theme: 'default'
+                    logLevel: 'error',
+                    theme: 'default',
+                    flowchart: {
+                        htmlLabels: true,
+                        useMaxWidth: true,
+                        curve: 'linear'  // Simpler edges for better compatibility
+                    }
                 });
                 
                 // Check if we have diagrams
