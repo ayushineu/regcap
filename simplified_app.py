@@ -383,11 +383,11 @@ def index():
                                 </div>
                                 
                                 <!-- Diagram Tabs -->
-                                <div class="tabs diagram-tabs mt-3">
-                                    <div class="tab-item" data-parent-index="{{ loop.index0 }}" data-tab="generated">Generated Diagram</div>
-                                    <div class="tab-item active" data-parent-index="{{ loop.index0 }}" data-tab="simplified">Simplified Diagram</div>
-                                    <div class="tab-item" data-parent-index="{{ loop.index0 }}" data-tab="rawcode">Raw Code</div>
-                                    <div class="tab-item" data-parent-index="{{ loop.index0 }}" data-tab="fullpage">Full Page View</div>
+                                <div class="diagram-tab-row mt-3">
+                                    <button class="diagram-tab-btn" data-parent-index="{{ loop.index0 }}" data-tab="generated">Generated Diagram</button>
+                                    <button class="diagram-tab-btn active" data-parent-index="{{ loop.index0 }}" data-tab="simplified">Simplified Diagram</button>
+                                    <button class="diagram-tab-btn" data-parent-index="{{ loop.index0 }}" data-tab="rawcode">Raw Code</button>
+                                    <button class="diagram-tab-btn" data-parent-index="{{ loop.index0 }}" data-tab="fullpage">Full Page View</button>
                                 </div>
                                 
                                 <!-- Tab Contents -->
@@ -728,9 +728,9 @@ graph TD
             }
             
             // Diagram tabs handling (the tabs within the diagrams tab)
-            var diagramTabItems = document.querySelectorAll('.diagram-tabs .tab-item');
-            for (var i = 0; i < diagramTabItems.length; i++) {
-                diagramTabItems[i].addEventListener('click', function() {
+            var diagramTabBtns = document.querySelectorAll('.diagram-tab-row .diagram-tab-btn');
+            for (var i = 0; i < diagramTabBtns.length; i++) {
+                diagramTabBtns[i].addEventListener('click', function() {
                     var tabId = this.getAttribute('data-tab');
                     var parentIndex = this.getAttribute('data-parent-index');
                     
@@ -742,9 +742,9 @@ graph TD
                     });
                     
                     // Deactivate all tabs for this diagram
-                    var tabItems = parentDiagramCard.querySelectorAll('.tab-item');
-                    tabItems.forEach(function(item) {
-                        item.classList.remove('active');
+                    var tabBtns = parentDiagramCard.querySelectorAll('.diagram-tab-btn');
+                    tabBtns.forEach(function(btn) {
+                        btn.classList.remove('active');
                     });
                     
                     // Activate clicked tab and its content
@@ -1077,6 +1077,58 @@ graph TD
             flex-wrap: wrap;
             gap: 5px;
         }
+        
+        /* New Button Style Diagram Tabs */
+        .diagram-tab-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .diagram-tab-btn {
+            padding: 10px 15px;
+            background-color: #e9ecef;
+            color: #212529;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+            min-width: 120px;
+        }
+        
+        .diagram-tab-btn:hover {
+            background-color: #007bff;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .diagram-tab-btn.active {
+            background-color: #007bff;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+        
+        [data-theme="dark"] .diagram-tab-btn {
+            background-color: #444;
+            color: #f0f0f0;
+        }
+        
+        [data-theme="dark"] .diagram-tab-btn:hover {
+            background-color: #0066cc;
+        }
+        
+        [data-theme="dark"] .diagram-tab-btn.active {
+            background-color: #0066cc;
+            color: white;
+        }
+        
+        /* Legacy Tab Styles */
         .tab-item {
             margin-bottom: 5px;
             padding: 0.75rem 1.25rem;
