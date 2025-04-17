@@ -1354,6 +1354,7 @@ def index():
                                     setTimeout(function() {
                                         askButton.disabled = false;
                                         statusDiv.style.display = 'none';
+                                    }, 1500);
                                     
                                     // Add a small refresh button next to the "Processing" text in the chat
                                     const processingMsgs = document.querySelectorAll('.processing-message');
@@ -1368,7 +1369,6 @@ def index():
                                             msg.appendChild(refreshBtn);
                                         }
                                     });
-                                }, 1500);
                             } else {
                                 console.error('Failed to submit question');
                                 statusDiv.textContent = 'Error submitting question. Please try again.';
