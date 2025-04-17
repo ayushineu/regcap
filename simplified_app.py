@@ -1,3 +1,24 @@
+"""
+RegCap GPT - Regulatory Document Analysis Platform
+
+This application provides a web interface for uploading regulatory documents,
+asking questions about their content, and receiving AI-generated answers and visualizations.
+It uses vector-based search to find relevant information in documents and leverages
+OpenAI's models for generating accurate responses and diagrams.
+
+Main features:
+- PDF document upload and processing
+- Natural language question answering
+- Mermaid diagram generation for visualizing complex regulatory processes
+- Session management for organizing separate contexts
+- Dark/light theme switching
+- Multi-tab interface for organizing content
+
+Author: RegCap Team
+Version: 1.0.0
+"""
+
+# Standard library imports
 from flask import Flask, render_template_string, request, redirect, url_for, jsonify, session
 import os
 import time
@@ -5,20 +26,33 @@ import pickle
 import base64
 import uuid
 import json
-import PyPDF2
 import threading
+import re
+
+# Third-party library imports
+import PyPDF2
 import openai
 import numpy as np
 import faiss
-import re
 from werkzeug.utils import secure_filename
+
+# Local application imports
 from fix_mermaid import fix_mermaid_syntax
 from flask_app import (
+    # Data storage and session management
     SimpleStorage, get_current_session, create_new_session, 
-    encode_for_storage, decode_from_storage, extract_text_from_pdf,
-    save_document_chunks, get_document_chunks, get_all_document_chunks,
+    encode_for_storage, decode_from_storage, 
+    
+    # Document processing
+    extract_text_from_pdf, save_document_chunks, get_document_chunks, get_all_document_chunks,
+    
+    # Vector search and embedding
     get_embedding, create_vector_store, get_similar_chunks,
+    
+    # Question answering and AI content generation
     generate_answer, generate_diagram, detect_diagram_request,
+    
+    # History and storage management
     save_chat_history, get_chat_history, save_diagram, get_diagrams,
     list_all_sessions, log_message
 )
@@ -27,11 +61,27 @@ from flask_app import (
 question_status_store = {}
 
 def update_question_status(question_id, stage=None, progress=None, done=None, error=None):
-    """Update the status of a question being processed."""
+    """
+    Update the status of a question being processed in the background.
+    
+    This function maintains a status record for each question being processed,
+    which allows the frontend to poll for updates and provide real-time feedback
+    to the user on the processing stages.
+    
+    Args:
+        question_id (str): The unique identifier for the question
+        stage (str, optional): The current processing stage (e.g., "Finding information")
+        progress (int, optional): Percentage of completion (0-100)
+        done (bool, optional): Whether processing is complete
+        error (str, optional): Error message if an error occurred
+        
+    Returns:
+        None
+    """
     if not question_id:
         return
         
-    # Initialize if not exists
+    # Initialize status object if this is a new question
     if question_id not in question_status_store:
         question_status_store[question_id] = {
             "start_time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
@@ -41,7 +91,7 @@ def update_question_status(question_id, stage=None, progress=None, done=None, er
             "error": None
         }
     
-    # Update values
+    # Update status values as requested
     current_status = question_status_store[question_id]
     
     if stage:
@@ -789,9 +839,22 @@ graph TD
     </div>
     
     <script>
-        // Very basic script for tab switching
+        /**
+         * RegCap GPT - Main Application JavaScript
+         * 
+         * This script handles:
+         * 1. Tab navigation and switching between main app sections
+         * 2. Dark/light mode theme toggling with local storage persistence
+         * 3. Question submission with AJAX and background processing
+         * 4. Real-time status updates via polling
+         * 5. Session management (creating new sessions and switching between them)
+         * 6. Mermaid diagram rendering with error handling and fallbacks
+         * 7. Diagram tab navigation within the diagram cards
+         */
         document.addEventListener('DOMContentLoaded', function() {
-            // Basic tab switching
+            // ============================================================
+            // MAIN NAVIGATION TAB SYSTEM
+            // ============================================================
             var tabButtons = document.querySelectorAll('.tab-button');
             for (var i = 0; i < tabButtons.length; i++) {
                 tabButtons[i].onclick = function() {
@@ -812,7 +875,7 @@ graph TD
                     document.getElementById(tabId).classList.add('active');
                     this.classList.add('active');
                     
-                    // Diagram tab special handling
+                    // Special handling for diagram tab - render diagrams and clear notification
                     if (tabId === 'diagrams') {
                         var notificationDot = document.getElementById('diagramsNotification');
                         if (notificationDot) {
@@ -823,10 +886,12 @@ graph TD
                 };
             }
             
-            // Dark mode toggle
+            // ============================================================
+            // DARK MODE TOGGLE WITH LOCAL STORAGE PERSISTENCE
+            // ============================================================
             var darkModeToggle = document.getElementById('darkModeToggle');
             if (darkModeToggle) {
-                // Check saved preference
+                // Check saved preference from localStorage
                 var savedTheme = localStorage.getItem('theme');
                 if (savedTheme === 'dark') {
                     document.documentElement.setAttribute('data-theme', 'dark');
@@ -847,7 +912,9 @@ graph TD
                 };
             }
             
-            // Question form handling
+            // ============================================================
+            // QUESTION FORM HANDLING WITH AJAX SUBMISSION & STATUS POLLING
+            // ============================================================
             var questionForm = document.getElementById('question-form');
             if (questionForm) {
                 questionForm.onsubmit = function(e) {
@@ -856,30 +923,30 @@ graph TD
                     var question = document.getElementById('question').value.trim();
                     if (!question) return;
                     
-                    // Disable submit button
+                    // Disable submit button to prevent multiple submissions
                     var submitButton = this.querySelector('button[type="submit"]');
                     submitButton.disabled = true;
                     
-                    // Save the question text to display if page reloads
+                    // Save the question text for potential page reloads
                     localStorage.setItem('lastQuestion', question);
                     
-                    // Add user message to chat
+                    // Add user message to chat with visual formatting
                     var chatContainer = document.getElementById('chatMessages');
                     var userMessage = document.createElement('div');
                     userMessage.className = 'user-message';
                     userMessage.innerHTML = '<strong>You:</strong> ' + question;
                     chatContainer.appendChild(userMessage);
                     
-                    // Add bot response placeholder
+                    // Add bot response placeholder with loading indicator
                     var botMessage = document.createElement('div');
                     botMessage.className = 'bot-message';
                     botMessage.innerHTML = '<strong>Bot:</strong> <span class="processing">Processing your question... <div class="spinner-border spinner-border-sm" role="status"></div></span>';
                     chatContainer.appendChild(botMessage);
                     
-                    // Auto-scroll to bottom
+                    // Auto-scroll to bottom to show new messages
                     chatContainer.scrollTop = chatContainer.scrollHeight;
                     
-                    // Submit the question
+                    // Prepare and submit the question via AJAX
                     var formData = new FormData();
                     formData.append('question', question);
                     
@@ -892,27 +959,29 @@ graph TD
                     })
                     .then(function(data) {
                         if (data.success) {
+                            // Update processing indicator text with simplified message
                             var processingSpan = document.querySelector('.processing');
                             if (processingSpan) {
                                 processingSpan.innerHTML = "Processing your question... <div class='spinner-border spinner-border-sm' role='status'></div>";
                             }
                             
-                            // Get the question ID
+                            // Get the question ID returned from the server
                             var questionId = data.question_id;
                             
-                            // Poll for status updates every 2 seconds
+                            // Set up polling to check question processing status
                             var statusInterval = setInterval(function() {
                                 fetch('/get_question_status/' + questionId)
                                     .then(function(response) { return response.json(); })
                                     .then(function(statusData) {
                                         if (statusData.done) {
+                                            // Processing complete - clear interval and reload page
                                             clearInterval(statusInterval);
-                                            // When done, wait a moment to ensure storage is saved, then reload
+                                            // Small delay to ensure storage is fully saved
                                             setTimeout(function() {
                                                 window.location.reload();
                                             }, 1000);
                                         } else if (statusData.stage) {
-                                            // Update stage information
+                                            // Update processing stage information
                                             var processingSpan = document.querySelector('.processing');
                                             if (processingSpan) {
                                                 processingSpan.innerHTML = statusData.stage + "... <div class='spinner-border spinner-border-sm' role='status'></div>";
@@ -922,24 +991,30 @@ graph TD
                                     .catch(function(error) {
                                         console.error('Error checking status:', error);
                                     });
-                            }, 2000);
+                            }, 2000); // Poll every 2 seconds
                         } else {
+                            // Handle error from the server
                             alert('Error: ' + (data.error || 'Unknown error'));
                             submitButton.disabled = false;
                         }
                     })
                     .catch(function(error) {
+                        // Handle network or other errors
                         console.error('Error:', error);
                         alert('Error processing request');
                         submitButton.disabled = false;
                     });
                     
-                    // Clear the input
+                    // Clear the input field after submission
                     document.getElementById('question').value = '';
                 };
             }
             
-            // Session buttons
+            // ============================================================
+            // SESSION MANAGEMENT
+            // ============================================================
+            
+            // Create new session button
             var createSessionBtn = document.getElementById('createNewSession');
             if (createSessionBtn) {
                 createSessionBtn.onclick = function() {
@@ -954,6 +1029,7 @@ graph TD
                 };
             }
             
+            // Switch between sessions buttons
             var switchButtons = document.querySelectorAll('.switch-session');
             for (var i = 0; i < switchButtons.length; i++) {
                 switchButtons[i].onclick = function() {
@@ -973,9 +1049,16 @@ graph TD
                 };
             }
             
-            // Diagram rendering with better error handling
+            // ============================================================
+            // DIAGRAM RENDERING WITH ERROR HANDLING
+            // ============================================================
+            
+            /**
+             * Render all Mermaid diagrams with error handling and fallbacks
+             * If a diagram fails to render, it will show an error message
+             * and automatically switch to a simplified version
+             */
             function renderAllDiagrams() {
-                // First try to render all diagrams
                 var diagrams = document.querySelectorAll('.mermaid');
                 var errorCount = 0;
                 
@@ -985,7 +1068,7 @@ graph TD
                     var errorContainer = diagramContainer.querySelector('.diagram-error');
                     
                     try {
-                        // Use the safer render method with callback
+                        // Use the safer render method with callback for better error handling
                         var id = 'diagram-' + Math.random().toString(36).substring(2, 8);
                         mermaid.render(id, diagram.textContent, function(svgCode) {
                             diagram.innerHTML = svgCode;
@@ -1015,21 +1098,27 @@ graph TD
                     }
                 }
                 
-                // If all diagrams had errors, show a notification
+                // Log warning if all diagrams had rendering errors
                 if (errorCount > 0 && errorCount === diagrams.length) {
                     console.warn('All diagrams had rendering errors');
                 }
             }
             
-            // Diagram tabs handling (the tabs within the diagrams tab)
+            // ============================================================
+            // DIAGRAM TAB NAVIGATION WITHIN CARDS
+            // ============================================================
+            
+            // Handle clicking on diagram tabs within each diagram card
             var diagramTabBtns = document.querySelectorAll('.diagram-tab-row .diagram-tab-btn');
             for (var i = 0; i < diagramTabBtns.length; i++) {
                 diagramTabBtns[i].addEventListener('click', function() {
                     var tabId = this.getAttribute('data-tab');
                     var parentIndex = this.getAttribute('data-parent-index');
                     
-                    // Hide all tab contents for this diagram
+                    // Get the parent diagram card
                     var parentDiagramCard = this.closest('.card');
+                    
+                    // Hide all tab contents for this particular diagram
                     var tabContents = parentDiagramCard.querySelectorAll('.tab-content');
                     tabContents.forEach(function(content) {
                         content.classList.remove('active');
@@ -1045,7 +1134,7 @@ graph TD
                     this.classList.add('active');
                     parentDiagramCard.querySelector('#' + tabId + '-' + parentIndex).classList.add('active');
                     
-                    // Re-render mermaid if needed
+                    // Re-render mermaid diagram if needed when switching to simplified tab
                     if (tabId === 'simplified') {
                         try {
                             var diagram = parentDiagramCard.querySelector('#simplified-' + parentIndex + ' .mermaid');
@@ -1059,10 +1148,14 @@ graph TD
                 });
             }
             
-            // Initialize mermaid for diagrams
+            // ============================================================
+            // MERMAID INITIALIZATION
+            // ============================================================
+            
+            // Initialize Mermaid diagram library with compatible settings
             if (typeof mermaid !== 'undefined') {
                 mermaid.initialize({ 
-                    startOnLoad: false,  // Important: we'll manually render diagrams
+                    startOnLoad: false,  // Important: manually control initialization
                     securityLevel: 'loose',
                     logLevel: 'error',
                     theme: 'default',
@@ -1073,7 +1166,7 @@ graph TD
                     }
                 });
                 
-                // Check if we have diagrams
+                // Show notification dot if we have diagrams
                 var hasDiagrams = document.querySelectorAll('.mermaid').length > 0;
                 if (hasDiagrams) {
                     var notificationDot = document.getElementById('diagramsNotification');
@@ -1083,7 +1176,7 @@ graph TD
                 }
             }
             
-            // We'll keep the last question in localStorage for future use if needed
+            // Clean up localStorage to prevent stale data
             localStorage.removeItem('lastQuestion');
         });
     </script>
@@ -1145,80 +1238,118 @@ def ask_question():
     return jsonify({"success": True, "question_id": question_id})
 
 def process_question(question, question_id):
-    """Process a question in the background."""
+    """
+    Process a question in the background using a multi-stage pipeline.
+    
+    This function handles the entire question processing workflow:
+    1. Duplicate detection to prevent reprocessing identical questions
+    2. Document retrieval from the knowledge base
+    3. Vector embedding creation for semantic search
+    4. Relevant context retrieval using vector similarity
+    5. AI content generation (either text answers or diagrams)
+    6. Storing results and updating processing status
+    
+    The function runs in a separate thread to prevent blocking the main Flask 
+    application, providing status updates during processing that can be 
+    polled by the frontend.
+    
+    Args:
+        question (str): The user's question text
+        question_id (str): Unique identifier for tracking this question's processing
+        
+    Returns:
+        None: Results are saved to chat history and diagram storage
+    """
     try:
-        # Check if we already have this question in history to avoid duplicates
+        # STAGE 1: Duplicate Detection
+        # Check if we already have this question in history to avoid duplicates and redundant processing
         current_history = get_chat_history()
         for q, _ in current_history:
-            # Use string similarity to detect duplicate questions
+            # Use exact string comparison (case-insensitive) to detect duplicate questions
             if question.lower().strip() == q.lower().strip():
                 print(f"Duplicate question detected: '{question}' - skipping processing")
                 return
         
-        # Update status to indicate we're starting
+        # Initialize status tracking for frontend updates
         update_question_status(question_id, stage="Starting", progress=0)
         
-        # Get all document chunks
+        # STAGE 2: Document Retrieval
+        # Get all document chunks from the knowledge base
         chunks = get_all_document_chunks()
         if not chunks:
+            # Handle the case where no documents have been uploaded
             answer = "Please upload some documents first. I don't have any knowledge base to work with yet."
             save_chat_history(question, answer)
             update_question_status(question_id, stage="Complete", progress=100, done=True)
             return
         
-        # Check if it's a diagram request
+        # STAGE 3: Request Type Detection
+        # Determine if the user wants a diagram or a text answer
         is_diagram_request, diagram_type = detect_diagram_request(question)
         
-        # Create vector store
+        # STAGE 4: Vector Store Creation
+        # Create semantic vector embeddings for all document chunks
         update_question_status(question_id, stage="Creating vector store", progress=20)
         vector_store = create_vector_store(chunks)
         
-        # Get similar chunks
+        # STAGE 5: Context Retrieval 
+        # Find chunks similar to the question using vector similarity
         update_question_status(question_id, stage="Finding relevant information", progress=40)
         similar_chunks = get_similar_chunks(question, vector_store)
         
-        # Generate answer or diagram
+        # STAGE 6: Content Generation
+        # Generate either a diagram or text answer based on the request type
         if is_diagram_request:
-            # Default to flowchart if diagram_type is None
+            # For diagram requests, generate a Mermaid diagram with explanation
             actual_diagram_type = diagram_type if diagram_type else "flowchart"
-            update_question_status(question_id, stage=f"Generating {actual_diagram_type} diagram", progress=60)
+            update_question_status(question_id, 
+                                  stage=f"Generating {actual_diagram_type} diagram", 
+                                  progress=60)
             
             try:
                 success, result = generate_diagram(question, similar_chunks, actual_diagram_type)
                 
                 if success:
+                    # Process successful diagram generation
                     diagram_code, explanation = result
-                    # Fix any Mermaid syntax issues
+                    
+                    # Apply syntax fixes for better compatibility
                     diagram_code = fix_mermaid_syntax(diagram_code, actual_diagram_type)
+                    
+                    # Create user-friendly response message
                     answer = f"I've created a {actual_diagram_type} diagram based on your request. Please click on the \"Diagrams\" tab above to view it."
                     
-                    # Save the diagram
+                    # Save the diagram to storage
                     save_diagram(diagram_code, explanation, actual_diagram_type)
                 else:
-                    # Handle error case
+                    # Handle case where diagram generation logic failed
                     answer = f"I couldn't generate a diagram: {result}"
             except Exception as e:
-                # Handle any errors during diagram generation
+                # Handle exceptions during diagram generation
                 error_msg = str(e)
                 log_message(f"Error generating diagram: {error_msg}")
                 answer = f"I had trouble creating the diagram. Error: {error_msg}"
         else:
+            # For regular questions, generate a text answer
             update_question_status(question_id, stage="Generating answer", progress=60)
             answer = generate_answer(question, similar_chunks)
         
-        # Save to chat history
+        # STAGE 7: Save Results
+        # Store the question and answer in chat history
         update_question_status(question_id, stage="Saving results", progress=80)
         save_chat_history(question, answer)
         
-        # Mark as complete
+        # STAGE 8: Completion
+        # Mark processing as complete for the frontend
         update_question_status(question_id, stage="Complete", progress=100, done=True)
         
     except Exception as e:
+        # Global exception handler for any errors in the processing pipeline
         error_msg = str(e)
         log_message(f"Error processing question: {error_msg}")
         update_question_status(question_id, stage="Error", error=error_msg, done=True)
         
-        # Save error to chat history
+        # Save error to chat history so the user sees it
         save_chat_history(question, f"Sorry, I encountered an error: {error_msg}")
 
 @app.route('/new_session', methods=['POST'])
