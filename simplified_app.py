@@ -645,20 +645,20 @@ def index():
         }
     /* Beta Banner Styles */
         .beta-banner {
-            background-color: #fef3c7;
+            background-color: #fefbeb;
             color: #92400e;
             border-left: 4px solid #f59e0b;
-            padding: 0.5rem 1rem;
-            margin-bottom: 1rem;
+            padding: 0.3rem 0.75rem;
+            margin-bottom: 0.75rem;
             border-radius: var(--border-radius);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.875rem;
+            font-size: 0.8rem;
         }
         
         [data-theme="dark"] .beta-banner {
-            background-color: rgba(245, 158, 11, 0.15);
+            background-color: rgba(245, 158, 11, 0.1);
             color: #fbbf24;
             border-left: 4px solid #f59e0b;
         }
@@ -674,9 +674,10 @@ def index():
             border: none;
             color: inherit;
             cursor: pointer;
-            font-size: 1.25rem;
+            font-size: 1rem;
             opacity: 0.7;
             transition: opacity 0.2s;
+            padding: 0 0.3rem;
         }
         
         .beta-close-btn:hover {
@@ -689,8 +690,8 @@ def index():
         <!-- Beta Banner -->
         <div id="betaBanner" class="beta-banner">
             <div class="beta-banner-content">
-                <span style="font-size: 1rem;">🚧</span>
-                <span><strong>Beta Notice:</strong> RegCap GPT is currently in active development. Some features may be limited or evolving.</span>
+                <span style="font-size: 0.85rem;">🚧</span>
+                <span><strong>Beta Notice:</strong> RegCap GPT is in active development. Features may be limited.</span>
             </div>
             <button class="beta-close-btn" onclick="document.getElementById('betaBanner').style.display='none';">&times;</button>
         </div>
