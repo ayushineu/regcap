@@ -1329,8 +1329,13 @@ def process_question(question, question_id):
             
             if success:
                 # Extract diagram code and explanation
-                diagram_code = result["diagram_code"]
+                original_diagram_code = result["diagram_code"]
                 explanation = result["explanation"]
+                
+                # Fix Mermaid syntax for better compatibility
+                diagram_code = fix_mermaid_syntax(original_diagram_code, diagram_type)
+                print(f"Original diagram code: {original_diagram_code[:50]}...")
+                print(f"Fixed diagram code: {diagram_code[:50]}...")
                 
                 # Save the diagram
                 # save_diagram(diagram_code, explanation, diagram_type)
