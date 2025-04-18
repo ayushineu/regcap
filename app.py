@@ -504,14 +504,8 @@ def index():
         }
         
         /* Feature list styles */
-        .features-item {
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .features-item i:first-child {
-            margin-right: 0.75rem;
-        }
+        /* We don't need special styling for the features item, 
+           it should use the same styles as other nav-items */
         
         .feature-list {
             background-color: var(--tertiary-bg);
@@ -573,8 +567,8 @@ def index():
                 <div class="nav-item" data-panel="sessions-panel">
                     <i class="fa fa-database"></i> Sessions
                 </div>
-                <div class="nav-item features-item" id="featureToggle">
-                    <i class="fa fa-list"></i> Features <i class="fa fa-angle-down toggle-icon"></i>
+                <div class="nav-item" id="featureToggle">
+                    <i class="fa fa-list"></i> Features <span class="float-end"><i class="fa fa-angle-down toggle-icon"></i></span>
                 </div>
                 <div class="feature-list" id="featureList" style="display: none;">
                     <div class="feature-list-date">As of April 18, 2025</div>
