@@ -855,52 +855,7 @@ def index():
                 });
             }
             
-            // Document upload
-            const uploadForm = document.getElementById('uploadForm');
-            
-            if (uploadForm) {
-                uploadForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    const fileInput = document.getElementById('documentUpload');
-                    if (fileInput.files.length === 0) {
-                        alert('Please select at least one file to upload.');
-                        return;
-                    }
-                    
-                    const formData = new FormData();
-                    for (let i = 0; i < fileInput.files.length; i++) {
-                        formData.append('files', fileInput.files[i]);
-                    }
-                    
-                    const submitBtn = this.querySelector('button[type="submit"]');
-                    const originalBtnText = submitBtn.innerHTML;
-                    submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Uploading...';
-                    submitBtn.disabled = true;
-                    
-                    fetch('/upload-files', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            alert('Files uploaded successfully!');
-                            window.location.reload();
-                        } else {
-                            alert('Error: ' + (data.error || 'Failed to upload files'));
-                            submitBtn.innerHTML = originalBtnText;
-                            submitBtn.disabled = false;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error uploading files:', error);
-                        alert('Error uploading files');
-                        submitBtn.innerHTML = originalBtnText;
-                        submitBtn.disabled = false;
-                    });
-                });
-            }
+            // We already have a document upload handler earlier, so we don't need this duplicate one
             
             // New session
             const newSessionBtn = document.getElementById('newSessionBtn');
