@@ -1442,66 +1442,35 @@ def process_question(question, question_id):
                     diagram_code = fix_mermaid_syntax(original_diagram_code, diagram_type)
                     
                     # Add additional aggressive fixing for troublesome diagrams
-                    # Handle specific document types with templates
-                    if diagram_type == "flowchart":
-                        # ISO 20022 Template
-                        if "ISO 20022" in question or "ISO20022" in question:
-                            # Use a simplified Mermaid diagram with proper formatting for ISO 20022
-                            diagram_code = """graph TD
-    A(ISO 20022) --> B(Value Proposition)
-    A --> C(Standardization Approach)
-    A --> D(ISO 20022 Recipe)
-    A --> E(Actors)
-    A --> F(Financial Repository)
-    
-    B --> B1(Communication Interoperability)
-    B --> B2(Address Overlapping Standards)
-    
-    C --> C1(Single Standard Long-term)
-    C --> C2(Coexistence Short-term)
-    
-    D --> D1(Modeling-based Standards)
-    D --> D2(Development Process)
-    D --> D3(Registration)
-    
-    E --> E1(Registration Management Group)
-    E --> E2(Standards Evaluation Groups)
-    E --> E3(Registration Authority)
-    
-    F --> F1(Data Dictionary)
-    F --> F2(Business Process Catalogue)"""
+                    # Enhanced completely generic approach - no templates
+                    # Check if the diagram might have rendering issues
+                    if "syntax error" in explanation.lower() or diagram_code.strip() == "":
+                        # Create a more intelligent fallback diagram
+                        # Extract key terms from both the question and explanation
+                        question_terms = [word for word in question.split() 
+                                         if len(word) > 3 and word.lower() not in 
+                                         ["show", "create", "diagram", "visualization", "flowchart", "about", "explain"]]
                         
-                        # Stress Tests Template
-                        elif "stress test" in question.lower() or "financial crisis" in explanation.lower():
-                            diagram_code = """graph TD
-    A(U.S. Stress Tests) --> B(Financial Crisis Response)
-    A --> C(Ongoing Supervision Tool)
-    A --> D(Effects on Banking System)
-    
-    B --> B1(Identify Capital Needs)
-    B --> B2(Bolster Public Confidence)
-    
-    C --> C1(Capital Planning)
-    C --> C2(Risk Management)
-    C --> C3(Governance Improvements)
-    
-    D --> D1(Credit Supply Impacts)
-    D --> D2(Loan Standards)
-    D --> D3(Bank Resilience)
-    
-    D1 --> D1a(Loan Spreads)
-    D1 --> D1b(Credit Availability)
-    
-    C2 --> C2a(Scenario Analysis)
-    C2 --> C2b(Capital Buffers)"""
-                    # For general error handling without using hardcoded templates
-                    elif "syntax error" in explanation.lower() or diagram_code.strip() == "":
-                        # Create a simplified fallback diagram based on the question
-                        # Extract key terms from the question for a generic diagram
-                        terms = [word for word in question.split() if len(word) > 3 and word.lower() not in ["show", "create", "diagram", "visualization", "flowchart", "about", "explain"]]
+                        explanation_terms = []
+                        if explanation:
+                            # Extract nouns and important terms from the explanation
+                            explanation_words = explanation.split()
+                            # Get longer words which are likely meaningful terms
+                            explanation_terms = [word for word in explanation_words 
+                                               if len(word) > 5 and word[0].isupper() or 
+                                               word.lower() not in ["which", "there", "their", "about", "these", "those", "would", "could", "should"]]
                         
-                        # Use the top 3-5 unique terms for a simple diagram
-                        unique_terms = list(set(terms))[:5] 
+                        # Combine and prioritize terms
+                        all_terms = question_terms + explanation_terms
+                        # Remove duplicates while preserving order
+                        unique_terms = []
+                        for term in all_terms:
+                            clean_term = term.strip(".,;:()\"'").replace("\n", " ")
+                            if clean_term and clean_term not in unique_terms:
+                                unique_terms.append(clean_term)
+                        
+                        # Limit to a reasonable number of terms
+                        unique_terms = unique_terms[:8]
                         
                         # Start with a basic diagram structure
                         diagram_code = "graph TD\n"
@@ -1513,11 +1482,32 @@ def process_question(question, question_id):
                         
                         diagram_code += f"    A({root_term})\n"
                         
-                        # Add branches based on other extracted terms
-                        for i, term in enumerate(unique_terms[1:], 1):
-                            node_id = chr(65 + i)  # B, C, D, etc.
+                        # Add first level branches
+                        for i, term in enumerate(unique_terms[1:4], 1):  # Up to 3 main branches
+                            node_id = chr(65 + i)  # B, C, D
                             diagram_code += f"    {node_id}({term})\n"
                             diagram_code += f"    A --> {node_id}\n"
+                        
+                        # Add second level branches if we have enough terms
+                        if len(unique_terms) > 4:
+                            # Add to first branch
+                            diagram_code += f"    B1({unique_terms[4]})\n"
+                            diagram_code += f"    B --> B1\n"
+                            
+                            # Add to second branch if we have enough terms
+                            if len(unique_terms) > 5:
+                                diagram_code += f"    C1({unique_terms[5]})\n"
+                                diagram_code += f"    C --> C1\n"
+                                
+                                # Add more if available
+                                if len(unique_terms) > 6:
+                                    diagram_code += f"    C2({unique_terms[6]})\n"
+                                    diagram_code += f"    C --> C2\n"
+                                
+                                if len(unique_terms) > 7:
+                                    diagram_code += f"    B2({unique_terms[7]})\n"
+                                    diagram_code += f"    B --> B2\n"
+                    # This was a duplicate condition that's now handled above
                             
                     print(f"Original diagram code: {original_diagram_code[:50]}...")
                     print(f"Fixed diagram code: {diagram_code[:50]}...")
