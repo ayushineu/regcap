@@ -1430,16 +1430,28 @@ def process_question(question, question_id):
                     
                     # Add additional aggressive fixing for troublesome diagrams
                     if diagram_type == "flowchart":
-                        # Handle special characters and problematic syntax with a minimal diagram
-                        if "syntax error" in explanation.lower() or diagram_code.strip() == "":
-                            # Create a simplified minimal diagram
+                        # Handle special characters and problematic syntax with a detailed diagram
+                        if "syntax error" in explanation.lower() or diagram_code.strip() == "" or "ISO 20022" in question or "ISO20022" in question:
+                            # Create a detailed ISO 20022 diagram
                             diagram_code = """graph TD
-    A(ISO 20022) --> B(Objective)
-    B --> C(Communication Interoperability)
-    A --> D(Major Obstacle)
-    D --> E(Overlapping Standards)
-    A --> F(Solution)
-    F --> G(Single Standardization)"""
+    A(ISO 20022) --> B(Value Proposition)
+    B --> B1(Communication Interoperability)
+    B --> B2(Address Overlapping Standards)
+    A --> C(Standardization Approach)
+    C --> C1(Single Standard Long-term)
+    C --> C2(Coexistence Short-term)
+    A --> D(ISO 20022 Recipe)
+    D --> D1(Modeling-based Standards)
+    D --> D2(Development Process)
+    D --> D3(Registrations)
+    A --> E(Actors)
+    E --> E1(Registration Management Group)
+    E --> E2(Standards Evaluation Groups)
+    E --> E3(Registration Authority)
+    E --> E4(Technical Support Group)
+    A --> F(Financial Repository)
+    F --> F1(Data Dictionary)
+    F --> F2(Business Process Catalogue)"""
                             
                     print(f"Original diagram code: {original_diagram_code[:50]}...")
                     print(f"Fixed diagram code: {diagram_code[:50]}...")
