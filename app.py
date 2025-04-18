@@ -499,8 +499,10 @@ def index():
         }
         
         /* Hide mobile theme toggle by default */
+        /* Display the mobile theme toggle at all times */
         .theme-toggle-mobile {
-            display: none;
+            display: block;
+            margin-left: auto; /* Push to the right */
         }
         
         /* Feature list styles */
@@ -607,11 +609,7 @@ def index():
             <!-- Header -->
             <div class="header">
                 <h2 id="currentPanelTitle"><i class="fa fa-comments"></i> Chat with your Documents</h2>
-                <div class="d-flex align-items-center gap-3">
-                    <div class="alert alert-info mb-0 py-1 px-3" style="font-size: 0.8rem;">
-                        <i class="fa fa-info-circle"></i> 
-                        <strong>Current Session:</strong> {{ session_id }}
-                    </div>
+                <div class="d-flex align-items-center gap-3 justify-content-end">
                     <button id="mobileThemeToggle" class="theme-toggle theme-toggle-mobile">
                         <i class="fa fa-moon-o"></i> Dark Mode
                     </button>
