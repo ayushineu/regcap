@@ -11,9 +11,18 @@ import os
 import uuid
 import threading
 import time
+import json
+import base64
+import io
+import PyPDF2
+from openai import OpenAI
 
 app = Flask(__name__)
 app.secret_key = "regcap-minimal-secret-key"
+
+# Initialize OpenAI client
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+openai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 # Simple in-memory storage
 session_store = {}
@@ -21,6 +30,7 @@ document_store = {}
 chat_history_store = {}
 question_status_store = {}
 question_session_map = {}
+vector_store = {}
 
 def get_current_session():
     """Get or create the current session ID."""
@@ -47,6 +57,156 @@ def get_chat_history():
 def list_all_sessions():
     """List all available sessions."""
     return list(session_store.keys())
+
+def extract_text_from_pdf(pdf_file):
+    """Extract text from a PDF file."""
+    try:
+        pdf_reader = PyPDF2.PdfReader(pdf_file)
+        text = ""
+        for page in pdf_reader.pages:
+            text += page.extract_text() + "\n\n"
+        return text
+    except Exception as e:
+        print(f"Error extracting PDF text: {e}")
+        return ""
+
+def chunk_text(text, chunk_size=1000, overlap=100):
+    """Split text into overlapping chunks of approximately equal size."""
+    if not text:
+        return []
+        
+    chunks = []
+    start = 0
+    text_len = len(text)
+    
+    while start < text_len:
+        end = min(start + chunk_size, text_len)
+        
+        # Try to end at a period or newline for more natural chunks
+        if end < text_len:
+            # Look for a good breaking point
+            breakpoint = text.rfind('.', start, end)
+            if breakpoint == -1:
+                breakpoint = text.rfind('\n', start, end)
+            
+            if breakpoint != -1 and breakpoint > start + chunk_size // 2:
+                end = breakpoint + 1
+        
+        # Create the chunk and add to list
+        chunks.append(text[start:end])
+        
+        # Move the start position for the next chunk, with overlap
+        start = end - overlap
+    
+    return chunks
+
+def generate_answer_with_openai(question, context):
+    """Generate an answer using OpenAI API"""
+    try:
+        prompt = f"""You are RegCap GPT, a regulatory intelligence assistant. 
+        
+Answer the following question based ONLY on the provided context:
+        
+CONTEXT:
+{context}
+
+QUESTION:
+{question}
+
+Your answer should be detailed, accurate, and focused only on the regulatory information in the context.
+If the answer cannot be found in the context, reply with "I don't have enough information to answer that question."
+"""
+        
+        response = openai_client.chat.completions.create(
+            model="gpt-4o", # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+            messages=[
+                {"role": "system", "content": "You are a helpful regulatory intelligence assistant."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+            max_tokens=1000
+        )
+        
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"OpenAI API error: {e}")
+        return f"I'm sorry, but I encountered an error when trying to generate a response: {str(e)}"
+
+def generate_diagram_with_openai(question, context):
+    """Generate a Mermaid diagram using OpenAI API"""
+    try:
+        prompt = f"""You are RegCap GPT, a regulatory intelligence assistant that specializes in creating visualizations.
+
+Based on the following context and question, generate a Mermaid diagram that visualizes the relevant process, flow, or structure.
+
+CONTEXT:
+{context}
+
+QUESTION:
+{question}
+
+Generate ONLY the Mermaid diagram code without any other explanation. 
+The diagram should be a flowchart (using flowchart TD syntax) unless the question specifically asks for another type.
+Make sure the diagram is clear, focused, and properly formatted with Mermaid syntax.
+"""
+        
+        response = openai_client.chat.completions.create(
+            model="gpt-4o", # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+            messages=[
+                {"role": "system", "content": "You are a helpful regulatory intelligence assistant that specializes in creating visualizations."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+            max_tokens=800
+        )
+        
+        diagram_code = response.choices[0].message.content.strip()
+        
+        # Generate an explanation for the diagram
+        explanation_prompt = f"""Provide a brief explanation of the diagram that you just created in response to:
+        
+QUESTION:
+{question}
+
+Explain what the diagram shows and how it addresses the question.
+"""
+        
+        explanation_response = openai_client.chat.completions.create(
+            model="gpt-4o", # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+            messages=[
+                {"role": "system", "content": "You are a helpful regulatory intelligence assistant."},
+                {"role": "user", "content": prompt},
+                {"role": "assistant", "content": diagram_code},
+                {"role": "user", "content": explanation_prompt}
+            ],
+            temperature=0.3,
+            max_tokens=400
+        )
+        
+        explanation = explanation_response.choices[0].message.content.strip()
+        
+        return diagram_code, explanation
+    except Exception as e:
+        print(f"OpenAI diagram generation error: {e}")
+        return None, f"Error generating diagram: {str(e)}"
+
+def detect_diagram_request(question):
+    """Detect if the question is asking for a diagram or visualization"""
+    diagram_keywords = [
+        "diagram", "flow", "flowchart", "process", "map", "visual", "visualize", 
+        "structure", "sequence", "workflow", "draw", "chart", "graph", "illustration"
+    ]
+    
+    question_lower = question.lower()
+    for keyword in diagram_keywords:
+        if keyword in question_lower:
+            return True
+    
+    # Check for specific diagram requests
+    if "show me" in question_lower and any(term in question_lower for term in ["how", "process", "flow", "structure"]):
+        return True
+        
+    return False
 
 def update_question_status(question_id, stage=None, progress=None, done=None, error=None, answer=None, has_diagram=None, diagram_code=None):
     """Update the status of a question being processed in the background."""
@@ -807,12 +967,24 @@ def upload_files():
     
     for file in files:
         if file and file.filename.endswith('.pdf'):
-            # In a real app, we'd process the PDF content here
-            # For this simplified version, just store the filename
-            document_store[session_id].append({
-                'name': file.filename,
-                'content': 'Sample content for ' + file.filename
-            })
+            try:
+                # Extract text from PDF
+                pdf_text = extract_text_from_pdf(file)
+                
+                # Split text into manageable chunks
+                text_chunks = chunk_text(pdf_text)
+                
+                # Store the file information and chunked content
+                document_store[session_id].append({
+                    'name': file.filename,
+                    'chunks': text_chunks,
+                    'date_uploaded': time.strftime('%Y-%m-%d %H:%M:%S')
+                })
+                
+                print(f"Processed {file.filename}: {len(text_chunks)} chunks created")
+            except Exception as e:
+                print(f"Error processing {file.filename}: {e}")
+                return jsonify({'success': False, 'error': f'Error processing {file.filename}: {str(e)}'})
     
     return jsonify({'success': True, 'message': f'Processed {len(files)} files'})
 
@@ -859,33 +1031,58 @@ def process_question(question, question_id):
             # Fallback to the first session in the store if we can't find the mapping
             session_id = list(session_store.keys())[0] if session_store else str(uuid.uuid4())
         
-        # Simulate processing stages
+        # Get available documents for this session
+        documents = document_store.get(session_id, [])
+        
+        # Update status
         update_question_status(question_id, stage="Analyzing question", progress=20, done=False)
-        time.sleep(1)
         
-        update_question_status(question_id, stage="Searching for information", progress=50, done=False)
-        time.sleep(1)
+        # Check if this is a diagram request
+        is_diagram_request = detect_diagram_request(question)
         
-        update_question_status(question_id, stage="Generating answer", progress=80, done=False)
-        time.sleep(1)
+        # Update status
+        update_question_status(
+            question_id, 
+            stage="Searching for relevant information", 
+            progress=40, 
+            done=False
+        )
         
-        # Generate a sample answer
-        answer = f"This is a sample answer to your question: '{question}'. In a real app, this would be generated based on your documents."
+        # Collect context from document chunks
+        context = ""
+        if documents:
+            for doc in documents:
+                if 'chunks' in doc and doc['chunks']:
+                    # For simplicity, we're using all chunks from all documents
+                    # In a more advanced version, we would use vector search to find relevant chunks
+                    for chunk in doc['chunks'][:3]:  # Limit to 3 chunks per document to avoid context window issues
+                        context += chunk + "\n\n"
         
-        # Generate a diagram for questions about processes or flows
+        # If no documents are available, provide a message
+        if not context:
+            context = "No document content available. Please upload some PDF documents first."
+        
+        # Update status
+        update_question_status(question_id, stage="Generating response", progress=75, done=False)
+        
+        # Set default values
+        answer = ""
         has_diagram = False
         diagram_code = None
         
-        if "process" in question.lower() or "flow" in question.lower() or "diagram" in question.lower():
-            has_diagram = True
-            diagram_code = """graph TD
-    A[Start] --> B[Process Question]
-    B --> C{Contains Keywords?}
-    C -->|Yes| D[Generate Diagram]
-    C -->|No| E[Text Response Only]
-    D --> F[Return Answer with Diagram]
-    E --> F
-    F --> G[End]"""
+        # Process based on diagram request or regular question
+        if is_diagram_request and context != "No document content available. Please upload some PDF documents first.":
+            # Generate diagram and explanation
+            diagram_code, explanation = generate_diagram_with_openai(question, context)
+            answer = explanation
+            has_diagram = True if diagram_code else False
+        else:
+            # Generate regular answer
+            answer = generate_answer_with_openai(question, context)
+        
+        # If context is empty, give a helpful response
+        if context == "No document content available. Please upload some PDF documents first.":
+            answer = "I don't have any documents to analyze yet. Please upload some PDF documents using the Documents tab, and then I can answer your questions based on their content."
         
         # Update status as complete
         update_question_status(
@@ -905,6 +1102,9 @@ def process_question(question, question_id):
         chat_history_store[session_id].append((question, answer))
         
     except Exception as e:
+        # Log the error
+        print(f"Error processing question: {str(e)}")
+        
         # Update status with error
         update_question_status(
             question_id,
