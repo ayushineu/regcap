@@ -1316,43 +1316,73 @@ if not os.path.exists(UPLOAD_FOLDER):
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
+# Keep our existing import structure
+
 @app.route('/upload-files', methods=['POST'])
 def upload_files():
     """Handle file uploads."""
     try:
+        print("Upload files route activated")
+        
+        # Check if files are in the request
+        if 'files' not in request.files:
+            print("No files in request")
+            return jsonify({'success': False, 'error': 'No files were uploaded'})
+        
         files = request.files.getlist('files')
         if not files or files[0].filename == '':
+            print("Empty file selection")
             return jsonify({'success': False, 'error': 'No files selected'})
         
+        # Get the current session
         session_id = get_current_session()
         processed_files = []
         
+        # Process each file
         for file in files:
             if file and file.filename.endswith('.pdf'):
-                filename = secure_filename(file.filename)
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                file.save(file_path)
-                
-                # Extract text from PDF
                 try:
+                    filename = secure_filename(file.filename)
+                    
+                    # Create the upload folder if it doesn't exist
+                    if not os.path.exists(app.config['UPLOAD_FOLDER']):
+                        os.makedirs(app.config['UPLOAD_FOLDER'])
+                    
+                    # Save the file temporarily
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    file.save(file_path)
+                    print(f"Saved file to {file_path}")
+                    
+                    # Extract text from PDF
                     chunks = extract_text_from_pdf(file_path)
                     
                     # Store document chunks
                     save_document_chunks(filename, chunks)
+                    
                     processed_files.append(filename)
+                    print(f"Successfully processed {filename}")
+                    
                 except Exception as pdf_error:
+                    print(f"Error processing PDF {file.filename}: {str(pdf_error)}")
                     return jsonify({
                         'success': False, 
-                        'error': f"Error processing PDF {filename}: {str(pdf_error)}"
+                        'error': f"Error processing PDF {file.filename}: {str(pdf_error)}"
                     })
         
-        return jsonify({
-            'success': True, 
-            'message': f'Processed {len(processed_files)} files', 
-            'files': processed_files
-        })
+        if processed_files:
+            print(f"Completed processing {len(processed_files)} files")
+            return jsonify({
+                'success': True, 
+                'message': f'Processed {len(processed_files)} files', 
+                'files': processed_files
+            })
+        else:
+            print("No files were processed")
+            return jsonify({'success': False, 'error': 'No files were processed'})
+            
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)})
+        print(f"Error in upload_files: {str(e)}")
+        return jsonify({'success': False, 'error': f'Server error: {str(e)}'})
 
 @app.route('/ask-question', methods=['POST'])
 def ask_question():
