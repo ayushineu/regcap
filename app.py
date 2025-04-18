@@ -888,8 +888,12 @@ def index():
     </div>
     
     <script>
+        // For debug purposes
+        console.log("Starting app initialization...");
+        
         // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM fully loaded");
             // Initialize feature list toggle
             var featureToggle = document.getElementById('featureToggle');
             var featureList = document.getElementById('featureList');
