@@ -1145,7 +1145,7 @@ def index():
                                 processingDiv.innerHTML = '<strong>RegCap GPT:</strong> <span class="text-danger">Error: ' + (data.error || 'Failed to process question') + '</span>';
                             }
                         })
-                        .catch(error => {
+                        .catch(function(error) {
                             console.error('Error submitting question:', error);
                             processingDiv.innerHTML = '<strong>RegCap GPT:</strong> <span class="text-danger">Error submitting question. Please try again.</span>';
                         });
