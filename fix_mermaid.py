@@ -96,9 +96,6 @@ def fix_mermaid_syntax(diagram_code: str, diagram_type: str = "flowchart") -> st
     elif diagram_type == "mindmap" or diagram_type == "mind":
         # Convert mindmaps to flowcharts for better compatibility
         diagram_code = convert_mindmap_to_flowchart(diagram_code)
-    elif diagram_type == "classDiagram" or diagram_type == "class":
-        if not diagram_code.startswith("classDiagram"):
-            diagram_code = "classDiagram\n" + diagram_code
     
     # STAGE 4: STRUCTURAL INTEGRITY CHECKS & SIMPLIFICATION
     # ----------------------------------------------------
