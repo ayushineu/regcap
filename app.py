@@ -180,10 +180,10 @@ def index():
     <style>
         /* Core styles */
         :root {
-            --primary-color: #2563eb;
-            --primary-hover: #1d4ed8;
+            --primary-color: #00aeef; /* Barclays blue */
+            --primary-hover: #0096cc;
             --secondary-color: #64748b;
-            --accent-color: #0ea5e9;
+            --accent-color: #00bfff;
             --primary-bg: #ffffff;
             --secondary-bg: #f8fafc;
             --tertiary-bg: #f1f5f9;
@@ -192,7 +192,7 @@ def index():
             --light-text: #ffffff;
             --border-color: #e2e8f0;
             --sidebar-bg: #f1f5f9;
-            --sidebar-active: #e0f2fe;
+            --sidebar-active: #e0f8ff;
             --border-radius: 8px;
             --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
             --shadow-md: 0 4px 6px rgba(0,0,0,0.08);
@@ -200,10 +200,10 @@ def index():
         }
         
         [data-theme="dark"] {
-            --primary-color: #3b82f6;
-            --primary-hover: #60a5fa;
+            --primary-color: #00aeef; /* Barclays blue */
+            --primary-hover: #2bc4ff;
             --secondary-color: #94a3b8;
-            --accent-color: #38bdf8;
+            --accent-color: #4dd7ff;
             --primary-bg: #111827;
             --secondary-bg: #1e293b;
             --tertiary-bg: #334155;
@@ -304,8 +304,8 @@ def index():
         
         /* Beta banner */
         .beta-banner {
-            background-color: #dbeafe;
-            border-bottom: 1px solid #bfdbfe;
+            background-color: #e0f7ff;
+            border-bottom: 1px solid #b0e6ff;
             padding: 0.5rem 1.5rem;
             display: flex;
             justify-content: space-between;
@@ -313,23 +313,23 @@ def index():
         }
         
         [data-theme="dark"] .beta-banner {
-            background-color: #1e40af;
-            border-color: #1d4ed8;
+            background-color: #007ba7;
+            border-color: #0096cc;
         }
         
         .beta-banner-content {
-            color: #1e40af;
+            color: #007ba7;
             font-size: 0.8rem;
         }
         
         [data-theme="dark"] .beta-banner-content {
-            color: #93c5fd;
+            color: #b0e6ff;
         }
         
         .beta-close-btn {
             background: none;
             border: none;
-            color: #1e40af;
+            color: #007ba7;
             cursor: pointer;
             font-size: 1.2rem;
             padding: 0;
@@ -337,7 +337,7 @@ def index():
         }
         
         .beta-close-btn:hover {
-            color: #1d4ed8;
+            color: #00aeef;
         }
         
         /* Header */
