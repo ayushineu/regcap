@@ -4,8 +4,8 @@ modules = ["python-3.11"]
 channel = "stable-24_05"
 
 [deployment]
-deploymentTarget = "autoscale"
-run = ["streamlit", "run", "app.py", "--server.port", "5000"]
+deploymentTarget = "gce"
+run = ["sh", "-c", "python simple_deploy.py"]
 
 [workflows]
 runButton = "Project"
@@ -17,26 +17,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "RegCapWSGI"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "SimpleDeployment"
-
-[[workflows.workflow]]
-name = "RegCapWSGI"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python wsgi.py"
-waitForPort = 5000
 
 [[workflows.workflow]]
 name = "SimpleDeployment"
