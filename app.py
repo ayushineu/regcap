@@ -1280,16 +1280,35 @@ def process_question(question, question_id):
         # Flatten chunks into a list
         all_chunks = []
         for doc_name, doc_chunks in chunks.items():
+            print(f"Processing document: {doc_name}")
+            print(f"Document chunks type: {type(doc_chunks)}")
+            if doc_chunks and len(doc_chunks) > 0:
+                print(f"First chunk type: {type(doc_chunks[0])}")
+                print(f"First chunk sample: {str(doc_chunks[0])[:100]}")
+            
             for i, chunk in enumerate(doc_chunks):
                 # Add source metadata
-                chunk_with_metadata = {
-                    "content": chunk,
-                    "metadata": {
-                        "source": doc_name,
-                        "page": f"{i//5 + 1}"  # Estimate page numbers - 5 chunks per page
-                    }
-                }
-                all_chunks.append(chunk_with_metadata)
+                try:
+                    # Handle different types of chunks
+                    if isinstance(chunk, dict) and "content" in chunk:
+                        # Already has metadata
+                        all_chunks.append(chunk)
+                    else:
+                        # Add metadata
+                        chunk_with_metadata = {
+                            "content": str(chunk),
+                            "metadata": {
+                                "source": doc_name,
+                                "page": f"{i//5 + 1}"  # Estimate page numbers - 5 chunks per page
+                            }
+                        }
+                        all_chunks.append(chunk_with_metadata)
+                except Exception as e:
+                    print(f"Error processing chunk {i}: {str(e)}")
+                    
+        print(f"Total processed chunks: {len(all_chunks)}")
+        if all_chunks and len(all_chunks) > 0:
+            print(f"First processed chunk: {str(all_chunks[0])[:100]}")
         
         # Update status: Analyzing question
         update_question_status(question_id, stage="Analyzing question", progress=30)
