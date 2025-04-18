@@ -17,10 +17,6 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Regulatory Chatbot"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "Tab Test"
 
 [[workflows.workflow.tasks]]
@@ -30,21 +26,6 @@ args = "New App"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "Simplified App"
-
-[[workflows.workflow]]
-name = "Regulatory Chatbot"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python flask_app.py"
-waitForPort = 5000
 
 [[workflows.workflow]]
 name = "Tab Test"
@@ -59,7 +40,7 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python minimal_tab_fix.py"
-waitForPort = 5001
+waitForPort = 5000
 
 [[workflows.workflow]]
 name = "New App"
