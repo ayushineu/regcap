@@ -38,8 +38,34 @@ except ImportError as e:
     print(f"Warning: Optional dependency not available: {e}")
 
 # Local application imports
+# Import the fix_mermaid_syntax function with better error handling
 try:
     from fix_mermaid import fix_mermaid_syntax
+    print("Successfully imported fix_mermaid module")
+except Exception as e:
+    print(f"Error importing fix_mermaid: {str(e)}")
+    # Define a fallback version if import fails
+    def fix_mermaid_syntax(diagram_code, diagram_type="flowchart"):
+        """Basic fallback if the full module is not available"""
+        import re
+        
+        if not diagram_code:
+            return "graph TD\nA(Empty Diagram)"
+        
+        # Basic fixes for compatibility
+        if diagram_type == "flowchart":
+            diagram_code = diagram_code.replace("flowchart TD", "graph TD")
+            diagram_code = diagram_code.replace("flowchart LR", "graph LR")
+            diagram_code = re.sub(r'([A-Za-z0-9_-]+)\[([^\]]+)\]', r'\1(\2)', diagram_code)
+            
+        # Remove potentially problematic styling
+        diagram_code = re.sub(r'style\s+\w+\s+.*?\n', '\n', diagram_code)
+        diagram_code = re.sub(r'classDef.*?\n', '\n', diagram_code)
+        diagram_code = re.sub(r'class\s+.*?\n', '\n', diagram_code)
+        
+        return diagram_code
+
+try:
     from flask_app import (
         # Data storage and session management
         SimpleStorage, get_current_session, create_new_session, 
@@ -1017,13 +1043,36 @@ def index():
                                                     if (status.has_diagram) {
                                                         var diagramDiv = document.createElement('div');
                                                         diagramDiv.className = 'bot-message diagram-message';
-                                                        diagramDiv.innerHTML = '<strong>Diagram:</strong> <div class="mermaid">' + status.diagram_code + '</div>';
+                                                        
+                                                        // Make sure we have a clean diagram code (escape any HTML)
+                                                        var diagramCode = status.diagram_code
+                                                            .replace(/&/g, '&amp;')
+                                                            .replace(/</g, '&lt;')
+                                                            .replace(/>/g, '&gt;')
+                                                            .replace(/"/g, '&quot;')
+                                                            .replace(/'/g, '&#039;');
+                                                            
+                                                        // Create diagram container with unique ID
+                                                        var diagramId = 'diagram_' + new Date().getTime();
+                                                        diagramDiv.innerHTML = '<strong>Diagram:</strong> <div id="' + diagramId + '" class="mermaid">' + diagramCode + '</div>';
                                                         chatMessages.appendChild(diagramDiv);
                                                         
-                                                        // Initialize mermaid
-                                                        if (typeof mermaid !== 'undefined') {
-                                                            mermaid.init(undefined, '.mermaid');
-                                                        }
+                                                        // Initialize mermaid with retry mechanism
+                                                        setTimeout(function() {
+                                                            try {
+                                                                if (typeof mermaid !== 'undefined') {
+                                                                    console.log("Rendering diagram with code:", diagramCode);
+                                                                    mermaid.init(undefined, '#' + diagramId);
+                                                                }
+                                                            } catch (e) {
+                                                                console.error("Error rendering diagram:", e);
+                                                                // Fallback to simple display
+                                                                document.getElementById(diagramId).innerHTML = 
+                                                                    '<pre style="background-color:#f8f9fa; padding:10px; border-radius:5px;">' + 
+                                                                    diagramCode + '</pre>' +
+                                                                    '<p class="text-danger">Diagram could not be rendered. See code above.</p>';
+                                                            }
+                                                        }, 500); // Small delay to ensure the DOM is updated
                                                     }
                                                 }
                                                 
