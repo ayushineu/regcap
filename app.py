@@ -502,6 +502,62 @@ def index():
         .theme-toggle-mobile {
             display: none;
         }
+        
+        /* Feature list styles */
+        .feature-list-container {
+            margin-bottom: 1rem;
+        }
+        
+        .feature-list-toggle {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 0.5rem 1rem;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .feature-list-toggle:hover {
+            background-color: var(--primary-hover);
+        }
+        
+        .feature-list {
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            margin-top: 0.5rem;
+            padding: 1rem;
+        }
+        
+        .feature-list-date {
+            font-size: 0.8rem;
+            color: var(--secondary-text);
+            margin-bottom: 0.5rem;
+            text-align: right;
+            font-style: italic;
+        }
+        
+        .feature-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .feature-list li {
+            padding: 0.25rem 0;
+            font-size: 0.9rem;
+        }
+        
+        .feature-list li i {
+            color: var(--primary-color);
+            margin-right: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -528,6 +584,24 @@ def index():
             </div>
             
             <div class="sidebar-footer">
+                <div class="mb-3">
+                    <div class="feature-list-container">
+                        <button class="feature-list-toggle" id="featureToggle">
+                            <i class="fa fa-list"></i> Features <i class="fa fa-angle-down toggle-icon"></i>
+                        </button>
+                        <div class="feature-list" id="featureList" style="display: none;">
+                            <div class="feature-list-date">As of April 18, 2025</div>
+                            <ul>
+                                <li><i class="fa fa-check"></i> PDF document analysis</li>
+                                <li><i class="fa fa-check"></i> Natural language queries</li>
+                                <li><i class="fa fa-check"></i> AI-generated diagrams</li>
+                                <li><i class="fa fa-check"></i> Multi-session support</li>
+                                <li><i class="fa fa-check"></i> Vector search technology</li>
+                                <li><i class="fa fa-check"></i> Dark/light mode</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
                 <button id="themeToggle" class="theme-toggle">
                     <i class="fa fa-moon-o"></i> Dark Mode
                 </button>
@@ -731,6 +805,23 @@ def index():
     <script>
         // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize feature list toggle
+            var featureToggle = document.getElementById('featureToggle');
+            var featureList = document.getElementById('featureList');
+            var toggleIcon = featureToggle.querySelector('.toggle-icon');
+            
+            if (featureToggle) {
+                featureToggle.addEventListener('click', function() {
+                    if (featureList.style.display === 'none') {
+                        featureList.style.display = 'block';
+                        toggleIcon.className = 'fa fa-angle-up toggle-icon';
+                    } else {
+                        featureList.style.display = 'none';
+                        toggleIcon.className = 'fa fa-angle-down toggle-icon';
+                    }
+                });
+            }
+            
             // Content navigation
             var navItems = document.querySelectorAll('.nav-item');
             var panelTitles = {
