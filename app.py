@@ -1012,6 +1012,12 @@ def index():
                     if (question) {
                         // Add user message to chat
                         var chatMessages = document.getElementById('chatMessages');
+                        
+                        // Clear "No chat history" message if it exists
+                        if (chatMessages.querySelector('.text-center.text-muted')) {
+                            chatMessages.innerHTML = ''; // Clear the "No chat history" message
+                        }
+                        
                         var userDiv = document.createElement('div');
                         userDiv.className = 'user-message';
                         userDiv.innerHTML = '<strong>You:</strong> ' + question;
@@ -1176,9 +1182,16 @@ def index():
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                alert('Files successfully processed: ' + data.message);
-                                // Reload page to refresh the documents list
-                                window.location.reload();
+                                // Show success message in UI instead of alert
+                                var successMsg = document.createElement('div');
+                                successMsg.className = 'alert alert-success mt-2';
+                                successMsg.innerHTML = '<i class="fa fa-check-circle"></i> Files successfully processed: ' + data.message;
+                                uploadForm.appendChild(successMsg);
+                                
+                                // Reload page after a short delay to refresh the documents list
+                                setTimeout(function() {
+                                    window.location.reload();
+                                }, 1500);
                             } else {
                                 alert('Error: ' + data.error);
                                 // Reset button
