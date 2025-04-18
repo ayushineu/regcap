@@ -191,6 +191,8 @@ def index():
             --secondary-text: #475569;
             --light-text: #ffffff;
             --border-color: #e2e8f0;
+            --sidebar-bg: #f1f5f9;
+            --sidebar-active: #e2e8f0;
             --border-radius: 8px;
             --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
             --shadow-md: 0 4px 6px rgba(0,0,0,0.08);
@@ -209,6 +211,8 @@ def index():
             --secondary-text: #cbd5e1;
             --light-text: #ffffff;
             --border-color: #475569;
+            --sidebar-bg: #1e293b;
+            --sidebar-active: #2d3748;
         }
         
         body {
@@ -219,21 +223,90 @@ def index():
             line-height: 1.5;
             margin: 0;
             padding: 0;
+            height: 100vh;
+            overflow: hidden;
         }
         
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
+        /* Main layout structure */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Sidebar styles */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .sidebar-header h1 {
+            font-size: 1.25rem;
+            margin: 0;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .sidebar-nav {
+            padding: 1rem 0;
+            flex-grow: 1;
+        }
+        
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            margin: 0.25rem 0.75rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--secondary-text);
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item:hover {
+            background-color: var(--sidebar-active);
+            color: var(--primary-text);
+        }
+        
+        .nav-item.active {
+            background-color: var(--sidebar-active);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .sidebar-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        /* Main content area */
+        .main-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
         
         /* Beta banner */
         .beta-banner {
             background-color: #eef2ff;
-            border: 1px solid #e0e7ff;
-            border-radius: 4px;
-            padding: 0.3rem 1rem;
-            margin-bottom: 1rem;
+            border-bottom: 1px solid #e0e7ff;
+            padding: 0.5rem 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -269,26 +342,24 @@ def index():
         
         /* Header */
         .header {
+            padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 1.5rem 2rem;
-            background: linear-gradient(to right, var(--primary-color), var(--primary-hover));
-            border-radius: var(--border-radius);
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow-md);
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--primary-bg);
         }
         
-        .header h1 {
-            color: var(--light-text);
+        .header h2 {
             margin: 0;
-            font-weight: 700;
+            font-weight: 600;
+            font-size: 1.25rem;
         }
         
         .theme-toggle {
-            background-color: rgba(255, 255, 255, 0.2);
-            color: var(--light-text);
-            border: none;
+            background-color: var(--secondary-bg);
+            color: var(--secondary-text);
+            border: 1px solid var(--border-color);
             padding: 0.5rem 1rem;
             border-radius: var(--border-radius);
             cursor: pointer;
@@ -296,65 +367,32 @@ def index():
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            font-size: 0.875rem;
         }
         
         .theme-toggle:hover {
-            background-color: rgba(255, 255, 255, 0.3);
-        }
-        
-        /* Tab system */
-        .tab-container {
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-            background-color: var(--secondary-bg);
-        }
-        
-        .tab-buttons {
-            display: flex;
-            background-color: var(--tertiary-bg);
-            padding: 0.75rem;
-            gap: 0.5rem;
-        }
-        
-        .tab-button {
-            padding: 0.75rem 1.5rem;
-            cursor: pointer;
-            background-color: var(--secondary-bg);
-            color: var(--secondary-text);
-            border: none;
-            border-radius: var(--border-radius);
-            transition: all 0.2s ease;
-            font-weight: 500;
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .tab-button:hover {
             background-color: var(--tertiary-bg);
         }
         
-        .tab-button.active {
-            background-color: var(--primary-color);
-            color: var(--light-text);
-            box-shadow: var(--shadow-md);
-        }
-        
-        .tab-content {
-            display: none;
+        /* Content area */
+        .content-area {
             padding: 2rem;
-            background-color: var(--primary-bg);
+            flex-grow: 1;
+            overflow-y: auto;
         }
         
-        .tab-content.active {
+        .content-panel {
+            display: none;
+        }
+        
+        .content-panel.active {
             display: block;
         }
         
         /* Content styles */
         .chat-container {
-            height: 400px;
+            height: calc(100vh - 320px);
+            min-height: 300px;
             overflow-y: auto;
             border: 1px solid var(--border-color);
             padding: 1.5rem;
@@ -404,291 +442,362 @@ def index():
         
         /* Responsive adjustments */
         @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
+            .app-container {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            
+            .sidebar-nav {
+                display: flex;
+                flex-wrap: wrap;
+                padding: 0.5rem;
+            }
+            
+            .nav-item {
+                margin: 0.25rem;
+                padding: 0.5rem 1rem;
+                flex-grow: 1;
+                text-align: center;
+            }
+            
+            .sidebar-footer {
+                display: none; /* Hide sidebar footer on mobile */
             }
             
             .header {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 1rem;
+                gap: 0.5rem;
+                padding: 1rem;
             }
             
-            .tab-buttons {
-                flex-wrap: wrap;
+            .content-area {
+                padding: 1rem;
             }
+            
+            .chat-container {
+                height: 400px; /* Fixed height on mobile */
+            }
+            
+            /* Add theme toggle to header for mobile */
+            .header .theme-toggle-mobile {
+                display: block;
+                margin-top: 0.5rem;
+            }
+        }
+        
+        /* Hide mobile theme toggle by default */
+        .theme-toggle-mobile {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Beta Banner -->
-        <div id="betaBanner" class="beta-banner">
-            <div class="beta-banner-content">
-                <i class="fa fa-wrench"></i> This application is in beta. Your feedback will help us improve.
-            </div>
-            <button class="beta-close-btn" onclick="document.getElementById('betaBanner').style.display='none';">&times;</button>
-        </div>
-        
-        <!-- Header -->
-        <div class="header">
-            <h1><i class="fa fa-book"></i> RegCap GPT</h1>
-            <button id="themeToggle" class="theme-toggle">
-                <i class="fa fa-moon-o"></i> Dark Mode
-            </button>
-        </div>
-        
-        <!-- Main Tab Navigation -->
-        <div class="tab-container">
-            <div class="tab-buttons">
-                <button class="tab-button active" data-tab="chat-tab">
-                    <i class="fa fa-comments"></i> Chat
-                </button>
-                <button class="tab-button" data-tab="docs-tab">
-                    <i class="fa fa-file-pdf-o"></i> Documents
-                </button>
-                <button class="tab-button" data-tab="diagrams-tab">
-                    <i class="fa fa-sitemap"></i> Diagrams
-                </button>
-                <button class="tab-button" data-tab="sessions-tab">
-                    <i class="fa fa-database"></i> Sessions
-                </button>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1><i class="fa fa-book"></i> RegCap GPT</h1>
             </div>
             
-            <!-- Chat Tab -->
-            <div id="chat-tab" class="tab-content active">
-                <h2><i class="fa fa-comments"></i> Chat with your Documents</h2>
-                
-                <div class="chat-container" id="chatMessages">
-                    {% if chat_history %}
-                        {% for question, answer in chat_history %}
-                            <div class="user-message">
-                                <strong>You:</strong> {{ question }}
+            <div class="sidebar-nav">
+                <div class="nav-item active" data-panel="chat-panel">
+                    <i class="fa fa-comments"></i> Chat
+                </div>
+                <div class="nav-item" data-panel="docs-panel">
+                    <i class="fa fa-file-pdf-o"></i> Documents
+                </div>
+                <div class="nav-item" data-panel="diagrams-panel">
+                    <i class="fa fa-sitemap"></i> Diagrams
+                </div>
+                <div class="nav-item" data-panel="sessions-panel">
+                    <i class="fa fa-database"></i> Sessions
+                </div>
+            </div>
+            
+            <div class="sidebar-footer">
+                <button id="themeToggle" class="theme-toggle">
+                    <i class="fa fa-moon-o"></i> Dark Mode
+                </button>
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Beta Banner -->
+            <div id="betaBanner" class="beta-banner">
+                <div class="beta-banner-content">
+                    <i class="fa fa-wrench"></i> This application is in beta. Your feedback will help us improve.
+                </div>
+                <button class="beta-close-btn" onclick="document.getElementById('betaBanner').style.display='none';">&times;</button>
+            </div>
+            
+            <!-- Header -->
+            <div class="header">
+                <h2 id="currentPanelTitle"><i class="fa fa-comments"></i> Chat with your Documents</h2>
+                <div class="d-flex align-items-center justify-content-between w-100">
+                    <div class="alert alert-info mb-0 py-1 px-3" style="font-size: 0.8rem;">
+                        <i class="fa fa-info-circle"></i> 
+                        <strong>Current Session:</strong> {{ session_id }}
+                    </div>
+                    <button id="mobileThemeToggle" class="theme-toggle theme-toggle-mobile">
+                        <i class="fa fa-moon-o"></i> Dark Mode
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Chat Panel -->
+                <div id="chat-panel" class="content-panel active">
+                    <div class="chat-container" id="chatMessages">
+                        {% if chat_history %}
+                            {% for question, answer in chat_history %}
+                                <div class="user-message">
+                                    <strong>You:</strong> {{ question }}
+                                </div>
+                                <div class="bot-message">
+                                    <strong>RegCap GPT:</strong> {{ answer }}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted my-5">
+                                <i class="fa fa-info-circle fa-2x mb-3"></i>
+                                <p>No chat history yet. Upload documents and start asking questions!</p>
                             </div>
-                            <div class="bot-message">
-                                <strong>RegCap GPT:</strong> {{ answer }}
+                        {% endif %}
+                    </div>
+                    
+                    <form id="questionForm" class="mb-4">
+                        <div class="input-group mb-3">
+                            <input type="text" id="questionInput" class="form-control" 
+                                placeholder="Ask a question about your documents..." required>
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fa fa-paper-plane"></i> Send
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="alert alert-info" role="alert">
+                        <i class="fa fa-lightbulb-o"></i> <strong>Tip:</strong> 
+                        You can ask for diagrams by using phrases like "create a flowchart", 
+                        "draw a diagram", or "visualize the process".
+                    </div>
+                </div>
+                
+                <!-- Documents Panel -->
+                <div id="docs-panel" class="content-panel">
+                    <div class="card mb-4">
+                        <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
+                            <h5 class="card-title mb-0">Upload Documents</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="uploadForm" enctype="multipart/form-data">
+                                <div class="mb-3">
+                                    <label for="documentUpload" class="form-label">
+                                        Select PDF files to upload:
+                                    </label>
+                                    <input class="form-control" type="file" id="documentUpload" 
+                                        name="files" multiple accept=".pdf">
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fa fa-upload"></i> Upload & Process
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
+                            <h5 class="card-title mb-0">Uploaded Documents</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if documents %}
+                                <div class="list-group">
+                                    {% for doc_name in documents.keys() %}
+                                        <div class="list-group-item">
+                                            <i class="fa fa-file-pdf-o"></i> {{ doc_name }}
+                                            <span class="badge bg-secondary float-end">
+                                                {{ documents[doc_name]|length }} chunks
+                                            </span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center text-muted my-4">
+                                    <i class="fa fa-folder-open-o fa-2x mb-3"></i>
+                                    <p>No documents have been uploaded yet.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Diagrams Panel -->
+                <div id="diagrams-panel" class="content-panel">
+                    {% if diagrams %}
+                        {% for diagram_code, explanation, diagram_type in diagrams %}
+                            <div class="card mb-4">
+                                <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
+                                    <h5 class="card-title mb-0">
+                                        {{ diagram_type|capitalize }} Diagram
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <h6 class="text-primary">Explanation:</h6>
+                                        <p>{{ explanation }}</p>
+                                    </div>
+                                    <div class="diagram-container">
+                                        <div class="mermaid">
+                                            {{ diagram_code }}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         {% endfor %}
                     {% else %}
                         <div class="text-center text-muted my-5">
-                            <i class="fa fa-info-circle fa-2x mb-3"></i>
-                            <p>No chat history yet. Upload documents and start asking questions!</p>
+                            <i class="fa fa-sitemap fa-2x mb-3"></i>
+                            <p>No diagrams have been generated yet. Ask a question that requires visualization!</p>
                         </div>
                     {% endif %}
                 </div>
                 
-                <form id="questionForm" class="mb-4">
-                    <div class="input-group mb-3">
-                        <input type="text" id="questionInput" class="form-control" 
-                            placeholder="Ask a question about your documents..." required>
-                        <button class="btn btn-primary" type="submit">
-                            <i class="fa fa-paper-plane"></i> Send
-                        </button>
-                    </div>
-                </form>
-                
-                <div class="alert alert-info" role="alert">
-                    <i class="fa fa-lightbulb-o"></i> <strong>Tip:</strong> 
-                    You can ask for diagrams by using phrases like "create a flowchart", 
-                    "draw a diagram", or "visualize the process".
-                </div>
-            </div>
-            
-            <!-- Documents Tab -->
-            <div id="docs-tab" class="tab-content">
-                <h2><i class="fa fa-file-pdf-o"></i> Document Management</h2>
-                
-                <div class="card mb-4">
-                    <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
-                        <h5 class="card-title mb-0">Upload Documents</h5>
-                    </div>
-                    <div class="card-body">
-                        <form id="uploadForm" enctype="multipart/form-data">
-                            <div class="mb-3">
-                                <label for="documentUpload" class="form-label">
-                                    Select PDF files to upload:
-                                </label>
-                                <input class="form-control" type="file" id="documentUpload" 
-                                    name="files" multiple accept=".pdf">
-                            </div>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fa fa-upload"></i> Upload & Process
-                            </button>
-                        </form>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
-                        <h5 class="card-title mb-0">Uploaded Documents</h5>
-                    </div>
-                    <div class="card-body">
-                        {% if documents %}
-                            <div class="list-group">
-                                {% for doc_name in documents.keys() %}
-                                    <div class="list-group-item">
-                                        <i class="fa fa-file-pdf-o"></i> {{ doc_name }}
-                                        <span class="badge bg-secondary float-end">
-                                            {{ documents[doc_name]|length }} chunks
-                                        </span>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="text-center text-muted my-4">
-                                <i class="fa fa-folder-open-o fa-2x mb-3"></i>
-                                <p>No documents have been uploaded yet.</p>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Diagrams Tab -->
-            <div id="diagrams-tab" class="tab-content">
-                <h2><i class="fa fa-sitemap"></i> Generated Diagrams</h2>
-                
-                {% if diagrams %}
-                    {% for diagram_code, explanation, diagram_type in diagrams %}
-                        <div class="card mb-4">
-                            <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
-                                <h5 class="card-title mb-0">
-                                    {{ diagram_type|capitalize }} Diagram
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="mb-3">
-                                    <h6 class="text-primary">Explanation:</h6>
-                                    <p>{{ explanation }}</p>
+                <!-- Sessions Panel -->
+                <div id="sessions-panel" class="content-panel">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
+                                    <h5 class="card-title mb-0">Create New Session</h5>
                                 </div>
-                                <div class="diagram-container">
-                                    <div class="mermaid">
-                                        {{ diagram_code }}
-                                    </div>
+                                <div class="card-body">
+                                    <p>Create a new session to start with a clean slate:</p>
+                                    <button id="newSessionBtn" class="btn btn-primary">
+                                        <i class="fa fa-plus-circle"></i> New Session
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="text-center text-muted my-5">
-                        <i class="fa fa-sitemap fa-2x mb-3"></i>
-                        <p>No diagrams have been generated yet. Ask a question that requires visualization!</p>
+                        
+                        <div class="col-md-6">
+                            <div class="card mb-4">
+                                <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
+                                    <h5 class="card-title mb-0">Available Sessions</h5>
+                                </div>
+                                <div class="card-body">
+                                    {% if sessions %}
+                                        <div class="list-group">
+                                            {% for session_id, timestamp in sessions.items() %}
+                                                <button class="list-group-item list-group-item-action session-switch-btn"
+                                                    data-session-id="{{ session_id }}">
+                                                    <i class="fa fa-clock-o"></i> 
+                                                    {{ session_id }}
+                                                </button>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center text-muted">
+                                            <p>No previous sessions found.</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                {% endif %}
+                </div>
             </div>
             
-            <!-- Sessions Tab -->
-            <div id="sessions-tab" class="tab-content">
-                <h2><i class="fa fa-database"></i> Session Management</h2>
-                
-                <div class="alert alert-info">
-                    <i class="fa fa-info-circle"></i> 
-                    <strong>Current Session:</strong> {{ session_id }}
-                </div>
-                
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
-                                <h5 class="card-title mb-0">Create New Session</h5>
-                            </div>
-                            <div class="card-body">
-                                <p>Create a new session to start with a clean slate:</p>
-                                <button id="newSessionBtn" class="btn btn-primary">
-                                    <i class="fa fa-plus-circle"></i> New Session
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
-                                <h5 class="card-title mb-0">Available Sessions</h5>
-                            </div>
-                            <div class="card-body">
-                                {% if sessions %}
-                                    <div class="list-group">
-                                        {% for session_id, timestamp in sessions.items() %}
-                                            <button class="list-group-item list-group-item-action session-switch-btn"
-                                                data-session-id="{{ session_id }}">
-                                                <i class="fa fa-clock-o"></i> 
-                                                {{ session_id }}
-                                            </button>
-                                        {% endfor %}
-                                    </div>
-                                {% else %}
-                                    <div class="text-center text-muted">
-                                        <p>No previous sessions found.</p>
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Footer -->
+            <footer class="pt-3 border-top text-center text-muted" style="padding: 1rem 2rem; font-size: 0.8rem;">
+                <p><i class="fa fa-code"></i> RegCap GPT - Regulatory Document Analysis Platform | Version 1.0.0 | Made with <i class="fa fa-heart text-danger"></i> by RegCap Team</p>
+            </footer>
         </div>
-        
-        <!-- Footer -->
-        <footer class="mt-5 pt-3 border-top text-center text-muted">
-            <p><i class="fa fa-code"></i> RegCap GPT - Regulatory Document Analysis Platform</p>
-            <p class="small">Version 1.0.0 - Made with <i class="fa fa-heart text-danger"></i> by RegCap Team</p>
-        </footer>
     </div>
     
     <script>
         // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
-            // Get all tab buttons
-            var tabButtons = document.querySelectorAll('.tab-button');
+            // Content navigation
+            var navItems = document.querySelectorAll('.nav-item');
+            var panelTitles = {
+                'chat-panel': '<i class="fa fa-comments"></i> Chat with your Documents',
+                'docs-panel': '<i class="fa fa-file-pdf-o"></i> Document Management',
+                'diagrams-panel': '<i class="fa fa-sitemap"></i> Generated Diagrams',
+                'sessions-panel': '<i class="fa fa-database"></i> Session Management'
+            };
             
-            // Add click event to each button
-            for (var i = 0; i < tabButtons.length; i++) {
-                tabButtons[i].addEventListener('click', function() {
-                    // Get the tab id from data-tab attribute
-                    var tabId = this.getAttribute('data-tab');
+            // Add click event to each navigation item
+            for (var i = 0; i < navItems.length; i++) {
+                navItems[i].addEventListener('click', function() {
+                    // Get the panel id from data-panel attribute
+                    var panelId = this.getAttribute('data-panel');
                     
-                    // Hide all tab contents
-                    var tabContents = document.querySelectorAll('.tab-content');
-                    for (var j = 0; j < tabContents.length; j++) {
-                        tabContents[j].classList.remove('active');
+                    // Hide all content panels
+                    var contentPanels = document.querySelectorAll('.content-panel');
+                    for (var j = 0; j < contentPanels.length; j++) {
+                        contentPanels[j].classList.remove('active');
                     }
                     
-                    // Remove active class from all buttons
-                    for (var k = 0; k < tabButtons.length; k++) {
-                        tabButtons[k].classList.remove('active');
+                    // Remove active class from all navigation items
+                    for (var k = 0; k < navItems.length; k++) {
+                        navItems[k].classList.remove('active');
                     }
                     
-                    // Show the selected tab content
-                    document.getElementById(tabId).classList.add('active');
+                    // Show the selected content panel
+                    document.getElementById(panelId).classList.add('active');
                     
-                    // Add active class to clicked button
+                    // Update panel title
+                    document.getElementById('currentPanelTitle').innerHTML = panelTitles[panelId];
+                    
+                    // Add active class to clicked navigation item
                     this.classList.add('active');
                 });
             }
             
-            // Theme toggle
-            var themeToggle = document.getElementById('themeToggle');
-            var savedTheme = localStorage.getItem('theme');
-            
-            // Apply saved theme
-            if (savedTheme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                themeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
+            // Theme toggle functionality
+            function setupThemeToggle() {
+                var themeToggles = document.querySelectorAll('#themeToggle, #mobileThemeToggle');
+                var savedTheme = localStorage.getItem('theme');
+                
+                // Apply saved theme
+                if (savedTheme === 'dark') {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    themeToggles.forEach(function(toggle) {
+                        toggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
+                    });
+                }
+                
+                // Toggle theme on click for all theme toggles
+                themeToggles.forEach(function(toggle) {
+                    toggle.addEventListener('click', function() {
+                        if (document.documentElement.getAttribute('data-theme') === 'dark') {
+                            document.documentElement.removeAttribute('data-theme');
+                            localStorage.setItem('theme', 'light');
+                            themeToggles.forEach(function(t) {
+                                t.innerHTML = '<i class="fa fa-moon-o"></i> Dark Mode';
+                            });
+                        } else {
+                            document.documentElement.setAttribute('data-theme', 'dark');
+                            localStorage.setItem('theme', 'dark');
+                            themeToggles.forEach(function(t) {
+                                t.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
+                            });
+                        }
+                    });
+                });
             }
             
-            // Toggle theme on click
-            themeToggle.addEventListener('click', function() {
-                if (document.documentElement.getAttribute('data-theme') === 'dark') {
-                    document.documentElement.removeAttribute('data-theme');
-                    localStorage.setItem('theme', 'light');
-                    themeToggle.innerHTML = '<i class="fa fa-moon-o"></i> Dark Mode';
-                } else {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    localStorage.setItem('theme', 'dark');
-                    themeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
-                }
-            });
+            // Initialize theme toggle
+            setupThemeToggle();
             
             // Initialize Mermaid diagrams
             if (typeof mermaid !== 'undefined') {
