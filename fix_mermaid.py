@@ -2,10 +2,18 @@ import re
 
 def fix_mermaid_syntax(diagram_code: str, diagram_type: str = "flowchart") -> str:
     """
-    Fix common Mermaid syntax issues to ensure proper rendering with Mermaid v8.14.0.
-    This function addresses compatibility issues between newer Mermaid syntax and older versions.
+    Enhanced Mermaid syntax fixer with robust error handling and simplification
+    for compatibility with Mermaid v8.14.0.
+    
+    This function implements a multi-stage approach:
+    1. Extract the diagram code (if wrapped in markdown code blocks)
+    2. Normalize and sanitize the content
+    3. Fix common syntax patterns for better compatibility
+    4. Check for structural integrity and apply simplification if needed
+    5. Add proper declarations and format
     """
-    if not diagram_code:
+    # If no diagram code provided, return a default diagram
+    if not diagram_code or diagram_code.strip() == "":
         # Default empty diagram based on type
         if diagram_type == "flowchart":
             return "graph TD\nA(Empty Diagram)"
@@ -16,10 +24,8 @@ def fix_mermaid_syntax(diagram_code: str, diagram_type: str = "flowchart") -> st
         else:
             return "graph TD\nA(Empty Diagram)"
     
-    # Clean up whitespace and control characters
-    diagram_code = diagram_code.strip()
-    diagram_code = re.sub(r'[\x00-\x1F\x7F]', '', diagram_code)  # Remove control characters
-    
+    # STAGE 1: EXTRACT DIAGRAM CODE
+    # -----------------------------
     # Remove markdown code block syntax if present
     if "```" in diagram_code:
         # Extract content between ```mermaid and ```
@@ -33,25 +39,31 @@ def fix_mermaid_syntax(diagram_code: str, diagram_type: str = "flowchart") -> st
             if match:
                 diagram_code = match.group(1).strip()
     
+    # STAGE 2: NORMALIZE AND SANITIZE
+    # -------------------------------
+    # Clean up whitespace and control characters
+    diagram_code = diagram_code.strip()
+    diagram_code = re.sub(r'[\x00-\x1F\x7F]', '', diagram_code)  # Remove control characters
+    
     # Normalize line endings
     diagram_code = diagram_code.replace('\r\n', '\n').replace('\r', '\n')
     
-    # Split into lines for processing
+    # Remove excessive whitespace but preserve indentation structure
     lines = diagram_code.split('\n')
     cleaned_lines = []
     
-    # Process each line
     for line in lines:
-        # Skip empty lines
-        if not line.strip():
-            continue
-        # Remove excessive spaces (but preserve spaces in labels)
-        line = re.sub(r'^\s+', '', line)  # Remove leading spaces
-        line = re.sub(r'\s+$', '', line)  # Remove trailing spaces
-        cleaned_lines.append(line)
+        if line.strip():  # Skip completely empty lines
+            # Normalize indentation to 4 spaces and trim trailing whitespace
+            if line.lstrip() != line:  # Line has leading whitespace
+                indent_level = len(line) - len(line.lstrip())
+                normalized_indent = '    ' * (indent_level // 2)  # Convert any indentation to multiples of 4 spaces
+                line = normalized_indent + line.lstrip()
+            line = line.rstrip()  # Remove trailing whitespace
+            cleaned_lines.append(line)
     
+    # If all content was empty, return a default diagram
     if not cleaned_lines:
-        # If all lines were removed, return a default diagram
         if diagram_type == "flowchart":
             return "graph TD\nA(Empty Diagram)"
         elif diagram_type == "sequence":
@@ -59,12 +71,14 @@ def fix_mermaid_syntax(diagram_code: str, diagram_type: str = "flowchart") -> st
         else:
             return "graph TD\nA(Empty Diagram)"
     
-    # Rebuild the diagram code
+    # STAGE 3: FIX COMMON SYNTAX PATTERNS
+    # -----------------------------------
+    # Rebuild the diagram code after cleaning
     diagram_code = '\n'.join(cleaned_lines)
     
-    # Handle flowchart syntax for compatibility with v8.14.0
+    # Check diagram type and ensure proper format declaration
     if diagram_type == "flowchart":
-        # Convert flowchart TD to graph TD for older Mermaid versions
+        # Fix flowchart type declarations
         if diagram_code.startswith("flowchart TD"):
             diagram_code = "graph TD" + diagram_code[len("flowchart TD"):]
         elif diagram_code.startswith("flowchart LR"):
@@ -73,95 +87,71 @@ def fix_mermaid_syntax(diagram_code: str, diagram_type: str = "flowchart") -> st
             diagram_code = "graph RL" + diagram_code[len("flowchart RL"):]
         elif diagram_code.startswith("flowchart BT"):
             diagram_code = "graph BT" + diagram_code[len("flowchart BT"):]
-        elif not diagram_code.startswith("graph"):
+        # If no proper declaration, add default top-down orientation
+        elif not diagram_code.startswith("graph "):
             diagram_code = "graph TD\n" + diagram_code
-            
-    # Handle sequence diagram syntax
     elif diagram_type == "sequence":
         if not diagram_code.startswith("sequenceDiagram"):
             diagram_code = "sequenceDiagram\n" + diagram_code
+    elif diagram_type == "mindmap" or diagram_type == "mind":
+        # Convert mindmaps to flowcharts for better compatibility
+        diagram_code = convert_mindmap_to_flowchart(diagram_code)
     
-    # Handle mindmap diagram syntax (which was introduced in newer versions)
-    elif diagram_type == "mindmap":
-        # Always convert mindmaps to standard flowcharts for compatibility
-        diagram_code = "graph TD\n"
-        
-        # Add root node
-        diagram_code += "Root((Regulatory Framework))\n"
-        
-        # Add first level nodes with connections to root
-        diagram_code += "Compliance[Compliance]\n"
-        diagram_code += "Risk[Risk Management]\n"
-        diagram_code += "Governance[Governance]\n"
-        
-        # Connect to root
-        diagram_code += "Root --> Compliance\n"
-        diagram_code += "Root --> Risk\n"
-        diagram_code += "Root --> Governance\n"
-        
-        # Add second level for Compliance
-        diagram_code += "Compliance1[Internal Controls]\n"
-        diagram_code += "Compliance2[Reporting Requirements]\n"
-        diagram_code += "Compliance --> Compliance1\n"
-        diagram_code += "Compliance --> Compliance2\n"
-        
-        # Add second level for Risk
-        diagram_code += "Risk1[Identification]\n"
-        diagram_code += "Risk2[Assessment]\n"
-        diagram_code += "Risk3[Mitigation]\n"
-        diagram_code += "Risk --> Risk1\n"
-        diagram_code += "Risk --> Risk2\n"
-        diagram_code += "Risk --> Risk3\n"
-        
-        # Add second level for Governance
-        diagram_code += "Gov1[Board Oversight]\n"
-        diagram_code += "Gov2[Management Responsibility]\n"
-        diagram_code += "Governance --> Gov1\n"
-        diagram_code += "Governance --> Gov2\n"
-    
-    # Replace bracket nodes with parentheses for better compatibility
+    # STAGE 4: STRUCTURAL INTEGRITY CHECKS & SIMPLIFICATION
+    # ----------------------------------------------------
+    # For flowcharts, sanitize node definitions and connections
     if diagram_type == "flowchart" or diagram_code.startswith("graph"):
-        # More robust handling for all diagram types
-        # Just ensure the diagram has proper format with graph TD or graph LR
-        if not diagram_code.startswith("graph "):
-            diagram_code = "graph TD\n" + diagram_code
+        # Standardize node definitions
+        # Convert brackets to parentheses for compatibility
+        diagram_code = re.sub(r'([A-Za-z0-9_.-]+)\[([^\]]+)\]', r'\1(\2)', diagram_code)
         
-        # Convert node definitions with brackets to parentheses
-        diagram_code = re.sub(r'([A-Za-z0-9_-]+)\[([^\]]+)\]', r'\1(\2)', diagram_code)
-    
-    # Fix common syntax issues in flowcharts
-    if diagram_type == "flowchart" or diagram_code.startswith("graph"):
-        # Fix node definitions with curly braces (decision nodes)
-        # Keep the curly braces as they're supported in v8.14.0
-        # But ensure proper spacing: A{Text} -> A{Text}
-        diagram_code = re.sub(r'([A-Za-z0-9_-]+){([^}]+)}', r'\1{\2}', diagram_code)
+        # Fix node IDs: ensure they start with a letter and contain only valid characters
+        # Find node definition patterns like "A(Text)" or "node1(Text)"
+        node_defs = re.findall(r'([A-Za-z0-9_.-]+)[\[(]', diagram_code)
+        invalid_chars = set()
         
-        # Ensure spaces around arrows
+        for node_id in node_defs:
+            if not re.match(r'^[A-Za-z][A-Za-z0-9_.-]*$', node_id):
+                # This node ID doesn't follow the required pattern
+                invalid_chars.update([c for c in node_id if not c.isalnum() and c not in '_.-'])
+        
+        # If we found invalid characters, clean them from node IDs
+        if invalid_chars:
+            for char in invalid_chars:
+                diagram_code = diagram_code.replace(char, '_')
+        
+        # Fix connection syntax (arrows)
+        # Ensure proper spaces around arrows
         diagram_code = re.sub(r'(\w+)-->', r'\1 --> ', diagram_code)
         diagram_code = re.sub(r'-->(\w+)', r'--> \1', diagram_code)
         
-        # Fix arrow labels to ensure they're properly formatted
-        # For example: A -->|Yes| B should have proper spacing
+        # Fix arrow labels (e.g., A -->|Yes| B)
         diagram_code = re.sub(r'\s*-->\|([^|]+)\|\s*', r' -->|\1| ', diagram_code)
         
-        # Fix any style attributes - remove them as they often cause issues
-        diagram_code = re.sub(r'style\s+\w+\s+.*?\n', '\n', diagram_code)
+        # Check for structural errors
+        has_structural_errors = check_structural_errors(diagram_code)
+        
+        if has_structural_errors:
+            # Attempt to simplify the diagram
+            diagram_code = simplify_flowchart(diagram_code)
     
+    # STAGE 5: FINAL CLEANUP
+    # ---------------------
     # Remove potentially problematic styling and interactive features
-    # These often cause syntax errors in older versions
+    diagram_code = re.sub(r'style\s+\w+\s+.*?\n', '\n', diagram_code)  # Remove style definitions
     diagram_code = re.sub(r'classDef.*?\n', '\n', diagram_code)  # Remove classDef
     diagram_code = re.sub(r'class\s+.*?\n', '\n', diagram_code)  # Remove class assignments
     diagram_code = re.sub(r'linkStyle.*?\n', '\n', diagram_code)  # Remove linkStyle
     diagram_code = re.sub(r'click.*?\n', '\n', diagram_code)     # Remove click handlers
     diagram_code = re.sub(r':::.*?(?=\s|$)', '', diagram_code)   # Remove CSS-style classes
     
-    # Fix any subgraph syntax for better compatibility
+    # Fix subgraph syntax
     diagram_code = re.sub(r'subgraph\s+([^\n"]+)(?!\s*")', r'subgraph "\1"', diagram_code)
     
-    # Remove any comments which could cause issues
+    # Remove comments
     diagram_code = re.sub(r'%%.*?\n', '\n', diagram_code)
     
-    # Handle edge case: ensure first line of flowchart has proper orientation
+    # Ensure proper orientation in first line
     lines = diagram_code.split('\n')
     if len(lines) > 0 and lines[0].startswith("graph ") and len(lines[0]) <= len("graph "):
         lines[0] = "graph TD"
@@ -169,9 +159,132 @@ def fix_mermaid_syntax(diagram_code: str, diagram_type: str = "flowchart") -> st
     
     return diagram_code
 
+def check_structural_errors(diagram_code):
+    """
+    Check for common structural errors in Mermaid diagrams
+    Returns True if structural errors are detected
+    """
+    # Look for common error patterns
+    
+    # Check for unmatched brackets or parentheses
+    open_count = diagram_code.count('(') + diagram_code.count('[') + diagram_code.count('{')
+    close_count = diagram_code.count(')') + diagram_code.count(']') + diagram_code.count('}')
+    if open_count != close_count:
+        return True
+    
+    # Check for lines with arrow syntax errors
+    arrow_pattern = r'-->'
+    lines = diagram_code.split('\n')
+    for line in lines:
+        if '-->' in line:
+            # Check if line has proper node --> node format
+            if not re.match(r'^\s*[A-Za-z0-9_.-]+.*-->.*[A-Za-z0-9_.-]+', line):
+                return True
+    
+    # Check for subgraph errors
+    if 'subgraph' in diagram_code and 'end' not in diagram_code:
+        return True
+    
+    return False
+
+def simplify_flowchart(diagram_code):
+    """
+    Simplify a flowchart by:
+    1. Removing nested structures (subgraphs)
+    2. Simplifying complex connections
+    3. Ensuring all nodes are properly defined
+    """
+    # Extract the direction (TD, LR, etc.)
+    direction = "TD"  # Default to top-down
+    if diagram_code.startswith("graph "):
+        direction_match = re.match(r'graph\s+([A-Z]{2})', diagram_code)
+        if direction_match:
+            direction = direction_match.group(1)
+    
+    # Start with a clean diagram
+    simplified = f"graph {direction}\n"
+    
+    # Extract all node definitions and connections
+    lines = diagram_code.split('\n')
+    node_defs = []
+    connections = []
+    
+    for line in lines:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("subgraph") or stripped == "end":
+            continue
+        elif "-->" in stripped:
+            connections.append(stripped)
+        elif re.match(r'^[A-Za-z0-9_.-]+[\[(]', stripped):
+            node_defs.append(stripped)
+    
+    # Add node definitions to simplified diagram
+    for node in node_defs:
+        simplified += f"    {node}\n"
+    
+    # Add simplified connections
+    for conn in connections:
+        simplified += f"    {conn}\n"
+    
+    return simplified
+
+def convert_mindmap_to_flowchart(mindmap_code):
+    """
+    Convert a mindmap diagram to a flowchart
+    """
+    # Create a basic flowchart structure
+    flowchart = "graph TD\n"
+    
+    # Extract nodes from the mindmap
+    lines = mindmap_code.split('\n')
+    nodes = []
+    
+    # Skip the first line if it's the mindmap declaration
+    start_idx = 1 if mindmap_code.startswith("mindmap") else 0
+    
+    for i in range(start_idx, len(lines)):
+        line = lines[i].strip()
+        if not line:
+            continue
+        
+        # Look for node patterns
+        if re.match(r'^[*+-]\s+', line):  # Bullet point style
+            node_text = re.sub(r'^[*+-]\s+', '', line)
+            nodes.append(node_text)
+        elif re.match(r'^\w+\((.*?)\)', line):  # Node with parentheses
+            matches = re.match(r'^\w+\((.*?)\)', line)
+            if matches:
+                nodes.append(matches.group(1))
+    
+    # If we found some nodes, create a simple hierarchy
+    if nodes:
+        flowchart += f"    A({nodes[0]})\n"
+        
+        for i, node in enumerate(nodes[1:], 1):
+            node_id = chr(65 + i) if i < 26 else f"N{i}"
+            flowchart += f"    {node_id}({node})\n"
+            
+            # Connect to root or previous node
+            if i <= 3:  # First level nodes connect to root
+                flowchart += f"    A --> {node_id}\n"
+            else:  # Other nodes connect to the appropriate parent
+                parent_id = chr(65 + (i % 3) + 1)  # Simple algorithm to distribute connections
+                flowchart += f"    {parent_id} --> {node_id}\n"
+    else:
+        # Default simple flowchart
+        flowchart += "    A(Main Topic)\n"
+        flowchart += "    B(Subtopic 1)\n"
+        flowchart += "    C(Subtopic 2)\n"
+        flowchart += "    A --> B\n"
+        flowchart += "    A --> C\n"
+    
+    return flowchart
+
 if __name__ == "__main__":
-    # Test the function with a sample diagram
-    test_diagram = '''
+    # Test the function with multiple sample diagrams
+    
+    # Test 1: Standard flowchart
+    test_diagram1 = '''
     flowchart TD
         A[Start] --> B[Process]
         B --> C{Decision}
@@ -183,8 +296,47 @@ if __name__ == "__main__":
         classDef default fill:#f9f,stroke:#333,stroke-width:2px
     '''
     
-    fixed = fix_mermaid_syntax(test_diagram, "flowchart")
-    print("Original:")
-    print(test_diagram)
+    # Test 2: Broken syntax flowchart
+    test_diagram2 = '''
+    flowchart TD
+        A[Start Process] --> B[Middle
+        B --> C{Decision Point
+        C -->|Yes Branch| D[End
+        C -->|No| B
+    '''
+    
+    # Test 3: Stress test related flowchart 
+    test_diagram3 = '''
+    flowchart TD
+        A[U.S. Stress Tests] --> B[Financial Crisis Response]
+        B --> C[Identify Capital Needs]
+        B --> D[Bolster Public Confidence]
+        A --> E[Ongoing Supervision]
+        E --> F[Capital Planning]
+        E --> G[Risk Management]
+        A --> H[Effects on Banking]
+        H --> I[Credit Supply]
+        H --> J[Loan Spreads]
+    '''
+    
+    # Test fix_mermaid_syntax on all diagrams
+    print("TEST 1: STANDARD FLOWCHART")
+    fixed1 = fix_mermaid_syntax(test_diagram1, "flowchart")
+    print("\nOriginal:")
+    print(test_diagram1)
     print("\nFixed:")
-    print(fixed)
+    print(fixed1)
+    
+    print("\n\nTEST 2: BROKEN SYNTAX")
+    fixed2 = fix_mermaid_syntax(test_diagram2, "flowchart")
+    print("\nOriginal:")
+    print(test_diagram2)
+    print("\nFixed:")
+    print(fixed2)
+    
+    print("\n\nTEST 3: STRESS TEST FLOWCHART")
+    fixed3 = fix_mermaid_syntax(test_diagram3, "flowchart")
+    print("\nOriginal:")
+    print(test_diagram3)
+    print("\nFixed:")
+    print(fixed3)
