@@ -17,64 +17,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Simplified JS Fix"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "RegCap Minimal"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Deployment App"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "RegCap"
-
-[[workflows.workflow]]
-name = "Simplified JS Fix"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python simplified_app_js_fix.py"
-waitForPort = 5003
-
-[[workflows.workflow]]
-name = "RegCap Minimal"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python regcap_minimal.py"
-waitForPort = 5000
-
-[[workflows.workflow]]
-name = "Deployment App"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python app_deploy.py"
-waitForPort = 5000
 
 [[workflows.workflow]]
 name = "RegCap"
