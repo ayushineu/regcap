@@ -1064,44 +1064,35 @@ def index():
                                                         var diagramDiv = document.createElement('div');
                                                         diagramDiv.className = 'bot-message diagram-message';
                                                         
-                                                        var diagramCode = status.diagram_code;
-                                                        var diagramId = 'diagram_' + new Date().getTime();
-                                                        
-                                                        // Check if this is an HTML diagram
-                                                        if (diagramCode.includes("<div class=\"html-diagram\">")) {
-                                                            // Render HTML diagram directly
-                                                            diagramDiv.innerHTML = '<strong>Diagram:</strong> <div id="' + diagramId + '" class="diagram-container">' + diagramCode + '</div>';
-                                                            chatMessages.appendChild(diagramDiv);
-                                                        } else {
-                                                            // Make sure we have clean diagram code for Mermaid (escape any HTML)
-                                                            diagramCode = diagramCode
-                                                                .replace(/&/g, '&amp;')
-                                                                .replace(/</g, '&lt;')
-                                                                .replace(/>/g, '&gt;')
-                                                                .replace(/"/g, '&quot;')
-                                                                .replace(/'/g, '&#039;');
-                                                                
-                                                            // Create diagram container with unique ID
-                                                            diagramDiv.innerHTML = '<strong>Diagram:</strong> <div id="' + diagramId + '" class="mermaid mermaid-container">' + diagramCode + '</div>';
-                                                            chatMessages.appendChild(diagramDiv);
+                                                        // Make sure we have a clean diagram code (escape any HTML)
+                                                        var diagramCode = status.diagram_code
+                                                            .replace(/&/g, '&amp;')
+                                                            .replace(/</g, '&lt;')
+                                                            .replace(/>/g, '&gt;')
+                                                            .replace(/"/g, '&quot;')
+                                                            .replace(/'/g, '&#039;');
                                                             
-                                                            // Initialize mermaid with retry mechanism
-                                                            setTimeout(function() {
-                                                                try {
-                                                                    if (typeof mermaid !== 'undefined') {
-                                                                        console.log("Rendering diagram with code:", diagramCode);
-                                                                        mermaid.init(undefined, '#' + diagramId);
-                                                                    }
-                                                                } catch (e) {
-                                                                    console.error("Error rendering diagram:", e);
-                                                                    // Fallback to simple display
-                                                                    document.getElementById(diagramId).innerHTML = 
-                                                                        '<pre style="background-color:#f8f9fa; padding:10px; border-radius:5px;">' + 
-                                                                        diagramCode + '</pre>' +
-                                                                        '<p class="text-danger">Diagram could not be rendered. See code above.</p>';
+                                                        // Create diagram container with unique ID
+                                                        var diagramId = 'diagram_' + new Date().getTime();
+                                                        diagramDiv.innerHTML = '<strong>Diagram:</strong> <div id="' + diagramId + '" class="mermaid mermaid-container">' + diagramCode + '</div>';
+                                                        chatMessages.appendChild(diagramDiv);
+                                                        
+                                                        // Initialize mermaid with retry mechanism
+                                                        setTimeout(function() {
+                                                            try {
+                                                                if (typeof mermaid !== 'undefined') {
+                                                                    console.log("Rendering diagram with code:", diagramCode);
+                                                                    mermaid.init(undefined, '#' + diagramId);
                                                                 }
-                                                            }, 500); // Small delay to ensure the DOM is updated
-                                                        }
+                                                            } catch (e) {
+                                                                console.error("Error rendering diagram:", e);
+                                                                // Fallback to simple display
+                                                                document.getElementById(diagramId).innerHTML = 
+                                                                    '<pre style="background-color:#f8f9fa; padding:10px; border-radius:5px;">' + 
+                                                                    diagramCode + '</pre>' +
+                                                                    '<p class="text-danger">Diagram could not be rendered. See code above.</p>';
+                                                            }
+                                                        }, 500); // Small delay to ensure the DOM is updated
                                                     }
                                                 }
                                                 
@@ -1441,92 +1432,26 @@ def process_question(question, question_id):
                     if diagram_type == "flowchart":
                         # Handle special characters and problematic syntax with a detailed diagram
                         if "syntax error" in explanation.lower() or diagram_code.strip() == "" or "ISO 20022" in question or "ISO20022" in question:
-                            # Create an HTML-based diagram instead of using Mermaid
-                            html_diagram = """
-<div class="html-diagram">
-  <style>
-    .html-diagram {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: white;
-      border-radius: 8px;
-    }
-    .node {
-      border: 2px solid #0088cc;
-      border-radius: 8px;
-      padding: 10px;
-      margin: 5px;
-      background-color: #e0f7ff;
-      display: inline-block;
-      min-width: 120px;
-      text-align: center;
-    }
-    .main-node {
-      background-color: #0088cc;
-      color: white;
-      font-weight: bold;
-    }
-    .connection {
-      margin: 5px 0;
-      text-align: center;
-      color: #0088cc;
-      font-size: 20px;
-    }
-    .node-group {
-      margin-bottom: 20px;
-    }
-    .diagram-title {
-      font-weight: bold;
-      text-align: center;
-      margin-bottom: 15px;
-      font-size: 16px;
-    }
-  </style>
-  <div class="diagram-title">ISO 20022 Framework Overview</div>
-  <div class="node-group">
-    <div class="node main-node">ISO 20022</div>
-    <div class="connection">↓</div>
-  </div>
-  
-  <div class="node-group">
-    <div class="node">Value Proposition</div>
-    <div class="node">Standardization Approach</div>
-    <div class="node">ISO 20022 Recipe</div>
-    <div class="node">Actors</div>
-    <div class="node">Financial Repository</div>
-  </div>
-  
-  <div class="connection">↓</div>
-  
-  <div class="node-group">
-    <div class="node">Communication Interoperability</div>
-    <div class="node">Single Standard Long-term</div>
-    <div class="node">Modeling-based Standards</div>
-    <div class="node">Registration Management Group</div>
-    <div class="node">Data Dictionary</div>
-  </div>
-  
-  <div class="node-group">
-    <div class="node">Address Overlapping Standards</div>
-    <div class="node">Coexistence Short-term</div>
-    <div class="node">Development Process</div>
-    <div class="node">Standards Evaluation Groups</div>
-    <div class="node">Business Process Catalogue</div>
-  </div>
-  
-  <div class="node-group">
-    <div class="node">Implementations</div>
-    <div class="node">Registration</div>
-    <div class="node">Registration Authority</div>
-  </div>
-  
-  <div class="node-group">
-    <div class="node">Technical Support Group</div>
-  </div>
-</div>
-"""
-                            # Use HTML as the diagram code
-                            diagram_code = html_diagram
+                            # Create a simplified minimal diagram
+                            diagram_code = """graph TD
+    A(ISO 20022) --> B(Value Proposition)
+    B --> B1(Communication Interoperability)
+    B --> B2(Address Overlapping Standards)
+    A --> C(Standardization Approach)
+    C --> C1(Single Standard Long-term)
+    C --> C2(Coexistence Short-term)
+    A --> D(ISO 20022 Recipe)
+    D --> D1(Modeling-based Standards)
+    D --> D2(Development Process)
+    D --> D3(Registrations)
+    A --> E(Actors)
+    E --> E1(Registration Management Group)
+    E --> E2(Standards Evaluation Groups)
+    E --> E3(Registration Authority)
+    E --> E4(Technical Support Group)
+    A --> F(Financial Repository)
+    F --> F1(Data Dictionary)
+    F --> F2(Business Process Catalogue)"""
                             
                     print(f"Original diagram code: {original_diagram_code[:50]}...")
                     print(f"Fixed diagram code: {diagram_code[:50]}...")
