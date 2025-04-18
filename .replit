@@ -124,7 +124,7 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python regcap_minimal.py"
-waitForPort = 5004
+waitForPort = 5000
 
 [[workflows.workflow]]
 name = "Simple JS Fix"
@@ -138,7 +138,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python simple_js_fix.py --port 5005"
+args = "python simple_js_fix.py"
 waitForPort = 5005
 
 [[workflows.workflow]]
@@ -201,6 +201,14 @@ externalPort = 3001
 [[ports]]
 localPort = 5003
 externalPort = 3002
+
+[[ports]]
+localPort = 5005
+externalPort = 3003
+
+[[ports]]
+localPort = 5010
+externalPort = 4200
 
 [[ports]]
 localPort = 8080
