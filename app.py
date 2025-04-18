@@ -250,15 +250,21 @@ def index():
             padding: 1.5rem;
             border-bottom: 1px solid var(--border-color);
             display: flex;
-            align-items: center;
-            justify-content: space-between;
+            flex-direction: column;
+            align-items: flex-start;
         }
         
         .sidebar-header h1 {
             font-size: 1.25rem;
-            margin: 0;
+            margin: 0 0 0.25rem 0;
             font-weight: 700;
             color: var(--primary-color);
+        }
+        
+        .sidebar-header .byline {
+            font-size: 0.85rem;
+            color: var(--secondary-text);
+            font-style: italic;
         }
         
         .sidebar-nav {
@@ -554,6 +560,7 @@ def index():
         <div class="sidebar">
             <div class="sidebar-header">
                 <h1><i class="fa fa-book"></i> RegCap GPT</h1>
+                <div class="byline">Regulatory Intelligence</div>
             </div>
             
             <div class="sidebar-nav">
