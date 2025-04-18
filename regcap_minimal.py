@@ -287,9 +287,27 @@ def index():
         .theme-toggle:hover {
             background-color: var(--tertiary-bg);
         }
+        
+        .beta-banner {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 0.75rem 1.25rem;
+            text-align: center;
+            font-size: 0.875rem;
+            position: relative;
+            z-index: 1000;
+        }
+        
+        [data-theme="dark"] .beta-banner {
+            background-color: #2d3748;
+            color: #fbd38d;
+        }
     </style>
 </head>
 <body>
+    <div class="beta-banner">
+        🚧 Beta Notice: RegCap GPT is currently in active development. Some features may be limited or evolving.
+    </div>
     <div class="app-container">
         <!-- Sidebar -->
         <div class="sidebar">
