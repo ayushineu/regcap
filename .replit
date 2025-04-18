@@ -33,10 +33,10 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "RegCapFlask"
+args = "RegCapDeploy"
 
 [[workflows.workflow]]
-name = "RegCapFlask"
+name = "RegCapDeploy"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -47,7 +47,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python app_flask.py"
+args = "python flask_deploy.py"
 waitForPort = 5000
 
 [[ports]]
