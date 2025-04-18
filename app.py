@@ -1280,13 +1280,13 @@ def process_question(question, question_id):
         # Flatten chunks into a list
         all_chunks = []
         for doc_name, doc_chunks in chunks.items():
-            for chunk in doc_chunks:
+            for i, chunk in enumerate(doc_chunks):
                 # Add source metadata
                 chunk_with_metadata = {
                     "content": chunk,
                     "metadata": {
                         "source": doc_name,
-                        "page": "1"  # Default to page 1 if not available
+                        "page": f"{i//5 + 1}"  # Estimate page numbers - 5 chunks per page
                     }
                 }
                 all_chunks.append(chunk_with_metadata)
