@@ -478,6 +478,11 @@ def index():
                 padding: 1rem;
             }
             
+            .header > div {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            
             .content-area {
                 padding: 1rem;
             }
@@ -542,14 +547,14 @@ def index():
             <!-- Header -->
             <div class="header">
                 <h2 id="currentPanelTitle"><i class="fa fa-comments"></i> Chat with your Documents</h2>
-                <div class="d-flex align-items-center justify-content-between w-100">
+                <div class="d-flex align-items-center gap-3">
+                    <button id="mobileThemeToggle" class="theme-toggle theme-toggle-mobile">
+                        <i class="fa fa-moon-o"></i> Dark Mode
+                    </button>
                     <div class="alert alert-info mb-0 py-1 px-3" style="font-size: 0.8rem;">
                         <i class="fa fa-info-circle"></i> 
                         <strong>Current Session:</strong> {{ session_id }}
                     </div>
-                    <button id="mobileThemeToggle" class="theme-toggle theme-toggle-mobile">
-                        <i class="fa fa-moon-o"></i> Dark Mode
-                    </button>
                 </div>
             </div>
             
