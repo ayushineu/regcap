@@ -504,43 +504,27 @@ def index():
         }
         
         /* Feature list styles */
-        .feature-list-container {
-            margin-bottom: 1rem;
-        }
-        
-        .feature-list-toggle {
-            width: 100%;
-            background-color: var(--primary-color);
-            color: var(--light-text);
-            border: none;
-            border-radius: var(--border-radius);
-            padding: 0.5rem 1rem;
-            text-align: left;
+        .features-item {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        
-        .feature-list-toggle:hover {
-            background-color: var(--primary-hover);
         }
         
         .feature-list {
-            background-color: var(--secondary-bg);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            margin-top: 0.5rem;
+            background-color: var(--tertiary-bg);
+            margin: 0 0.75rem;
             padding: 1rem;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
         }
         
         .feature-list-date {
             font-size: 0.8rem;
             color: var(--secondary-text);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
             text-align: right;
             font-style: italic;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
         }
         
         .feature-list ul {
@@ -550,13 +534,17 @@ def index():
         }
         
         .feature-list li {
-            padding: 0.25rem 0;
+            padding: 0.4rem 0;
             font-size: 0.9rem;
+            display: flex;
+            align-items: flex-start;
         }
         
         .feature-list li i {
             color: var(--primary-color);
             margin-right: 0.5rem;
+            min-width: 16px;
+            margin-top: 0.2rem;
         }
     </style>
 </head>
@@ -581,27 +569,23 @@ def index():
                 <div class="nav-item" data-panel="sessions-panel">
                     <i class="fa fa-database"></i> Sessions
                 </div>
+                <div class="nav-item features-item" id="featureToggle">
+                    <i class="fa fa-list"></i> Features <i class="fa fa-angle-down toggle-icon"></i>
+                </div>
+                <div class="feature-list" id="featureList" style="display: none;">
+                    <div class="feature-list-date">As of April 18, 2025</div>
+                    <ul>
+                        <li><i class="fa fa-check"></i> PDF document analysis</li>
+                        <li><i class="fa fa-check"></i> Natural language queries</li>
+                        <li><i class="fa fa-check"></i> AI-generated diagrams</li>
+                        <li><i class="fa fa-check"></i> Multi-session support</li>
+                        <li><i class="fa fa-check"></i> Vector search technology</li>
+                        <li><i class="fa fa-check"></i> Dark/light mode</li>
+                    </ul>
+                </div>
             </div>
             
             <div class="sidebar-footer">
-                <div class="mb-3">
-                    <div class="feature-list-container">
-                        <button class="feature-list-toggle" id="featureToggle">
-                            <i class="fa fa-list"></i> Features <i class="fa fa-angle-down toggle-icon"></i>
-                        </button>
-                        <div class="feature-list" id="featureList" style="display: none;">
-                            <div class="feature-list-date">As of April 18, 2025</div>
-                            <ul>
-                                <li><i class="fa fa-check"></i> PDF document analysis</li>
-                                <li><i class="fa fa-check"></i> Natural language queries</li>
-                                <li><i class="fa fa-check"></i> AI-generated diagrams</li>
-                                <li><i class="fa fa-check"></i> Multi-session support</li>
-                                <li><i class="fa fa-check"></i> Vector search technology</li>
-                                <li><i class="fa fa-check"></i> Dark/light mode</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
                 <button id="themeToggle" class="theme-toggle">
                     <i class="fa fa-moon-o"></i> Dark Mode
                 </button>
