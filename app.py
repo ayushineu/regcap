@@ -606,7 +606,7 @@ def index():
             <!-- Beta Banner -->
             <div id="betaBanner" class="beta-banner">
                 <div class="beta-banner-content">
-                    <i class="fa fa-wrench"></i> 🚧 Beta Notice: RegCap GPT is currently in active development. Some features may be limited or evolving. Thank you for testing and sharing feedback!
+                    🚧 Beta Notice: RegCap GPT is currently in active development. Some features may be limited or evolving. Thank you for testing and sharing feedback!
                 </div>
                 <button class="beta-close-btn" onclick="document.getElementById('betaBanner').style.display='none';">&times;</button>
             </div>
