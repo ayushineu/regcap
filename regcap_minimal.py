@@ -61,6 +61,8 @@ def list_all_sessions():
 def extract_text_from_pdf(pdf_file):
     """Extract text from a PDF file."""
     try:
+        # This function is kept for backward compatibility but we're using a different approach
+        # in the upload_files route where we save the file first
         pdf_reader = PyPDF2.PdfReader(pdf_file)
         text = ""
         for page in pdf_reader.pages:
@@ -962,40 +964,64 @@ def switch_session():
 @app.route('/upload-files', methods=['POST'])
 def upload_files():
     """Handle file uploads."""
-    if 'files' not in request.files:
-        return jsonify({'success': False, 'error': 'No files were uploaded'})
-    
-    files = request.files.getlist('files')
-    if not files or files[0].filename == '':
-        return jsonify({'success': False, 'error': 'No selected files'})
-    
-    # Process uploaded files
-    session_id = get_current_session()
-    if session_id not in document_store:
-        document_store[session_id] = []
-    
-    for file in files:
-        if file and file.filename.endswith('.pdf'):
-            try:
-                # Extract text from PDF
-                pdf_text = extract_text_from_pdf(file)
-                
-                # Split text into manageable chunks
-                text_chunks = chunk_text(pdf_text)
-                
-                # Store the file information and chunked content
-                document_store[session_id].append({
-                    'name': file.filename,
-                    'chunks': text_chunks,
-                    'date_uploaded': time.strftime('%Y-%m-%d %H:%M:%S')
-                })
-                
-                print(f"Processed {file.filename}: {len(text_chunks)} chunks created")
-            except Exception as e:
-                print(f"Error processing {file.filename}: {e}")
-                return jsonify({'success': False, 'error': f'Error processing {file.filename}: {str(e)}'})
-    
-    return jsonify({'success': True, 'message': f'Processed {len(files)} files'})
+    try:
+        # Check if files are in the request
+        if 'files' not in request.files:
+            return jsonify({'success': False, 'error': 'No files were uploaded'})
+        
+        files = request.files.getlist('files')
+        if not files or files[0].filename == '':
+            return jsonify({'success': False, 'error': 'No selected files'})
+        
+        # Process uploaded files
+        session_id = get_current_session()
+        if session_id not in document_store:
+            document_store[session_id] = []
+        
+        processed_files = 0
+        
+        for file in files:
+            if file and file.filename.endswith('.pdf'):
+                try:
+                    # Save file to temporary location
+                    temp_file_path = os.path.join(os.getcwd(), 'temp_' + file.filename)
+                    file.save(temp_file_path)
+                    
+                    # Open and process the saved file
+                    with open(temp_file_path, 'rb') as pdf_file:
+                        pdf_reader = PyPDF2.PdfReader(pdf_file)
+                        pdf_text = ""
+                        for page in pdf_reader.pages:
+                            pdf_text += page.extract_text() + "\n\n"
+                    
+                    # Remove temporary file
+                    if os.path.exists(temp_file_path):
+                        os.remove(temp_file_path)
+                    
+                    # Split text into manageable chunks
+                    text_chunks = chunk_text(pdf_text)
+                    
+                    # Store the file information and chunked content
+                    document_store[session_id].append({
+                        'name': file.filename,
+                        'chunks': text_chunks,
+                        'date_uploaded': time.strftime('%Y-%m-%d %H:%M:%S')
+                    })
+                    
+                    processed_files += 1
+                    print(f"Processed {file.filename}: {len(text_chunks)} chunks created")
+                except Exception as e:
+                    print(f"Error processing {file.filename}: {str(e)}")
+                    # Continue processing other files instead of returning error immediately
+                    continue
+        
+        if processed_files > 0:
+            return jsonify({'success': True, 'message': f'Processed {processed_files} files'})
+        else:
+            return jsonify({'success': False, 'error': 'Could not process any of the uploaded files'})
+    except Exception as e:
+        print(f"Error in upload_files: {str(e)}")
+        return jsonify({'success': False, 'error': f'Server error: {str(e)}'})
 
 @app.route('/ask-question', methods=['POST'])
 def ask_question():
