@@ -17,18 +17,6 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "New App"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Simplified App"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "RegCap"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "Simplified JS Fix"
 
 [[workflows.workflow.tasks]]
@@ -37,64 +25,11 @@ args = "RegCap Minimal"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Simple JS Fix"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Deployment"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Deploy"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "Deployment App"
 
-[[workflows.workflow]]
-name = "New App"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
 [[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python new_flask_app.py --port 5001"
-waitForPort = 5001
-
-[[workflows.workflow]]
-name = "Simplified App"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python simplified_app.py --port 5002"
-waitForPort = 5002
-
-[[workflows.workflow]]
-name = "RegCap"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python app.py --port 5000"
-waitForPort = 5000
+task = "workflow.run"
+args = "RegCap"
 
 [[workflows.workflow]]
 name = "Simplified JS Fix"
@@ -127,51 +62,6 @@ args = "python regcap_minimal.py"
 waitForPort = 5000
 
 [[workflows.workflow]]
-name = "Simple JS Fix"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python simple_js_fix.py"
-waitForPort = 5005
-
-[[workflows.workflow]]
-name = "Deployment"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python deployment.py --port=5000"
-waitForPort = 5000
-
-[[workflows.workflow]]
-name = "Deploy"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python deploy.py"
-waitForPort = 80
-
-[[workflows.workflow]]
 name = "Deployment App"
 author = "agent"
 
@@ -184,6 +74,21 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python app_deploy.py"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "RegCap"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python deploy.py"
 waitForPort = 5000
 
 [[ports]]

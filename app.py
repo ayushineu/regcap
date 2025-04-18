@@ -1,7 +1,7 @@
 """
-RegCap GPT - Streamlit Deployment Version
+RegCap GPT - Regulatory Intelligence Platform
 
-A clean Streamlit version of RegCap GPT specifically for deployment.
+A Streamlit app for regulatory document analysis using AI.
 """
 
 import streamlit as st
