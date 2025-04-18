@@ -10,6 +10,7 @@ import os
 import logging
 from datetime import datetime
 import importlib.util
+from flask import jsonify
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
