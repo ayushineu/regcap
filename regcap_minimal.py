@@ -20,6 +20,7 @@ session_store = {}
 document_store = {}
 chat_history_store = {}
 question_status_store = {}
+question_session_map = {}
 
 def get_current_session():
     """Get or create the current session ID."""
@@ -826,6 +827,12 @@ def ask_question():
         # Generate a question ID
         question_id = str(uuid.uuid4())
         
+        # Store the current session ID with the question ID
+        current_session_id = get_current_session()
+        
+        # Store the session ID for this question in global map
+        question_session_map[question_id] = current_session_id
+        
         # Initialize status
         update_question_status(
             question_id,
@@ -844,6 +851,12 @@ def ask_question():
 def process_question(question, question_id):
     """Process a question in the background."""
     try:
+        # Get the session ID from the global question_session_map
+        session_id = question_session_map.get(question_id)
+        if not session_id:
+            # Fallback to the first session in the store if we can't find the mapping
+            session_id = list(session_store.keys())[0] if session_store else str(uuid.uuid4())
+        
         # Simulate processing stages
         update_question_status(question_id, stage="Analyzing question", progress=20, done=False)
         time.sleep(1)
@@ -884,7 +897,6 @@ def process_question(question, question_id):
         )
         
         # Save to chat history
-        session_id = get_current_session()
         if session_id not in chat_history_store:
             chat_history_store[session_id] = []
         
