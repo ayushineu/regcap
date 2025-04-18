@@ -17,30 +17,15 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Tab Test"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "New App"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "Simplified App"
 
-[[workflows.workflow]]
-name = "Tab Test"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
 [[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python minimal_tab_fix.py"
-waitForPort = 5000
+task = "workflow.run"
+args = "RegCap"
 
 [[workflows.workflow]]
 name = "New App"
@@ -70,6 +55,21 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python simplified_app.py"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "RegCap"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python app.py"
 waitForPort = 5000
 
 [[ports]]

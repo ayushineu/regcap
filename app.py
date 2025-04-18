@@ -1,30 +1,41 @@
 """
-RegCap GPT - Simplified Deployment Version
+RegCap GPT - Regulatory Document Analysis Platform
 
-This is a streamlined version of the RegCap GPT application for deployment,
-with minimal JavaScript and basic functionality to ensure reliable deployment.
+This application provides a web interface for uploading regulatory documents,
+asking questions about their content, and receiving AI-generated answers and visualizations.
+It uses vector-based search to find relevant information in documents and leverages
+OpenAI's models for generating accurate responses and diagrams.
+
+Main features:
+- PDF document upload and processing
+- Natural language question answering
+- Mermaid diagram generation for visualizing complex regulatory processes
+- Session management for organizing separate contexts
+- Dark/light theme switching
+- Multi-tab interface for organizing content
+
+Author: RegCap Team
+Version: 1.0.0
 """
 
-# Standard library imports
-from flask import Flask, render_template_string, request, redirect, url_for, jsonify, session
+from flask import Flask, render_template_string, request, jsonify, session, redirect, url_for
 import os
 import time
-import pickle
-import base64
 import uuid
-import json
 import threading
-import re
+import json
+import base64
+import pickle
 
-# Third-party library imports
+# Try to import optional dependencies
 try:
-    import PyPDF2
     import openai
+    import PyPDF2
     import numpy as np
     import faiss
     from werkzeug.utils import secure_filename
-except ImportError:
-    pass  # Handled gracefully in routes
+except ImportError as e:
+    print(f"Warning: Optional dependency not available: {e}")
 
 # Local application imports
 try:
@@ -626,29 +637,35 @@ def index():
     </div>
     
     <script>
-        // Wait for DOM to load
+        // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
-            // Tab switching
+            // Get all tab buttons
             var tabButtons = document.querySelectorAll('.tab-button');
-            var tabContents = document.querySelectorAll('.tab-content');
             
-            tabButtons.forEach(function(button) {
-                button.addEventListener('click', function() {
-                    // Deactivate all tabs
-                    tabButtons.forEach(function(btn) {
-                        btn.classList.remove('active');
-                    });
-                    
-                    tabContents.forEach(function(content) {
-                        content.classList.remove('active');
-                    });
-                    
-                    // Activate current tab
-                    this.classList.add('active');
+            // Add click event to each button
+            for (var i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].addEventListener('click', function() {
+                    // Get the tab id from data-tab attribute
                     var tabId = this.getAttribute('data-tab');
+                    
+                    // Hide all tab contents
+                    var tabContents = document.querySelectorAll('.tab-content');
+                    for (var j = 0; j < tabContents.length; j++) {
+                        tabContents[j].classList.remove('active');
+                    }
+                    
+                    // Remove active class from all buttons
+                    for (var k = 0; k < tabButtons.length; k++) {
+                        tabButtons[k].classList.remove('active');
+                    }
+                    
+                    // Show the selected tab content
                     document.getElementById(tabId).classList.add('active');
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
                 });
-            });
+            }
             
             // Theme toggle
             var themeToggle = document.getElementById('themeToggle');
@@ -687,22 +704,57 @@ def index():
                 });
             }
             
-            // Form submissions
+            // Form handling for question submission
             var questionForm = document.getElementById('questionForm');
             if (questionForm) {
                 questionForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    // Add form submission handling in future
-                    alert('Question submission to be implemented');
+                    
+                    var questionInput = document.getElementById('questionInput');
+                    var question = questionInput.value.trim();
+                    
+                    if (question) {
+                        // Add user message to chat
+                        var chatMessages = document.getElementById('chatMessages');
+                        var userDiv = document.createElement('div');
+                        userDiv.className = 'user-message';
+                        userDiv.innerHTML = '<strong>You:</strong> ' + question;
+                        chatMessages.appendChild(userDiv);
+                        
+                        // Clear input
+                        questionInput.value = '';
+                        
+                        // Scroll to bottom
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                        
+                        // Add temporary processing message
+                        var processingDiv = document.createElement('div');
+                        processingDiv.className = 'bot-message';
+                        processingDiv.innerHTML = '<strong>RegCap GPT:</strong> Processing...';
+                        chatMessages.appendChild(processingDiv);
+                        
+                        // Simulate response (would be replaced with actual API call)
+                        setTimeout(function() {
+                            processingDiv.innerHTML = '<strong>RegCap GPT:</strong> This is a placeholder response. In the real application, this would be generated by analyzing your documents using AI.';
+                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                        }, 1500);
+                    }
                 });
             }
             
+            // File upload handling
             var uploadForm = document.getElementById('uploadForm');
             if (uploadForm) {
                 uploadForm.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    // Add form submission handling in future
-                    alert('File upload to be implemented');
+                    
+                    var fileInput = document.getElementById('documentUpload');
+                    if (fileInput.files.length > 0) {
+                        alert('File upload simulation: In the real application, this would process your documents.');
+                        fileInput.value = '';
+                    } else {
+                        alert('Please select at least one file to upload.');
+                    }
                 });
             }
             
@@ -710,20 +762,22 @@ def index():
             var newSessionBtn = document.getElementById('newSessionBtn');
             if (newSessionBtn) {
                 newSessionBtn.addEventListener('click', function() {
-                    // Add new session handling in future
-                    alert('New session creation to be implemented');
+                    if (confirm('Create a new session? This will start with a clean slate.')) {
+                        alert('New session simulation: In the real application, this would create a new session.');
+                    }
                 });
             }
             
             // Session switch buttons
             var sessionSwitchBtns = document.querySelectorAll('.session-switch-btn');
-            sessionSwitchBtns.forEach(function(btn) {
-                btn.addEventListener('click', function() {
+            for (var s = 0; s < sessionSwitchBtns.length; s++) {
+                sessionSwitchBtns[s].addEventListener('click', function() {
                     var sessionId = this.getAttribute('data-session-id');
-                    // Add session switching in future
-                    alert('Session switching to be implemented');
+                    if (confirm('Switch to session ' + sessionId + '?')) {
+                        alert('Session switch simulation: In the real application, this would switch to the selected session.');
+                    }
                 });
-            });
+            }
         });
     </script>
 </body>
