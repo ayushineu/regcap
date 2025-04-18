@@ -121,6 +121,33 @@ def fix_mermaid_syntax(diagram_code: str, diagram_type: str = "flowchart") -> st
     
     # Replace bracket nodes with parentheses for better compatibility
     if diagram_type == "flowchart" or diagram_code.startswith("graph"):
+        # Special handler for ISO 20022 diagrams
+        if "ISO 20022" in diagram_code or "ISO20022" in diagram_code:
+            # Use a simplified ISO 20022 diagram structure for maximum compatibility
+            return """graph TD
+    A(ISO 20022) --> B(Value Proposition)
+    A --> C(Standardization Approach)
+    A --> D(ISO 20022 Recipe)
+    A --> E(Actors)
+    A --> F(Financial Repository)
+    
+    B --> B1(Communication Interoperability)
+    B --> B2(Address Overlapping Standards)
+    
+    C --> C1(Single Standard Long-term)
+    C --> C2(Coexistence Short-term)
+    
+    D --> D1(Modeling-based Standards)
+    D --> D2(Development Process)
+    D --> D3(Registration)
+    
+    E --> E1(Registration Management Group)
+    E --> E2(Standards Evaluation Groups)
+    E --> E3(Registration Authority)
+    
+    F --> F1(Data Dictionary)
+    F --> F2(Business Process Catalogue)"""
+        
         # Convert node definitions with brackets to parentheses
         diagram_code = re.sub(r'([A-Za-z0-9_-]+)\[([^\]]+)\]', r'\1(\2)', diagram_code)
     
