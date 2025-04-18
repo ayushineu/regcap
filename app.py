@@ -1065,7 +1065,18 @@ def index():
                                                         diagramDiv.className = 'bot-message diagram-message';
                                                         
                                                         // Make sure we have a clean diagram code (escape any HTML)
-                                                        var diagramCode = status.diagram_code
+                                                        var diagramCode = status.diagram_code || "";
+                                                        
+                                                        // Check if the diagram code is complete/valid
+                                                        if (!diagramCode || diagramCode.length < 20) {
+                                                            // Invalid or empty diagram code - show a fallback
+                                                            diagramDiv.innerHTML = '<strong>Diagram:</strong> <div class="alert alert-warning">Unable to render diagram due to insufficient code.</div>';
+                                                            chatMessages.appendChild(diagramDiv);
+                                                            return;
+                                                        }
+                                                            
+                                                        // Process and escape the diagram code
+                                                        diagramCode = diagramCode
                                                             .replace(/&/g, '&amp;')
                                                             .replace(/</g, '&lt;')
                                                             .replace(/>/g, '&gt;')
@@ -1081,29 +1092,54 @@ def index():
                                                         setTimeout(function() {
                                                             try {
                                                                 if (typeof mermaid !== 'undefined') {
+                                                                    console.log("Validating diagram code...");
+                                                                    
+                                                                    // Check if diagram code is valid
+                                                                    if (!diagramCode || diagramCode.length < 20) {
+                                                                        throw new Error("Diagram code is too short or malformed");
+                                                                    }
+                                                                    
+                                                                    // Check if basic syntax elements are present
+                                                                    if (!diagramCode.includes("graph TD") && !diagramCode.includes("graph LR")) {
+                                                                        console.warn("Diagram code missing proper graph declaration");
+                                                                        // Try to fix by adding a declaration
+                                                                        if (!diagramCode.startsWith("graph")) {
+                                                                            diagramCode = "graph TD\n" + diagramCode;
+                                                                        }
+                                                                    }
+                                                                    
                                                                     console.log("Rendering diagram with code:", diagramCode);
                                                                     mermaid.init(undefined, '#' + diagramId);
                                                                     
                                                                     // Add error-checking timeout to catch rendering failures
                                                                     setTimeout(function() {
                                                                         var diagramElement = document.getElementById(diagramId);
-                                                                        if (diagramElement && diagramElement.innerHTML.includes("Syntax error")) {
-                                                                            console.log("Detected mermaid syntax error, showing fallback");
+                                                                        if (diagramElement && 
+                                                                           (diagramElement.innerHTML.includes("Syntax error") || 
+                                                                            diagramElement.innerHTML.length < 100)) {
+                                                                            console.log("Detected mermaid syntax error or empty render, showing fallback");
                                                                             // Clean up the error message and show the diagram code
                                                                             diagramElement.innerHTML = 
-                                                                                '<div class="alert alert-warning">The diagram could not be rendered due to syntax issues.</div>' +
+                                                                                '<div class="alert alert-warning">The diagram could not be rendered properly.</div>' +
                                                                                 '<pre style="background-color:#f8f9fa; padding:10px; border-radius:5px;">' + 
                                                                                 diagramCode + '</pre>';
                                                                         }
                                                                     }, 1000);
+                                                                } else {
+                                                                    throw new Error("Mermaid library not loaded");
                                                                 }
                                                             } catch (e) {
                                                                 console.error("Error rendering diagram:", e);
                                                                 // Fallback to simple display
-                                                                document.getElementById(diagramId).innerHTML = 
-                                                                    '<div class="alert alert-danger">Error rendering diagram</div>' +
-                                                                    '<pre style="background-color:#f8f9fa; padding:10px; border-radius:5px;">' + 
-                                                                    diagramCode + '</pre>';
+                                                                var errorElement = document.getElementById(diagramId);
+                                                                if (errorElement) {
+                                                                    errorElement.innerHTML = 
+                                                                        '<div class="alert alert-danger">Error rendering diagram: ' + e.message + '</div>' +
+                                                                        '<pre style="background-color:#f8f9fa; padding:10px; border-radius:5px;">' + 
+                                                                        diagramCode + '</pre>';
+                                                                } else {
+                                                                    console.error("Failed to find diagram element:", diagramId);
+                                                                }
                                                             }
                                                         }, 500); // Small delay to ensure the DOM is updated
                                                     }
@@ -1440,6 +1476,12 @@ def process_question(question, question_id):
                 try:
                     # First try to fix with our utility function
                     diagram_code = fix_mermaid_syntax(original_diagram_code, diagram_type)
+                    
+                    # Some basic sanity checks on the diagram code
+                    if not diagram_code or len(diagram_code.strip()) < 20:
+                        print("Diagram code is too short or empty, creating fallback")
+                        # Force fallback generation
+                        diagram_code = ""
                     
                     # Add additional aggressive fixing for troublesome diagrams
                     # Enhanced completely generic approach - no templates
