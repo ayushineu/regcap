@@ -712,6 +712,60 @@ def index():
             const questionInput = document.getElementById('questionInput');
             const chatMessages = document.getElementById('chatMessages');
             
+            // Document upload form
+            const uploadForm = document.getElementById('uploadForm');
+            
+            if (uploadForm) {
+                uploadForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const fileInput = document.getElementById('documentUpload');
+                    const files = fileInput.files;
+                    
+                    if (!files || files.length === 0) {
+                        alert('Please select at least one file to upload');
+                        return;
+                    }
+                    
+                    const formData = new FormData();
+                    for (let i = 0; i < files.length; i++) {
+                        formData.append('files', files[i]);
+                    }
+                    
+                    // Show loading indicator
+                    const uploadButton = uploadForm.querySelector('button[type="submit"]');
+                    const originalButtonText = uploadButton.innerHTML;
+                    uploadButton.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Uploading...';
+                    uploadButton.disabled = true;
+                    
+                    fetch('/upload-files', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        uploadButton.innerHTML = originalButtonText;
+                        uploadButton.disabled = false;
+                        
+                        if (data.success) {
+                            alert('Files uploaded successfully');
+                            // Refresh the page to show the newly uploaded documents
+                            location.reload();
+                        } else {
+                            console.error('Error uploading files:', data);
+                            alert('Error uploading files: ' + (data.error || 'Unknown error'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error uploading files:', error);
+                        uploadButton.innerHTML = originalButtonText;
+                        uploadButton.disabled = false;
+                        alert('Error uploading files: ' + error.message);
+                    });
+                });
+            }
+            
+            // Question form
             if (questionForm) {
                 questionForm.addEventListener('submit', function(e) {
                     e.preventDefault();
