@@ -48,6 +48,12 @@ mindmap
       Management Responsibility
 '''
 
+# Print raw diagram for debugging
+print("Raw mindmap test structure:")
+for i, line in enumerate(mindmap_test.split('\n')):
+    print(f"{i}: '{line}'")
+print()
+
 # Process and test each diagram
 def test_diagram(diagram_code, diagram_type):
     print(f"\n--- Original {diagram_type.upper()} Diagram ---")
