@@ -983,20 +983,11 @@ def upload_files():
         for file in files:
             if file and file.filename.endswith('.pdf'):
                 try:
-                    # Save file to temporary location
-                    temp_file_path = os.path.join(os.getcwd(), 'temp_' + file.filename)
-                    file.save(temp_file_path)
-                    
-                    # Open and process the saved file
-                    with open(temp_file_path, 'rb') as pdf_file:
-                        pdf_reader = PyPDF2.PdfReader(pdf_file)
-                        pdf_text = ""
-                        for page in pdf_reader.pages:
-                            pdf_text += page.extract_text() + "\n\n"
-                    
-                    # Remove temporary file
-                    if os.path.exists(temp_file_path):
-                        os.remove(temp_file_path)
+                    # Extract text using PyPDF2
+                    pdf_reader = PyPDF2.PdfReader(file)
+                    pdf_text = ""
+                    for page in pdf_reader.pages:
+                        pdf_text += page.extract_text() + "\n\n"
                     
                     # Split text into manageable chunks
                     text_chunks = chunk_text(pdf_text)
@@ -1012,13 +1003,9 @@ def upload_files():
                     print(f"Processed {file.filename}: {len(text_chunks)} chunks created")
                 except Exception as e:
                     print(f"Error processing {file.filename}: {str(e)}")
-                    # Continue processing other files instead of returning error immediately
-                    continue
+                    return jsonify({'success': False, 'error': f'Error processing {file.filename}: {str(e)}'})
         
-        if processed_files > 0:
-            return jsonify({'success': True, 'message': f'Processed {processed_files} files'})
-        else:
-            return jsonify({'success': False, 'error': 'Could not process any of the uploaded files'})
+        return jsonify({'success': True, 'message': f'Processed {processed_files} files'})
     except Exception as e:
         print(f"Error in upload_files: {str(e)}")
         return jsonify({'success': False, 'error': f'Server error: {str(e)}'})
