@@ -169,7 +169,7 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python deploy.py"
-waitForPort = 8080
+waitForPort = 80
 
 [[workflows.workflow]]
 name = "Deployment App"
@@ -185,6 +185,10 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "python app_deploy.py"
 waitForPort = 5000
+
+[[ports]]
+localPort = 80
+externalPort = 5000
 
 [[ports]]
 localPort = 5000
