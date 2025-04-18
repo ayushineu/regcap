@@ -224,23 +224,29 @@ def index():
     <title>RegCap GPT</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@8.14.0/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@9.4.3/dist/mermaid.min.js"></script>
     <script>
         // Initialize mermaid with specific configuration for better compatibility
         mermaid.initialize({
             startOnLoad: true,
             theme: 'default',
-            logLevel: 'error',
+            logLevel: 'warn',
             securityLevel: 'loose',
             flowchart: { 
                 useMaxWidth: true, 
                 htmlLabels: true,
-                curve: 'basis'
+                curve: 'linear'
+            },
+            er: { 
+                useMaxWidth: true 
+            },
+            sequence: { 
+                useMaxWidth: true 
             },
             themeVariables: {
                 primaryColor: '#0088cc',
                 primaryTextColor: '#ffffff',
-                primaryBorderColor: '#7C0000',
+                primaryBorderColor: '#0088cc',
                 lineColor: '#0088cc',
                 secondaryColor: '#006699',
                 tertiaryColor: '#f1f5f9'
@@ -1089,6 +1095,11 @@ def index():
                                                             .replace(/"/g, '&quot;')
                                                             .replace(/'/g, '&#039;');
                                                             
+                                                        // Make sure the diagram code starts with the right syntax
+                                                        if (!diagramCode.includes("graph ")) {
+                                                            diagramCode = "graph TD\n" + diagramCode;
+                                                        }
+                                                        
                                                         // Create diagram container with unique ID
                                                         var diagramId = 'diagram_' + new Date().getTime();
                                                         diagramDiv.innerHTML = '<strong>Diagram:</strong> <div id="' + diagramId + '" class="mermaid mermaid-container">' + diagramCode + '</div>';
@@ -1098,21 +1109,10 @@ def index():
                                                         setTimeout(function() {
                                                             try {
                                                                 if (typeof mermaid !== 'undefined') {
-                                                                    console.log("Rendering diagram with code length:", diagramCode.length);
+                                                                    console.log("Attempting to render diagram");
+                                                                    // Force a re-initialization of mermaid
+                                                                    mermaid.contentLoaded();
                                                                     mermaid.init(undefined, '#' + diagramId);
-                                                                    
-                                                                    // Add error-checking timeout to catch rendering failures
-                                                                    setTimeout(function() {
-                                                                        var diagramElement = document.getElementById(diagramId);
-                                                                        if (diagramElement && diagramElement.innerHTML.includes("Syntax error")) {
-                                                                            console.log("Detected mermaid syntax error, showing fallback");
-                                                                            // Clean up the error message and show the diagram code
-                                                                            diagramElement.innerHTML = 
-                                                                                '<div class="alert alert-warning">The diagram could not be rendered properly.</div>' +
-                                                                                '<pre style="background-color:#f8f9fa; padding:10px; border-radius:5px;">' + 
-                                                                                diagramCode + '</pre>';
-                                                                        }
-                                                                    }, 1000);
                                                                 }
                                                             } catch (e) {
                                                                 console.error("Error rendering diagram:", e);
@@ -1120,12 +1120,12 @@ def index():
                                                                 var errorElement = document.getElementById(diagramId);
                                                                 if (errorElement) {
                                                                     errorElement.innerHTML = 
-                                                                        '<div class="alert alert-warning">The diagram could not be rendered.</div>' +
-                                                                        '<pre style="background-color:#f8f9fa; padding:10px; border-radius:5px;">' + 
+                                                                        '<div class="alert alert-warning">The diagram could not be rendered automatically.</div>' +
+                                                                        '<pre style="background-color:#f8f9fa; padding:10px; border-radius:5px; overflow-x:auto; white-space:pre-wrap;">' + 
                                                                         diagramCode + '</pre>';
                                                                 }
                                                             }
-                                                        }, 500); // Small delay to ensure the DOM is updated
+                                                        }, 300); // Small delay to ensure the DOM is updated
                                                     }
                                                 }
                                                 
