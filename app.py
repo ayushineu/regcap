@@ -180,29 +180,29 @@ def index():
     <style>
         /* Core styles */
         :root {
-            --primary-color: #2563eb;
-            --primary-hover: #1e40af;
-            --secondary-color: #475569;
-            --accent-color: #f59e0b;
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary-color: #64748b;
+            --accent-color: #f97316;
             --primary-bg: #ffffff;
-            --secondary-bg: #f1f5f9;
-            --tertiary-bg: #e2e8f0;
+            --secondary-bg: #f8fafc;
+            --tertiary-bg: #f1f5f9;
             --primary-text: #0f172a;
             --secondary-text: #475569;
-            --light-text: #f8fafc;
-            --border-color: #cbd5e1;
+            --light-text: #ffffff;
+            --border-color: #e2e8f0;
             --border-radius: 8px;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
-            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-            --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.08);
+            --shadow-lg: 0 10px 15px rgba(0,0,0,0.05);
         }
         
         [data-theme="dark"] {
-            --primary-color: #3b82f6;
-            --primary-hover: #60a5fa;
+            --primary-color: #6366f1;
+            --primary-hover: #818cf8;
             --secondary-color: #94a3b8;
-            --accent-color: #fbbf24;
-            --primary-bg: #0f172a;
+            --accent-color: #fb923c;
+            --primary-bg: #111827;
             --secondary-bg: #1e293b;
             --tertiary-bg: #334155;
             --primary-text: #f1f5f9;
@@ -229,8 +229,8 @@ def index():
         
         /* Beta banner */
         .beta-banner {
-            background-color: #fefbeb;
-            border: 1px solid #f0e9db;
+            background-color: #eef2ff;
+            border: 1px solid #e0e7ff;
             border-radius: 4px;
             padding: 0.3rem 1rem;
             margin-bottom: 1rem;
@@ -240,23 +240,23 @@ def index():
         }
         
         [data-theme="dark"] .beta-banner {
-            background-color: #2d3748;
-            border-color: #4a5568;
+            background-color: #312e81;
+            border-color: #4338ca;
         }
         
         .beta-banner-content {
-            color: #92400e;
+            color: #4338ca;
             font-size: 0.8rem;
         }
         
         [data-theme="dark"] .beta-banner-content {
-            color: #fbd38d;
+            color: #c7d2fe;
         }
         
         .beta-close-btn {
             background: none;
             border: none;
-            color: #92400e;
+            color: #4338ca;
             cursor: pointer;
             font-size: 1.2rem;
             padding: 0;
@@ -264,7 +264,7 @@ def index():
         }
         
         .beta-close-btn:hover {
-            color: #7b341e;
+            color: #3730a3;
         }
         
         /* Header */
@@ -499,7 +499,7 @@ def index():
                 <h2><i class="fa fa-file-pdf-o"></i> Document Management</h2>
                 
                 <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
                         <h5 class="card-title mb-0">Upload Documents</h5>
                     </div>
                     <div class="card-body">
@@ -519,7 +519,7 @@ def index():
                 </div>
                 
                 <div class="card">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
                         <h5 class="card-title mb-0">Uploaded Documents</h5>
                     </div>
                     <div class="card-body">
@@ -551,7 +551,7 @@ def index():
                 {% if diagrams %}
                     {% for diagram_code, explanation, diagram_type in diagrams %}
                         <div class="card mb-4">
-                            <div class="card-header bg-primary text-white">
+                            <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
                                 <h5 class="card-title mb-0">
                                     {{ diagram_type|capitalize }} Diagram
                                 </h5>
@@ -589,7 +589,7 @@ def index():
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <div class="card">
-                            <div class="card-header bg-primary text-white">
+                            <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
                                 <h5 class="card-title mb-0">Create New Session</h5>
                             </div>
                             <div class="card-body">
@@ -603,7 +603,7 @@ def index():
                     
                     <div class="col-md-6">
                         <div class="card">
-                            <div class="card-header bg-primary text-white">
+                            <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
                                 <h5 class="card-title mb-0">Available Sessions</h5>
                             </div>
                             <div class="card-body">
