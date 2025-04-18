@@ -297,6 +297,23 @@ def index():
             overflow: hidden;
         }
         
+        /* Hamburger menu button */
+        .hamburger-menu {
+            display: none; /* Hidden by default, shown on mobile */
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+        }
+        
         /* Main layout structure */
         .app-container {
             display: flex;
@@ -539,46 +556,75 @@ def index():
         
         /* Responsive adjustments */
         @media (max-width: 768px) {
+            /* Show hamburger menu on mobile */
+            .hamburger-menu {
+                display: block;
+            }
+            
             .app-container {
                 flex-direction: column;
                 height: 100vh; /* Full viewport height */
                 overflow: hidden; /* Prevent scrolling of the container */
             }
             
+            /* Hide sidebar by default on mobile, show when menu is open */
             .sidebar {
-                width: 100%;
-                height: auto;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-                overflow-x: auto; /* Allow horizontal scrolling for tabs */
+                position: fixed;
+                top: 0;
+                left: -280px; /* Off-screen by default */
+                width: 260px;
+                height: 100vh;
+                z-index: 999;
+                box-shadow: var(--shadow-lg);
+                transition: all 0.3s ease;
+                background-color: var(--sidebar-bg);
+                overflow-y: auto;
             }
             
+            /* When the sidebar is active */
+            .sidebar.mobile-active {
+                left: 0; /* Slide in */
+            }
+            
+            /* Vertical navigation in sidebar for mobile */
             .sidebar-nav {
+                padding: 1rem 0;
                 display: flex;
-                flex-wrap: nowrap; /* Keep items in a single row */
-                padding: 0.5rem;
-                overflow-x: auto; /* Allow horizontal scrolling */
-                -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-                scrollbar-width: none; /* Hide scrollbar on Firefox */
-                -ms-overflow-style: none; /* Hide scrollbar on IE/Edge */
-            }
-            
-            /* Hide scrollbar on Chrome/Safari */
-            .sidebar-nav::-webkit-scrollbar {
-                display: none;
+                flex-direction: column; /* Stack menu items vertically */
+                overflow-y: auto;
+                overflow-x: hidden;
             }
             
             .nav-item {
-                margin: 0.25rem;
-                padding: 0.5rem 1rem;
-                flex: 0 0 auto; /* Don't grow or shrink */
-                text-align: center;
-                white-space: nowrap; /* Prevent text wrapping */
-                min-width: 100px; /* Minimum width for tabs */
+                margin: 0.25rem 0.75rem;
+                padding: 0.75rem 1rem;
+                text-align: left;
+                white-space: normal; /* Allow text wrapping */
             }
             
+            /* Show sidebar footer on mobile */
             .sidebar-footer {
-                display: none; /* Hide sidebar footer on mobile */
+                display: block;
+                padding: 1rem;
+                border-top: 1px solid var(--border-color);
+                text-align: center;
+                font-size: 0.8rem;
+            }
+            
+            /* Overlay when menu is open */
+            .menu-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 998;
+            }
+            
+            .menu-overlay.active {
+                display: block;
             }
             
             .header {
@@ -696,9 +742,17 @@ def index():
     </style>
 </head>
 <body>
+    <!-- Mobile menu button (hamburger) -->
+    <button class="hamburger-menu" id="menuToggle">
+        <i class="fa fa-bars"></i>
+    </button>
+    
+    <!-- Menu overlay for mobile -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+    
     <div class="app-container">
         <!-- Sidebar -->
-        <div class="sidebar">
+        <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h1><i class="fa fa-book"></i> RegCap GPT</h1>
                 <div class="byline">Regulatory Intelligence</div>
