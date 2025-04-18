@@ -228,22 +228,70 @@ def index():
     <script>
         // Initialize mermaid with specific configuration for better compatibility
         mermaid.initialize({
-            startOnLoad: true,
+            startOnLoad: false,  // We'll manually initialize
             theme: 'default',
-            logLevel: 'error',
+            logLevel: 'warn',
             securityLevel: 'loose',
             flowchart: { 
                 useMaxWidth: true, 
                 htmlLabels: true,
-                curve: 'basis'
+                curve: 'linear',
+                diagramPadding: 8
+            },
+            sequence: {
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                actorMargin: 50,
+                width: 150,
+                height: 65
             },
             themeVariables: {
                 primaryColor: '#0088cc',
                 primaryTextColor: '#ffffff',
-                primaryBorderColor: '#7C0000',
+                primaryBorderColor: '#0088cc',
                 lineColor: '#0088cc',
                 secondaryColor: '#006699',
                 tertiaryColor: '#f1f5f9'
+            }
+        });
+        
+        // Helper function to render diagrams safely
+        function renderMermaidDiagram(elementId, code) {
+            try {
+                // First try the simple approach
+                mermaid.render(elementId + '_svg', code, (svgCode) => {
+                    document.getElementById(elementId).innerHTML = svgCode;
+                });
+            } catch (error) {
+                console.error("Error rendering diagram:", error);
+                console.log("Diagram code:", code);
+                
+                try {
+                    // Fallback: Use a simplified version of the code
+                    let fallbackCode = "graph TD\nA(Start) --> B(Process) --> C(End)";
+                    mermaid.render(elementId + '_fallback', fallbackCode, (svgCode) => {
+                        document.getElementById(elementId).innerHTML = svgCode + 
+                            '<div class="alert alert-warning mt-3">Note: The original diagram had syntax issues and was replaced with a simplified version.</div>';
+                    });
+                } catch (fallbackError) {
+                    // If even the fallback fails, just show the text
+                    document.getElementById(elementId).innerHTML = 
+                        '<pre style="background-color:#f8f9fa; padding:10px; border-radius:5px;">' + 
+                        code.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>' +
+                        '<div class="alert alert-danger">Diagram could not be rendered. See code above.</div>';
+                }
+            }
+        }
+        
+        // Initialize any diagrams already in the page when it loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find all diagram containers
+            var diagrams = document.querySelectorAll('.mermaid');
+            for (var i = 0; i < diagrams.length; i++) {
+                var diagramId = 'existing_diagram_' + i;
+                var code = diagrams[i].textContent;
+                diagrams[i].id = diagramId;
+                renderMermaidDiagram(diagramId, code);
             }
         });
     </script>
@@ -484,6 +532,26 @@ def index():
             border-radius: 1rem;
             max-width: 85%;
             box-shadow: var(--shadow-sm);
+        }
+        
+        /* Diagram specific styles */
+        .mermaid-container {
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            overflow: auto;
+            max-width: 100%;
+        }
+        
+        /* Dark theme support for diagrams */
+        [data-theme="dark"] .mermaid-container {
+            background-color: #1e293b;
+        }
+        
+        /* Style for diagram messages */
+        .diagram-message {
+            max-width: 95% !important; /* Allow diagrams to be wider */
         }
         
         .user-message {
@@ -1044,35 +1112,33 @@ def index():
                                                         var diagramDiv = document.createElement('div');
                                                         diagramDiv.className = 'bot-message diagram-message';
                                                         
-                                                        // Make sure we have a clean diagram code (escape any HTML)
-                                                        var diagramCode = status.diagram_code
-                                                            .replace(/&/g, '&amp;')
-                                                            .replace(/</g, '&lt;')
-                                                            .replace(/>/g, '&gt;')
-                                                            .replace(/"/g, '&quot;')
-                                                            .replace(/'/g, '&#039;');
-                                                            
                                                         // Create diagram container with unique ID
                                                         var diagramId = 'diagram_' + new Date().getTime();
-                                                        diagramDiv.innerHTML = '<strong>Diagram:</strong> <div id="' + diagramId + '" class="mermaid">' + diagramCode + '</div>';
+                                                        diagramDiv.innerHTML = '<strong>Diagram:</strong> <div id="' + diagramId + '" class="mermaid-container"></div>';
                                                         chatMessages.appendChild(diagramDiv);
                                                         
-                                                        // Initialize mermaid with retry mechanism
+                                                        // Get the diagram code and sanitize it
+                                                        var diagramCode = status.diagram_code;
+                                                        
+                                                        // Log the diagram code for debugging
+                                                        console.log("Original diagram code:", diagramCode);
+                                                        
+                                                        // Add line breaks if missing
+                                                        if (!diagramCode.includes('\n')) {
+                                                            diagramCode = diagramCode.replace(/\s{2,}/g, '\n');
+                                                        }
+                                                        
+                                                        // Ensure the code starts with graph TD
+                                                        if (!diagramCode.startsWith('graph TD') && !diagramCode.startsWith('sequenceDiagram')) {
+                                                            diagramCode = 'graph TD\n' + diagramCode;
+                                                        }
+                                                        
+                                                        console.log("Processed diagram code:", diagramCode);
+                                                        
+                                                        // Use our custom rendering function
                                                         setTimeout(function() {
-                                                            try {
-                                                                if (typeof mermaid !== 'undefined') {
-                                                                    console.log("Rendering diagram with code:", diagramCode);
-                                                                    mermaid.init(undefined, '#' + diagramId);
-                                                                }
-                                                            } catch (e) {
-                                                                console.error("Error rendering diagram:", e);
-                                                                // Fallback to simple display
-                                                                document.getElementById(diagramId).innerHTML = 
-                                                                    '<pre style="background-color:#f8f9fa; padding:10px; border-radius:5px;">' + 
-                                                                    diagramCode + '</pre>' +
-                                                                    '<p class="text-danger">Diagram could not be rendered. See code above.</p>';
-                                                            }
-                                                        }, 500); // Small delay to ensure the DOM is updated
+                                                            renderMermaidDiagram(diagramId, diagramCode);
+                                                        }, 100);
                                                     }
                                                 }
                                                 
