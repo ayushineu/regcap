@@ -1468,6 +1468,11 @@ def process_question(question, question_id):
                     # First try to fix with our utility function
                     diagram_code = fix_mermaid_syntax(original_diagram_code, diagram_type)
                     
+                    # Ensure diagram starts with correct syntax
+                    if not diagram_code.strip().startswith("graph "):
+                        print("Adding graph TD prefix to diagram code")
+                        diagram_code = "graph TD\n" + diagram_code.strip()
+                    
                     # Some basic sanity checks on the diagram code
                     if not diagram_code or len(diagram_code.strip()) < 20:
                         print("Diagram code is too short or empty, creating fallback")
