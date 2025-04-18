@@ -509,6 +509,10 @@ def index():
             justify-content: space-between;
         }
         
+        .features-item i:first-child {
+            margin-right: 0.75rem;
+        }
+        
         .feature-list {
             background-color: var(--tertiary-bg);
             margin: 0 0.75rem;
@@ -792,16 +796,21 @@ def index():
             // Initialize feature list toggle
             var featureToggle = document.getElementById('featureToggle');
             var featureList = document.getElementById('featureList');
-            var toggleIcon = featureToggle.querySelector('.toggle-icon');
             
-            if (featureToggle) {
+            if (featureToggle && featureList) {
                 featureToggle.addEventListener('click', function() {
+                    var toggleIcon = this.querySelector('.toggle-icon');
+                    
                     if (featureList.style.display === 'none') {
                         featureList.style.display = 'block';
-                        toggleIcon.className = 'fa fa-angle-up toggle-icon';
+                        if (toggleIcon) {
+                            toggleIcon.className = 'fa fa-angle-up toggle-icon';
+                        }
                     } else {
                         featureList.style.display = 'none';
-                        toggleIcon.className = 'fa fa-angle-down toggle-icon';
+                        if (toggleIcon) {
+                            toggleIcon.className = 'fa fa-angle-down toggle-icon';
+                        }
                     }
                 });
             }
@@ -818,8 +827,14 @@ def index():
             // Add click event to each navigation item
             for (var i = 0; i < navItems.length; i++) {
                 navItems[i].addEventListener('click', function() {
+                    // If this is the features toggle, don't navigate
+                    if (this.id === 'featureToggle') {
+                        return;
+                    }
+                    
                     // Get the panel id from data-panel attribute
                     var panelId = this.getAttribute('data-panel');
+                    if (!panelId) return;
                     
                     // Hide all content panels
                     var contentPanels = document.querySelectorAll('.content-panel');
@@ -833,10 +848,15 @@ def index():
                     }
                     
                     // Show the selected content panel
-                    document.getElementById(panelId).classList.add('active');
+                    var panelElement = document.getElementById(panelId);
+                    if (panelElement) {
+                        panelElement.classList.add('active');
+                    }
                     
                     // Update panel title
-                    document.getElementById('currentPanelTitle').innerHTML = panelTitles[panelId];
+                    if (panelTitles[panelId]) {
+                        document.getElementById('currentPanelTitle').innerHTML = panelTitles[panelId];
+                    }
                     
                     // Add active class to clicked navigation item
                     this.classList.add('active');
