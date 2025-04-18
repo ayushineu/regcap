@@ -48,6 +48,18 @@ st.markdown("""
         color: #0088cc !important;
     }
     
+    /* Top Banner */
+    .top-banner {
+        background-color: #0088cc;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
     /* Chat container */
     .chat-container {
         background-color: var(--secondary-bg);
@@ -96,58 +108,91 @@ st.markdown("""
         border: 1px solid var(--border-color);
     }
     
-    /* Feature button styles */
-    .feature-button {
+    /* Nav button styles */
+    .nav-buttons {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 20px;
+    }
+    
+    .nav-button {
         background-color: transparent;
-        border: 1px solid #0088cc;
         color: #0088cc;
-        border-radius: 20px;
-        padding: 5px 15px;
-        text-align: center;
-        margin-right: 10px;
+        border: 1px solid #0088cc;
+        padding: 10px 20px;
+        border-radius: 5px;
         cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s;
     }
     
-    .feature-button:hover {
+    .nav-button:hover {
         background-color: #0088cc;
         color: white;
     }
     
-    .active-feature {
+    .nav-button.active {
         background-color: #0088cc;
         color: white;
+    }
+    
+    /* Hide default radio button */
+    div.st-cc {
+        display: none;
+    }
+    
+    /* Remove Streamlit branding */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    
+    /* Dark mode toggle button */
+    .dark-mode-toggle {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 1000;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Sidebar with navigation and settings
-with st.sidebar:
-    # App title and info
-    st.title("RegCap GPT")
-    st.caption("Regulatory Intelligence")
-    
-    # Beta notice
-    st.warning("🚧 Beta: Features may be limited or evolving.")
-    
-    # Dark mode toggle
-    dark_mode = st.checkbox("Dark Mode", False)
+# Add a dark mode toggle button in top-left corner
+col1, col2, col3 = st.columns([1, 10, 1])
+with col1:
+    dark_mode = st.checkbox("🌓", value=False, key="dark_mode")
     if dark_mode:
         st.markdown("""
         <script>
             document.body.classList.add('dark-mode');
         </script>
         """, unsafe_allow_html=True)
-    
-    # Navigation
-    st.header("Navigation")
-    option = st.radio(
-        "Select a feature:",
-        ["💬 Chat", "📄 Documents", "📊 Diagrams", "⚙️ Sessions"]
-    )
-    
+
+# Top banner across the full screen
+st.markdown("""
+<div class="top-banner">
+    <div>
+        <h1 style="margin:0; color: white !important; font-size: 28px;">RegCap GPT</h1>
+        <p style="margin:0;">Regulatory Intelligence</p>
+    </div>
+    <div>
+        <p>🚧 Beta: Features may be limited or evolving.</p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# Create custom navigation buttons
+st.markdown('<div class="nav-buttons">', unsafe_allow_html=True)
+option = st.radio(
+    "Navigation",
+    ["💬 Chat", "📄 Documents", "📊 Diagrams", "⚙️ Sessions"],
+    label_visibility="collapsed",
+    horizontal=True
+)
+st.markdown('</div>', unsafe_allow_html=True)
+
+# Sidebar with additional information
+with st.sidebar:
     # About section
-    st.markdown("---")
-    st.subheader("About")
+    st.subheader("About RegCap GPT")
     st.write("""
     RegCap GPT helps you understand complex regulatory documents through AI-powered analysis, question answering, and visualization.
     """)
