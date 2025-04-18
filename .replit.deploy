@@ -1,1 +1,1 @@
-run = ["python", "flask_deploy.py"]
+run = ["python", "wsgi.py"]

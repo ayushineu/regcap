@@ -11,32 +11,16 @@ run = ["streamlit", "run", "app.py", "--server.port", "5000"]
 runButton = "Project"
 
 [[workflows.workflow]]
-name = "RegCap"
-mode = "parallel"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python app.py --port 5000"
-waitForPort = 5000
-
-[[workflows.workflow]]
 name = "Project"
 mode = "parallel"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "RegCapDeploy"
+args = "RegCapWSGI"
 
 [[workflows.workflow]]
-name = "RegCapDeploy"
+name = "RegCapWSGI"
 author = "agent"
 
 [workflows.workflow.metadata]
@@ -47,7 +31,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python flask_deploy.py"
+args = "python wsgi.py"
 waitForPort = 5000
 
 [[ports]]
