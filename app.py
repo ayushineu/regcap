@@ -541,7 +541,8 @@ def index():
         @media (max-width: 768px) {
             .app-container {
                 flex-direction: column;
-                height: auto;
+                height: 100vh; /* Full viewport height */
+                overflow: hidden; /* Prevent scrolling of the container */
             }
             
             .sidebar {
@@ -549,19 +550,31 @@ def index():
                 height: auto;
                 border-right: none;
                 border-bottom: 1px solid var(--border-color);
+                overflow-x: auto; /* Allow horizontal scrolling for tabs */
             }
             
             .sidebar-nav {
                 display: flex;
-                flex-wrap: wrap;
+                flex-wrap: nowrap; /* Keep items in a single row */
                 padding: 0.5rem;
+                overflow-x: auto; /* Allow horizontal scrolling */
+                -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+                scrollbar-width: none; /* Hide scrollbar on Firefox */
+                -ms-overflow-style: none; /* Hide scrollbar on IE/Edge */
+            }
+            
+            /* Hide scrollbar on Chrome/Safari */
+            .sidebar-nav::-webkit-scrollbar {
+                display: none;
             }
             
             .nav-item {
                 margin: 0.25rem;
                 padding: 0.5rem 1rem;
-                flex-grow: 1;
+                flex: 0 0 auto; /* Don't grow or shrink */
                 text-align: center;
+                white-space: nowrap; /* Prevent text wrapping */
+                min-width: 100px; /* Minimum width for tabs */
             }
             
             .sidebar-footer {
@@ -582,16 +595,53 @@ def index():
             
             .content-area {
                 padding: 1rem;
+                display: flex;
+                flex-direction: column;
+                flex: 1;
+                overflow: hidden; /* Prevent additional scrolling */
+            }
+            
+            .content-panel {
+                display: flex;
+                flex-direction: column;
+                flex: 1;
             }
             
             .chat-container {
-                height: 400px; /* Fixed height on mobile */
+                flex: 1; /* Let it take available space */
+                overflow-y: auto; /* Allow vertical scrolling */
+                margin-bottom: 1rem; /* Space before form */
+                -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+                height: calc(70vh - 200px); /* Calculated height to ensure form is visible */
+                min-height: 200px; /* Minimum height */
+            }
+            
+            /* Fix form to the bottom */
+            #questionForm {
+                position: sticky;
+                bottom: 0;
+                background: var(--primary-bg);
+                padding: 0.5rem 0;
+                margin-bottom: 0;
+                z-index: 10; /* Ensure it's above other content */
+                border-top: 1px solid var(--border-color);
+            }
+            
+            /* Ensure send button is always visible */
+            .input-group {
+                flex-wrap: nowrap;
             }
             
             /* Add theme toggle to header for mobile */
             .header .theme-toggle-mobile {
                 display: block;
                 margin-top: 0.5rem;
+            }
+            
+            /* Adjust alert size */
+            .alert {
+                padding: 0.5rem;
+                font-size: 0.9rem;
             }
         }
         
@@ -1023,11 +1073,27 @@ def index():
                         userDiv.innerHTML = '<strong>You:</strong> ' + question;
                         chatMessages.appendChild(userDiv);
                         
-                        // Clear input
+                        // Clear input and focus for next question
                         questionInput.value = '';
+                        setTimeout(function() {
+                            questionInput.focus();
+                        }, 100);
                         
                         // Scroll to bottom
                         chatMessages.scrollTop = chatMessages.scrollHeight;
+                        
+                        // On mobile, ensure the form remains visible
+                        if (window.innerWidth <= 768) {
+                            // Get the form's position
+                            var formRect = questionForm.getBoundingClientRect();
+                            // If the form is not fully visible, scroll the page to show it
+                            if (formRect.bottom > window.innerHeight) {
+                                window.scrollTo({
+                                    top: window.scrollY + (formRect.bottom - window.innerHeight) + 20,
+                                    behavior: 'smooth'
+                                });
+                            }
+                        }
                         
                         // Add temporary processing message
                         var processingDiv = document.createElement('div');
@@ -1129,7 +1195,25 @@ def index():
                                                     }
                                                 }
                                                 
+                                                // Scroll to the bottom of the chat container
                                                 chatMessages.scrollTop = chatMessages.scrollHeight;
+                                                
+                                                // On mobile, ensure the question form is visible after answer
+                                                if (window.innerWidth <= 768) {
+                                                    // Make sure the form is visible
+                                                    var questionForm = document.getElementById('questionForm');
+                                                    if (questionForm) {
+                                                        // Scroll the form into view with some padding
+                                                        setTimeout(function() {
+                                                            questionForm.scrollIntoView({behavior: 'smooth', block: 'end'});
+                                                            // Focus on the input to prepare for next question
+                                                            var questionInput = document.getElementById('questionInput');
+                                                            if (questionInput) {
+                                                                questionInput.focus();
+                                                            }
+                                                        }, 300);
+                                                    }
+                                                }
                                             } else if (status.stage && status.progress) {
                                                 // Update the processing message with the current status
                                                 processingDiv.innerHTML = '<strong>RegCap GPT:</strong> <i class="fa fa-spinner fa-spin"></i> ' + 
