@@ -658,11 +658,12 @@ def index():
                 overflow-y: auto; /* Allow vertical scrolling */
                 margin-bottom: 1rem; /* Space before form */
                 -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-                height: calc(70vh - 200px); /* Calculated height to ensure form is visible */
+                height: calc(100vh - 350px); /* Adjusted height to ensure more space for the form */
                 min-height: 200px; /* Minimum height */
+                max-height: 60vh; /* Limit maximum height on mobile */
             }
             
-            /* Fix form to the bottom */
+            /* Ensure the form is always visible */
             #questionForm {
                 position: sticky;
                 bottom: 0;
@@ -671,6 +672,13 @@ def index():
                 margin-bottom: 0;
                 z-index: 10; /* Ensure it's above other content */
                 border-top: 1px solid var(--border-color);
+                max-height: 100px; /* Prevent the form from taking too much space */
+                overflow: visible; /* Allow elements to be visible outside the form container */
+            }
+            
+            /* Fix for mobile to ensure the form is always in view */
+            .content-area {
+                padding-bottom: 110px !important; /* Extra space at bottom to ensure form visibility */
             }
             
             /* Ensure send button is always visible */
@@ -988,6 +996,41 @@ def index():
     <script>
         // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize hamburger menu for mobile
+            var menuToggle = document.getElementById('menuToggle');
+            var menuOverlay = document.getElementById('menuOverlay');
+            var sidebar = document.getElementById('sidebar');
+            
+            // Toggle menu on hamburger button click
+            if (menuToggle) {
+                menuToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('mobile-active');
+                    menuOverlay.classList.toggle('active');
+                    document.body.style.overflow = sidebar.classList.contains('mobile-active') ? 'hidden' : '';
+                });
+            }
+            
+            // Close menu when clicking the overlay
+            if (menuOverlay) {
+                menuOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('mobile-active');
+                    menuOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            }
+            
+            // Close menu when a navigation item is clicked on mobile
+            var navItemsForMenu = document.querySelectorAll('.nav-item');
+            navItemsForMenu.forEach(function(item) {
+                item.addEventListener('click', function() {
+                    if (window.innerWidth <= 768 && item.id !== 'featureToggle') {
+                        sidebar.classList.remove('mobile-active');
+                        menuOverlay.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                });
+            });
+            
             // Initialize feature list toggle
             var featureToggle = document.getElementById('featureToggle');
             var featureList = document.getElementById('featureList');
