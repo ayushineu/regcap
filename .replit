@@ -35,6 +35,10 @@ args = "Simplified JS Fix"
 task = "workflow.run"
 args = "RegCap Minimal"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Simple JS Fix"
+
 [[workflows.workflow]]
 name = "New App"
 author = "agent"
@@ -110,6 +114,21 @@ task = "shell.exec"
 args = "python regcap_minimal.py"
 waitForPort = 5004
 
+[[workflows.workflow]]
+name = "Simple JS Fix"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python simple_js_fix.py --port 5005"
+waitForPort = 5005
+
 [[ports]]
 localPort = 5000
 externalPort = 80
@@ -129,3 +148,7 @@ externalPort = 3002
 [[ports]]
 localPort = 5004
 externalPort = 3003
+
+[[ports]]
+localPort = 5005
+externalPort = 4200
