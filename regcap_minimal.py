@@ -291,9 +291,9 @@ def index():
         .beta-banner {
             background-color: #fff3cd;
             color: #856404;
-            padding: 0.75rem 1.25rem;
+            padding: 0.4rem 1rem;
             text-align: center;
-            font-size: 0.875rem;
+            font-size: 0.8rem;
             position: relative;
             z-index: 1000;
         }
