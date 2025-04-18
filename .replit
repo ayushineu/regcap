@@ -47,6 +47,10 @@ args = "Deployment"
 task = "workflow.run"
 args = "Deploy"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Deployment App"
+
 [[workflows.workflow]]
 name = "New App"
 author = "agent"
@@ -165,6 +169,21 @@ task = "packager.installForAll"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "python deploy.py"
+waitForPort = 8080
+
+[[workflows.workflow]]
+name = "Deployment App"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python app_deploy.py --port=8080"
 waitForPort = 8080
 
 [[ports]]
