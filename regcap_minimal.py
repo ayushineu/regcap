@@ -306,7 +306,7 @@ def index():
 </head>
 <body>
     <div class="beta-banner">
-        🚧 Beta Notice: RegCap GPT is currently in active development. Some features may be limited or evolving.
+        🚧 Beta Notice: RegCap GPT is currently in active development. Some features may be limited or evolving. Thank you for testing and sharing feedback!
     </div>
     <div class="app-container">
         <!-- Sidebar -->
