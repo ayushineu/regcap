@@ -8,7 +8,7 @@ deploymentTarget = "autoscale"
 run = ["streamlit", "run", "app.py", "--server.port", "5000"]
 
 [workflows]
-runButton = "RegCap Minimal"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Project"
@@ -38,6 +38,14 @@ args = "RegCap Minimal"
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "Simple JS Fix"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Deployment"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Deploy"
 
 [[workflows.workflow]]
 name = "New App"
@@ -129,6 +137,36 @@ task = "shell.exec"
 args = "python simple_js_fix.py --port 5005"
 waitForPort = 5005
 
+[[workflows.workflow]]
+name = "Deployment"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python deployment.py --port=5000"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Deploy"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python deploy.py"
+waitForPort = 8080
+
 [[ports]]
 localPort = 5000
 externalPort = 80
@@ -144,3 +182,7 @@ externalPort = 3001
 [[ports]]
 localPort = 5003
 externalPort = 3002
+
+[[ports]]
+localPort = 8080
+externalPort = 8080
