@@ -1047,16 +1047,20 @@ def index():
                                 question: question
                             })
                         })
-                        .then(response => response.json())
-                        .then(data => {
+                        .then(function(response) {
+                            return response.json();
+                        })
+                        .then(function(data) {
                             if (data.success) {
                                 var questionId = data.question_id;
                                 
                                 // Poll for status updates
                                 var pollInterval = setInterval(function() {
                                     fetch('/question-status/' + questionId)
-                                        .then(response => response.json())
-                                        .then(status => {
+                                        .then(function(response) {
+                                            return response.json();
+                                        })
+                                        .then(function(status) {
                                             if (status.done) {
                                                 clearInterval(pollInterval);
                                                 
@@ -1131,7 +1135,7 @@ def index():
                                                                          status.stage + ' (' + status.progress + '%)';
                                             }
                                         })
-                                        .catch(error => {
+                                        .catch(function(error) {
                                             console.error('Error polling question status:', error);
                                             processingDiv.innerHTML = '<strong>RegCap GPT:</strong> <span class="text-danger">Error checking question status. Please try again.</span>';
                                             clearInterval(pollInterval);
@@ -1174,20 +1178,10 @@ def index():
                             method: 'POST',
                             body: formData
                         })
-                        .then(response => {
-                            // Check if the response is OK
-                            if (!response.ok) {
-                                console.error('Response status:', response.status);
-                                console.error('Response type:', response.type);
-                                // Try to get content even if it's not JSON
-                                return response.text().then(text => {
-                                    console.error('Response text:', text);
-                                    throw new Error('Server error: ' + response.status);
-                                });
-                            }
+                        .then(function(response) {
                             return response.json();
                         })
-                        .then(data => {
+                        .then(function(data) {
                             if (data.success) {
                                 // Show success message in UI instead of alert
                                 var successMsg = document.createElement('div');
@@ -1200,16 +1194,15 @@ def index():
                                     window.location.reload();
                                 }, 1500);
                             } else {
-                                console.error('Error from server:', data.error);
                                 alert('Error: ' + data.error);
                                 // Reset button
                                 uploadBtn.innerHTML = originalBtnText;
                                 uploadBtn.disabled = false;
                             }
                         })
-                        .catch(error => {
+                        .catch(function(error) {
                             console.error('Error uploading files:', error);
-                            alert('Error uploading files: ' + error.message);
+                            alert('Error uploading files');
                             // Reset button
                             uploadBtn.innerHTML = originalBtnText;
                             uploadBtn.disabled = false;
@@ -1232,8 +1225,10 @@ def index():
                                 'Content-Type': 'application/json'
                             }
                         })
-                        .then(response => response.json())
-                        .then(data => {
+                        .then(function(response) {
+                            return response.json();
+                        })
+                        .then(function(data) {
                             if (data.success) {
                                 alert('New session created successfully!');
                                 window.location.reload();
@@ -1241,7 +1236,7 @@ def index():
                                 alert('Error: ' + data.error);
                             }
                         })
-                        .catch(error => {
+                        .catch(function(error) {
                             console.error('Error:', error);
                             alert('An error occurred while creating a new session.');
                         });
@@ -1265,8 +1260,10 @@ def index():
                                 session_id: sessionId
                             })
                         })
-                        .then(response => response.json())
-                        .then(data => {
+                        .then(function(response) {
+                            return response.json();
+                        })
+                        .then(function(data) {
                             if (data.success) {
                                 alert('Switched to session ' + sessionId);
                                 window.location.reload();
@@ -1274,7 +1271,7 @@ def index():
                                 alert('Error: ' + data.error);
                             }
                         })
-                        .catch(error => {
+                        .catch(function(error) {
                             console.error('Error:', error);
                             alert('An error occurred while switching sessions.');
                         });
