@@ -11,46 +11,8 @@ run = ["streamlit", "run", "app.py", "--server.port", "5000"]
 runButton = "Project"
 
 [[workflows.workflow]]
-name = "Project"
+name = "RegCap"
 mode = "parallel"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "RegCap"
-
-[[workflows.workflow]]
-name = "RegCap"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python app.py --port 5000"
-waitForPort = 5000
-
-[[workflows.workflow]]
-name = "Simplified App"
-author = "agent"
-
-[workflows.workflow.metadata]
-agentRequireRestartOnSave = false
-
-[[workflows.workflow.tasks]]
-task = "packager.installForAll"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "python simplified_app.py --port 5002"
-waitForPort = 5002
-
-[[workflows.workflow]]
-name = "RegCap"
 author = "agent"
 
 [workflows.workflow.metadata]
