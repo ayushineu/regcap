@@ -987,17 +987,26 @@ def index():
             setupThemeToggle();
             
             // Initialize Mermaid diagrams
-            if (typeof mermaid !== 'undefined') {
-                mermaid.initialize({
-                    startOnLoad: true,
-                    securityLevel: 'loose',
-                    theme: 'default',
-                    flowchart: {
-                        htmlLabels: true,
-                        useMaxWidth: true,
-                        curve: 'linear'
-                    }
-                });
+            try {
+                if (typeof mermaid !== 'undefined') {
+                    console.log("Initializing mermaid.js...");
+                    mermaid.initialize({
+                        startOnLoad: true,
+                        securityLevel: 'loose',
+                        theme: 'default',
+                        flowchart: {
+                            htmlLabels: true,
+                            useMaxWidth: true,
+                            curve: 'linear'
+                        }
+                    });
+                    console.log("Mermaid initialization complete");
+                } else {
+                    console.warn("Mermaid library not loaded");
+                }
+            } catch(e) {
+                console.error("Error initializing mermaid:", e);
+            }
             }
             
             // Form handling for question submission
