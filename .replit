@@ -26,6 +26,22 @@ task = "shell.exec"
 args = "python app.py --port 5000"
 waitForPort = 5000
 
+[[workflows.workflow]]
+name = "RegCap"
+mode = "parallel"
+author = "agent"
+
+[workflows.workflow.metadata]
+agentRequireRestartOnSave = false
+
+[[workflows.workflow.tasks]]
+task = "packager.installForAll"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python app.py --port 5000"
+waitForPort = 5000
+
 [[ports]]
 localPort = 5000
 externalPort = 80

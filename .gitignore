@@ -3,41 +3,42 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# C extensions
-*.so
+# Local development settings
+.env
+.venv
+env/
+venv/
+ENV/
 
 # Distribution / packaging
 dist/
 build/
 *.egg-info/
 
-# Virtual environment
-venv/
-env/
-ENV/
+# Unit test and coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+*.cover
 
-# IDE specific files
+# Logs and databases
+*.log
+*.sqlite3
+*.db
+
+# Application specific
+data_storage/sessions/
+data_storage/temp/
+
+# Editor directories and files
 .idea/
 .vscode/
 *.swp
 *.swo
 
-# Environment variables
-.env
-
-# Data files
-*.pkl
-data_storage/
-
-# Logs
-*.log
-logs/
-
-# Temporary files
-tmp/
-temp/
-.DS_Store
-
-# System specific files
+# OS specific files
 .DS_Store
 Thumbs.db
