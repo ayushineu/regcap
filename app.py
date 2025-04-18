@@ -312,7 +312,7 @@ def index():
         .beta-banner {
             background-color: #d9ecf7;
             border-bottom: 1px solid #a6d5ea;
-            padding: 0.5rem 1.5rem;
+            padding: 0.75rem 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -325,7 +325,8 @@ def index():
         
         .beta-banner-content {
             color: #00689b;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
+            line-height: 1.3;
         }
         
         [data-theme="dark"] .beta-banner-content {
@@ -605,7 +606,7 @@ def index():
             <!-- Beta Banner -->
             <div id="betaBanner" class="beta-banner">
                 <div class="beta-banner-content">
-                    <i class="fa fa-wrench"></i> This application is in beta. Your feedback will help us improve.
+                    <i class="fa fa-wrench"></i> 🚧 Beta Notice: RegCap GPT is currently in active development. Some features may be limited or evolving. Thank you for testing and sharing feedback!
                 </div>
                 <button class="beta-close-btn" onclick="document.getElementById('betaBanner').style.display='none';">&times;</button>
             </div>
