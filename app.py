@@ -1442,40 +1442,74 @@ def process_question(question, question_id):
                     diagram_code = fix_mermaid_syntax(original_diagram_code, diagram_type)
                     
                     # Add additional aggressive fixing for troublesome diagrams
-                    if diagram_type == "flowchart":
-                        # Handle special characters and problematic syntax with a detailed diagram
-                        if "syntax error" in explanation.lower() or diagram_code.strip() == "" or "ISO 20022" in question or "ISO20022" in question:
-                            # Use a simplified Mermaid diagram with proper formatting
-                            diagram_code = """graph TD
-    A[ISO 20022] --> B[Value Proposition]
-    A --> C[Standardization Approach]
-    A --> D[ISO 20022 Recipe]
-    A --> E[Actors]
-    A --> F[Financial Repository]
+                    # Only use the ISO 20022 template if specifically requested
+                    if diagram_type == "flowchart" and ("ISO 20022" in question or "ISO20022" in question):
+                        # Use a simplified Mermaid diagram with proper formatting for ISO 20022
+                        diagram_code = """graph TD
+    A(ISO 20022) --> B(Value Proposition)
+    A --> C(Standardization Approach)
+    A --> D(ISO 20022 Recipe)
+    A --> E(Actors)
+    A --> F(Financial Repository)
     
-    B --> B1[Communication Interoperability]
-    B --> B2[Address Overlapping Standards]
+    B --> B1(Communication Interoperability)
+    B --> B2(Address Overlapping Standards)
     
-    C --> C1[Single Standard Long-term]
-    C --> C2[Coexistence Short-term]
+    C --> C1(Single Standard Long-term)
+    C --> C2(Coexistence Short-term)
     
-    D --> D1[Modeling-based Standards]
-    D --> D2[Development Process]
-    D --> D3[Registration]
+    D --> D1(Modeling-based Standards)
+    D --> D2(Development Process)
+    D --> D3(Registration)
     
-    E --> E1[Registration Management Group]
-    E --> E2[Standards Evaluation Groups]
-    E --> E3[Registration Authority]
+    E --> E1(Registration Management Group)
+    E --> E2(Standards Evaluation Groups)
+    E --> E3(Registration Authority)
     
-    F --> F1[Data Dictionary]
-    F --> F2[Business Process Catalogue]"""
+    F --> F1(Data Dictionary)
+    F --> F2(Business Process Catalogue)"""
+                    # For general error handling without using hardcoded templates
+                    elif "syntax error" in explanation.lower() or diagram_code.strip() == "":
+                        # Create a simplified fallback diagram based on the question
+                        # Extract key terms from the question for a generic diagram
+                        terms = [word for word in question.split() if len(word) > 3 and word.lower() not in ["show", "create", "diagram", "visualization", "flowchart", "about", "explain"]]
+                        
+                        # Use the top 3-5 unique terms for a simple diagram
+                        unique_terms = list(set(terms))[:5] 
+                        
+                        # Start with a basic diagram structure
+                        diagram_code = "graph TD\n"
+                        
+                        # Create a root node with the main topic
+                        root_term = "Main_Topic"
+                        if len(unique_terms) > 0:
+                            root_term = unique_terms[0]
+                        
+                        diagram_code += f"    A({root_term})\n"
+                        
+                        # Add branches based on other extracted terms
+                        for i, term in enumerate(unique_terms[1:], 1):
+                            node_id = chr(65 + i)  # B, C, D, etc.
+                            diagram_code += f"    {node_id}({term})\n"
+                            diagram_code += f"    A --> {node_id}\n"
                             
                     print(f"Original diagram code: {original_diagram_code[:50]}...")
                     print(f"Fixed diagram code: {diagram_code[:50]}...")
                 except Exception as e:
                     print(f"Error fixing diagram: {str(e)}")
-                    # Fallback to simplest possible diagram
-                    diagram_code = "graph TD\nA(ISO 20022) --> B(Financial Messaging Standard)"
+                    # Fallback to simplest possible diagram based on the question
+                    # Extract main topic from question
+                    question_words = question.replace("?", "").replace(".", "").split()
+                    main_topic = "Topic"
+                    
+                    # Get the most significant words from the question (avoiding common words)
+                    significant_words = [word for word in question_words if len(word) > 3 and word.lower() not in ["show", "create", "diagram", "about", "explain", "visualization", "flowchart"]]
+                    
+                    if significant_words:
+                        main_topic = significant_words[0]
+                        
+                    # Create a simple fallback diagram
+                    diagram_code = f"graph TD\nA({main_topic}) --> B(Concept)\nA --> C(Element)\nB --> D(Details)"
                 
                 # Save the diagram
                 # save_diagram(diagram_code, explanation, diagram_type)

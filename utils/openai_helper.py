@@ -171,16 +171,27 @@ Remember to focus ONLY on what is explicitly stated in the documents.
         if "diagram_code" not in result or not result["diagram_code"]:
             return False, "Could not generate a diagram from the document content."
             
-        # Ensure consistent diagram syntax (avoid mixing flowchart TD and graph TD)
+        # Use a more general approach - we need to standardize the output format
+        # but not enforce specific syntax standards which might be version-specific
         diagram_code = result["diagram_code"]
-        if diagram_type == "flowchart":
-            # Clean up common syntax issues that cause rendering problems
-            if "flowchart TD" in diagram_code and "graph TD" in diagram_code:
-                # Remove the duplicate declaration
-                result["diagram_code"] = diagram_code.replace("graph TD", "").replace("graph TD;", "")
-            elif diagram_code.strip().startswith("graph TD") and not "flowchart TD" in diagram_code:
-                # Standardize on flowchart TD syntax
-                result["diagram_code"] = diagram_code.replace("graph TD", "flowchart TD")
+        
+        # Remove markdown code blocks if present
+        if "```" in diagram_code:
+            # Extract the content between markdown code blocks
+            start_idx = diagram_code.find("```")
+            if "```mermaid" in diagram_code:
+                start_idx = diagram_code.find("\n", start_idx) + 1
+            else:
+                start_idx = start_idx + 3
+                if diagram_code[start_idx] == "\n":
+                    start_idx += 1
+            
+            end_idx = diagram_code.rfind("```")
+            if start_idx < end_idx:
+                diagram_code = diagram_code[start_idx:end_idx].strip()
+        
+        # Keep the cleaned diagram code in the result
+        result["diagram_code"] = diagram_code
         
         return True, result
     
