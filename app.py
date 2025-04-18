@@ -1016,12 +1016,48 @@ def switch_session():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+# Define upload folder
+UPLOAD_FOLDER = 'data_storage'
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+
 @app.route('/upload-files', methods=['POST'])
 def upload_files():
     """Handle file uploads."""
     try:
-        # This would be implemented with actual file processing logic
-        return jsonify({'success': True, 'message': 'Files processed successfully!'})
+        files = request.files.getlist('files')
+        if not files or files[0].filename == '':
+            return jsonify({'success': False, 'error': 'No files selected'})
+        
+        session_id = get_current_session()
+        processed_files = []
+        
+        for file in files:
+            if file and file.filename.endswith('.pdf'):
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+                
+                # Extract text from PDF
+                try:
+                    chunks = extract_text_from_pdf(file_path)
+                    
+                    # Store document chunks
+                    save_document_chunks(filename, chunks)
+                    processed_files.append(filename)
+                except Exception as pdf_error:
+                    return jsonify({
+                        'success': False, 
+                        'error': f"Error processing PDF {filename}: {str(pdf_error)}"
+                    })
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Processed {len(processed_files)} files', 
+            'files': processed_files
+        })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
