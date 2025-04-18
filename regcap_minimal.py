@@ -308,6 +308,17 @@ def index():
                 <div class="nav-item" data-panel="sessions-panel">
                     <i class="fa fa-database"></i> Sessions
                 </div>
+                
+                <div class="nav-item" id="featureToggle">
+                    <i class="fa fa-list"></i> Features <i class="fa fa-angle-down toggle-icon"></i>
+                </div>
+                <div id="featureList" style="display: none; padding-left: 2rem;">
+                    <div class="small text-muted py-1"><i class="fa fa-check text-success"></i> PDF Document Analysis</div>
+                    <div class="small text-muted py-1"><i class="fa fa-check text-success"></i> AI-powered Q&A</div>
+                    <div class="small text-muted py-1"><i class="fa fa-check text-success"></i> Diagram Generation</div>
+                    <div class="small text-muted py-1"><i class="fa fa-check text-success"></i> Session Management</div>
+                    <div class="small text-muted py-1"><i class="fa fa-check text-success"></i> Dark/Light Theme</div>
+                </div>
             </div>
         </div>
         
@@ -426,6 +437,28 @@ def index():
     <script>
         // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
+            // Feature toggle functionality
+            var featureToggle = document.getElementById('featureToggle');
+            var featureList = document.getElementById('featureList');
+            
+            if (featureToggle && featureList) {
+                featureToggle.addEventListener('click', function() {
+                    var toggleIcon = this.querySelector('.toggle-icon');
+                    
+                    if (featureList.style.display === 'none') {
+                        featureList.style.display = 'block';
+                        if (toggleIcon) {
+                            toggleIcon.className = 'fa fa-angle-up toggle-icon';
+                        }
+                    } else {
+                        featureList.style.display = 'none';
+                        if (toggleIcon) {
+                            toggleIcon.className = 'fa fa-angle-down toggle-icon';
+                        }
+                    }
+                });
+            }
+            
             // Tab navigation
             const navItems = document.querySelectorAll('.nav-item');
             const contentPanels = document.querySelectorAll('.content-panel');
@@ -439,6 +472,11 @@ def index():
             
             navItems.forEach(item => {
                 item.addEventListener('click', function() {
+                    // Skip if this is the feature toggle
+                    if (this.id === 'featureToggle') {
+                        return;
+                    }
+                    
                     const panelId = this.getAttribute('data-panel');
                     if (!panelId) return;
                     
