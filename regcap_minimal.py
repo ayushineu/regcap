@@ -698,7 +698,8 @@ def index():
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
-                            }
+                            },
+                            body: JSON.stringify({}) // Add an empty body to avoid potential issues
                         })
                         .then(response => response.json())
                         .then(data => {
@@ -706,6 +707,7 @@ def index():
                                 alert('New session created successfully!');
                                 window.location.reload();
                             } else {
+                                console.error('Error details:', data);
                                 alert('Error: ' + (data.error || 'Failed to create new session'));
                             }
                         })
