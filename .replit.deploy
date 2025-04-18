@@ -1,1 +1,1 @@
-run = ["python", "wsgi.py"]
+run = ["python", "simple_deploy.py"]
