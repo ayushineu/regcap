@@ -1,5 +1,5 @@
 import os
-import streamlit as st
+import logging
 from openai import OpenAI
 import json
 
@@ -71,7 +71,7 @@ Based ONLY on the document excerpts above, provide a clear and comprehensive ans
         return response.choices[0].message.content
     
     except Exception as e:
-        st.error(f"Error generating answer: {str(e)}")
+        logging.error(f"Error generating answer: {str(e)}")
         return "I'm sorry, but I encountered an error when trying to generate an answer. Please try again."
 
 def generate_diagram(question, context_chunks, diagram_type="flowchart"):
@@ -165,7 +165,7 @@ Remember to focus ONLY on what is explicitly stated in the documents.
     
     except Exception as e:
         error_msg = f"Error generating diagram: {str(e)}"
-        st.error(error_msg)
+        logging.error(error_msg)
         return False, error_msg
 
 def detect_diagram_request(question):

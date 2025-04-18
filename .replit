@@ -39,8 +39,8 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python new_flask_app.py"
-waitForPort = 5003
+args = "python new_flask_app.py --port 5001"
+waitForPort = 5001
 
 [[workflows.workflow]]
 name = "Simplified App"
@@ -54,8 +54,8 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python simplified_app.py"
-waitForPort = 5000
+args = "python simplified_app.py --port 5002"
+waitForPort = 5002
 
 [[workflows.workflow]]
 name = "RegCap"
