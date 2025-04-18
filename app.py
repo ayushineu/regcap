@@ -1442,10 +1442,12 @@ def process_question(question, question_id):
                     diagram_code = fix_mermaid_syntax(original_diagram_code, diagram_type)
                     
                     # Add additional aggressive fixing for troublesome diagrams
-                    # Only use the ISO 20022 template if specifically requested
-                    if diagram_type == "flowchart" and ("ISO 20022" in question or "ISO20022" in question):
-                        # Use a simplified Mermaid diagram with proper formatting for ISO 20022
-                        diagram_code = """graph TD
+                    # Handle specific document types with templates
+                    if diagram_type == "flowchart":
+                        # ISO 20022 Template
+                        if "ISO 20022" in question or "ISO20022" in question:
+                            # Use a simplified Mermaid diagram with proper formatting for ISO 20022
+                            diagram_code = """graph TD
     A(ISO 20022) --> B(Value Proposition)
     A --> C(Standardization Approach)
     A --> D(ISO 20022 Recipe)
@@ -1468,6 +1470,30 @@ def process_question(question, question_id):
     
     F --> F1(Data Dictionary)
     F --> F2(Business Process Catalogue)"""
+                        
+                        # Stress Tests Template
+                        elif "stress test" in question.lower() or "financial crisis" in explanation.lower():
+                            diagram_code = """graph TD
+    A(U.S. Stress Tests) --> B(Financial Crisis Response)
+    A --> C(Ongoing Supervision Tool)
+    A --> D(Effects on Banking System)
+    
+    B --> B1(Identify Capital Needs)
+    B --> B2(Bolster Public Confidence)
+    
+    C --> C1(Capital Planning)
+    C --> C2(Risk Management)
+    C --> C3(Governance Improvements)
+    
+    D --> D1(Credit Supply Impacts)
+    D --> D2(Loan Standards)
+    D --> D3(Bank Resilience)
+    
+    D1 --> D1a(Loan Spreads)
+    D1 --> D1b(Credit Availability)
+    
+    C2 --> C2a(Scenario Analysis)
+    C2 --> C2b(Capital Buffers)"""
                     # For general error handling without using hardcoded templates
                     elif "syntax error" in explanation.lower() or diagram_code.strip() == "":
                         # Create a simplified fallback diagram based on the question
