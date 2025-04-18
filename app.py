@@ -961,36 +961,31 @@ def index():
             }
             
             // Theme toggle functionality
-            function setupThemeToggle() {
-                var themeToggle = document.getElementById('mobileThemeToggle');
-                var savedTheme = localStorage.getItem('theme');
-                
-                // Apply saved theme
-                if (savedTheme === 'dark') {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    if (themeToggle) {
-                        themeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
-                    }
-                }
-                
-                // Toggle theme on click
+            var themeToggle = document.getElementById('mobileThemeToggle');
+            var savedTheme = localStorage.getItem('theme');
+            
+            // Apply saved theme
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
                 if (themeToggle) {
-                    themeToggle.addEventListener('click', function() {
-                        if (document.documentElement.getAttribute('data-theme') === 'dark') {
-                            document.documentElement.removeAttribute('data-theme');
-                            localStorage.setItem('theme', 'light');
-                            themeToggle.innerHTML = '<i class="fa fa-moon-o"></i> Dark Mode';
-                        } else {
-                            document.documentElement.setAttribute('data-theme', 'dark');
-                            localStorage.setItem('theme', 'dark');
-                            themeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
-                        }
-                    });
+                    themeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
                 }
             }
             
-            // Initialize theme toggle
-            setupThemeToggle();
+            // Toggle theme on click
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function() {
+                    if (document.documentElement.getAttribute('data-theme') === 'dark') {
+                        document.documentElement.removeAttribute('data-theme');
+                        localStorage.setItem('theme', 'light');
+                        themeToggle.innerHTML = '<i class="fa fa-moon-o"></i> Dark Mode';
+                    } else {
+                        document.documentElement.setAttribute('data-theme', 'dark');
+                        localStorage.setItem('theme', 'dark');
+                        themeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
+                    }
+                });
+            }
             
             // Initialize Mermaid diagrams
             if (typeof mermaid !== 'undefined') {
