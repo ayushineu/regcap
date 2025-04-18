@@ -1174,7 +1174,19 @@ def index():
                             method: 'POST',
                             body: formData
                         })
-                        .then(response => response.json())
+                        .then(response => {
+                            // Check if the response is OK
+                            if (!response.ok) {
+                                console.error('Response status:', response.status);
+                                console.error('Response type:', response.type);
+                                // Try to get content even if it's not JSON
+                                return response.text().then(text => {
+                                    console.error('Response text:', text);
+                                    throw new Error('Server error: ' + response.status);
+                                });
+                            }
+                            return response.json();
+                        })
                         .then(data => {
                             if (data.success) {
                                 // Show success message in UI instead of alert
@@ -1188,6 +1200,7 @@ def index():
                                     window.location.reload();
                                 }, 1500);
                             } else {
+                                console.error('Error from server:', data.error);
                                 alert('Error: ' + data.error);
                                 // Reset button
                                 uploadBtn.innerHTML = originalBtnText;
@@ -1195,8 +1208,8 @@ def index():
                             }
                         })
                         .catch(error => {
-                            console.error('Error:', error);
-                            alert('An error occurred while uploading the files.');
+                            console.error('Error uploading files:', error);
+                            alert('Error uploading files: ' + error.message);
                             // Reset button
                             uploadBtn.innerHTML = originalBtnText;
                             uploadBtn.disabled = false;
