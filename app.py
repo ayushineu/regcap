@@ -1,14 +1,14 @@
 """
 RegCap GPT - Regulatory Intelligence Platform
 
-A Streamlit app for regulatory document analysis using AI.
+A ChatGPT-style interface for regulatory document analysis using AI.
 """
 
 import streamlit as st
 import time
 import os
 
-# Set page configuration
+# Set custom theme and page configuration
 st.set_page_config(
     page_title="RegCap GPT - Regulatory Intelligence",
     page_icon="📊",
@@ -16,104 +16,282 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Main header
-st.title("RegCap GPT - Regulatory Intelligence")
-st.caption("AI-powered regulatory document analysis")
+# Custom CSS for ChatGPT-style UI
+st.markdown("""
+<style>
+    /* Main color scheme */
+    :root {
+        --primary-color: #0088cc;
+        --primary-color-hover: #006699;
+        --background-color: #f8f9fa;
+        --text-color: #212529;
+        --secondary-bg: #ffffff;
+        --border-color: #dee2e6;
+    }
+    
+    /* Dark mode class */
+    .dark-mode {
+        --background-color: #1a1a1a;
+        --text-color: #f8f9fa;
+        --secondary-bg: #2d2d2d;
+        --border-color: #444444;
+    }
+    
+    /* Base styles */
+    .main {
+        background-color: var(--background-color);
+        color: var(--text-color);
+    }
+    
+    /* Header styling */
+    h1, h2, h3 {
+        color: #0088cc !important;
+    }
+    
+    /* Chat container */
+    .chat-container {
+        background-color: var(--secondary-bg);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid var(--border-color);
+    }
+    
+    /* Chat message styles */
+    .user-message {
+        background-color: #e6f3ff;
+        padding: 10px 15px;
+        border-radius: 15px;
+        margin-bottom: 10px;
+        max-width: 80%;
+        margin-left: auto;
+        border: 1px solid #cce5ff;
+    }
+    
+    .assistant-message {
+        background-color: #f1f3f5;
+        padding: 10px 15px;
+        border-radius: 15px;
+        margin-bottom: 10px;
+        max-width: 80%;
+        border: 1px solid #dee2e6;
+    }
+    
+    /* Button styling */
+    .stButton > button {
+        background-color: #0088cc;
+        color: white;
+        border-radius: 5px;
+        border: none;
+        padding: 0.5rem 1rem;
+    }
+    
+    .stButton > button:hover {
+        background-color: #006699;
+    }
+    
+    /* Input field styling */
+    .stTextArea > div > div > textarea {
+        border-radius: 5px;
+        border: 1px solid var(--border-color);
+    }
+    
+    /* Feature button styles */
+    .feature-button {
+        background-color: transparent;
+        border: 1px solid #0088cc;
+        color: #0088cc;
+        border-radius: 20px;
+        padding: 5px 15px;
+        text-align: center;
+        margin-right: 10px;
+        cursor: pointer;
+    }
+    
+    .feature-button:hover {
+        background-color: #0088cc;
+        color: white;
+    }
+    
+    .active-feature {
+        background-color: #0088cc;
+        color: white;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-# Add a beta notice
-st.warning("🚧 Beta Notice: RegCap GPT is currently in active development. Some features may be limited or evolving.")
-
-# Create sidebar
+# Sidebar with navigation and settings
 with st.sidebar:
+    # App title and info
+    st.title("RegCap GPT")
+    st.caption("Regulatory Intelligence")
+    
+    # Beta notice
+    st.warning("🚧 Beta: Features may be limited or evolving.")
+    
+    # Dark mode toggle
+    dark_mode = st.checkbox("Dark Mode", False)
+    if dark_mode:
+        st.markdown("""
+        <script>
+            document.body.classList.add('dark-mode');
+        </script>
+        """, unsafe_allow_html=True)
+    
+    # Navigation
     st.header("Navigation")
-    option = st.selectbox(
-        "Go to:",
-        ["Home", "Chat", "Documents", "Diagrams", "Sessions"]
+    option = st.radio(
+        "Select a feature:",
+        ["💬 Chat", "📄 Documents", "📊 Diagrams", "⚙️ Sessions"]
     )
     
+    # About section
     st.markdown("---")
-    st.subheader("About RegCap GPT")
+    st.subheader("About")
     st.write("""
-    RegCap GPT helps you understand complex regulatory documents through:
-    
-    - Document analysis
-    - Question answering
-    - Diagram generation
-    - Session management
+    RegCap GPT helps you understand complex regulatory documents through AI-powered analysis, question answering, and visualization.
     """)
-
-# Display appropriate content based on selection
-if option == "Home":
-    st.header("Welcome to RegCap GPT")
     
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("Upload Documents")
-        st.file_uploader("Upload regulatory documents (PDF)", type=["pdf"], accept_multiple_files=True)
-        
-    with col2:
-        st.subheader("Ask Questions")
-        question = st.text_area("Ask a question about your documents")
-        if st.button("Submit Question"):
-            st.info("Processing your question...")
-            st.success("This is a placeholder answer. The full application provides real AI-generated answers based on your documents.")
+    # Version info
+    st.caption("Version 1.0.0")
 
-elif option == "Chat":
+# Main content area based on selected option
+if "💬 Chat" in option:
     st.header("Chat with RegCap GPT")
     
-    # Placeholder for chat history
-    st.info("No chat history yet. Upload documents and ask questions to get started.")
+    # Chat container
+    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
     
-    question = st.text_area("Your question:")
-    if st.button("Ask"):
-        st.info("In the deployed version, this would process your question against uploaded documents.")
+    # Example chat messages
+    st.markdown('<div class="user-message">How does the ISO 20022 message standard work?</div>', unsafe_allow_html=True)
+    
+    st.markdown("""<div class="assistant-message">
+    ISO 20022 is a global standard for financial messaging that provides:
+    
+    1. A common language for financial institutions worldwide
+    2. Standardized message formats for payments, securities, trade, and cards
+    3. Rich, structured data with detailed information about transactions
+    4. Support for both traditional and modern payment systems
+    
+    The standard uses XML schema and has a layered structure with business processes, message flows, and detailed message definitions. This enables more efficient processing, better regulatory compliance, and enhanced interoperability across different financial systems.
+    </div>""", unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Question input
+    question = st.text_area("Ask a question about your regulatory documents:", height=100)
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        if st.button("Submit", key="chat_submit"):
+            with st.spinner("Processing your question..."):
+                time.sleep(1)  # Simulate processing
+                st.info("This would call the AI to process your question in the full version.")
 
-elif option == "Documents":
+elif "📄 Documents" in option:
     st.header("Document Management")
     
     # Upload section
     st.subheader("Upload Documents")
-    st.file_uploader("Upload regulatory documents (PDF)", type=["pdf"], accept_multiple_files=True)
+    uploaded_files = st.file_uploader("Upload regulatory documents (PDF)", type=["pdf"], accept_multiple_files=True)
     
-    # List of documents
+    # Sample document list
     st.subheader("Uploaded Documents")
-    st.info("No documents uploaded yet.")
+    if not uploaded_files:
+        st.info("No documents uploaded yet. Upload PDFs to get started.")
+    else:
+        for i, file in enumerate(uploaded_files):
+            st.write(f"{i+1}. {file.name} ({file.size/1000:.1f} KB)")
 
-elif option == "Diagrams":
-    st.header("Generated Diagrams")
+elif "📊 Diagrams" in option:
+    st.header("Regulatory Visualizations")
     
-    st.info("No diagrams generated yet. Ask a question that requires visualization to create diagrams.")
-    
-    st.subheader("Example Diagram")
-    st.code("""
+    # Example diagram
+    st.subheader("ISO 20022 Implementation Process")
+    st.markdown("""
+    ```mermaid
     graph TD
-        A[Start] --> B{Decision}
-        B -->|Yes| C[Action 1]
-        B -->|No| D[Action 2]
-        C --> E[Result 1]
-        D --> F[Result 2]
-    """, language="mermaid")
+        A[Start Implementation] --> B{Assess Current System}
+        B --> C[Define Requirements]
+        C --> D[Design Message Flows]
+        D --> E[Develop/Test Solutions]
+        E --> F[Validate Against Standard]
+        F --> G{Compliance Check}
+        G -->|Pass| H[Deploy to Production]
+        G -->|Fail| E
+        H --> I[Monitor & Maintain]
+        
+        style A fill:#0088cc,color:white
+        style H fill:#0088cc,color:white
+    ```
+    """)
+    
+    # Explanation
+    st.markdown("""
+    <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 5px solid #0088cc;">
+    <h4 style="color: #0088cc; margin-top: 0;">Diagram Explanation</h4>
+    <p>This flowchart illustrates the implementation process for ISO 20022 in a financial institution. It begins with an assessment of current systems, followed by requirement definition, message flow design, development and testing, validation against the standard, and finally deployment after passing compliance checks.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Generate new diagram section
+    st.subheader("Generate New Diagram")
+    diagram_query = st.text_area("Describe what visualization you need:", 
+                               placeholder="e.g., Show me the flow of a cross-border payment using ISO 20022")
+    diagram_type = st.selectbox("Diagram Type", ["Flowchart", "Sequence Diagram", "Class Diagram", "Entity Relationship"])
+    
+    if st.button("Generate Diagram", key="generate_diagram"):
+        with st.spinner("Creating your diagram..."):
+            time.sleep(1)  # Simulate processing
+            st.info("In the full version, this would generate a custom diagram based on your requirements.")
 
-elif option == "Sessions":
+elif "⚙️ Sessions" in option:
     st.header("Session Management")
     
+    # Current session info
+    current_session = f"session_{int(time.time())}"
+    st.subheader("Current Session")
+    st.markdown(f"""
+    <div style="background-color: #e6f3ff; padding: 15px; border-radius: 5px; border: 1px solid #cce5ff;">
+    <h4 style="margin-top: 0; color: #0088cc;">Active Session: {current_session}</h4>
+    <p>Started: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())}</p>
+    <p>Documents: 2 uploaded</p>
+    <p>Conversations: 5 questions</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Session controls
     col1, col2 = st.columns(2)
-    
     with col1:
-        st.subheader("Current Session")
-        st.write(f"Active Session: session_{int(time.time())}")
         if st.button("Create New Session"):
-            st.success("New session created!")
-    
+            st.success(f"New session created: session_{int(time.time())+100}")
     with col2:
-        st.subheader("Available Sessions")
-        st.write("Select a session to switch to:")
-        sessions = {f"session_{int(time.time())}": "Current", f"session_{int(time.time())-86400}": "Apr 17, 2025"}
-        for session, date in sessions.items():
-            if st.button(f"{session} ({date})", key=session):
+        if st.button("Export Session Data"):
+            st.info("In the full version, this would export all session data as a ZIP file.")
+    
+    # Available sessions
+    st.subheader("Available Sessions")
+    sessions = {
+        f"session_{int(time.time())}": "Current (Apr 18, 2025)",
+        f"session_{int(time.time())-86400}": "Apr 17, 2025",
+        f"session_{int(time.time())-172800}": "Apr 16, 2025"
+    }
+    
+    for session, date in sessions.items():
+        col1, col2, col3 = st.columns([3, 1, 1])
+        with col1:
+            st.write(f"**{session}** ({date})")
+        with col2:
+            if st.button("Load", key=f"load_{session}"):
                 st.success(f"Switched to session {session}")
+        with col3:
+            if st.button("Delete", key=f"delete_{session}"):
+                st.error(f"Session {session} deleted")
 
 # Footer
 st.markdown("---")
-st.caption("RegCap GPT © 2025 | Made with Streamlit")
+st.markdown("""
+<div style="display: flex; justify-content: space-between; align-items: center;">
+    <span>RegCap GPT © 2025</span>
+    <span>Powered by Regulatory Intelligence</span>
+</div>
+""", unsafe_allow_html=True)
