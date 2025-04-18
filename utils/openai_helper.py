@@ -23,10 +23,21 @@ def generate_answer(question, context_chunks):
         contexts = []
         sources = set()
         
-        for chunk in context_chunks:
-            contexts.append(chunk["content"])
-            source = f"{chunk['metadata']['source']}, page {chunk['metadata']['page']}"
-            sources.add(source)
+        # Check if chunks already have metadata or if they're plain strings
+        if context_chunks and isinstance(context_chunks[0], dict) and "content" in context_chunks[0]:
+            # Chunks with metadata
+            for chunk in context_chunks:
+                contexts.append(chunk["content"])
+                source = f"{chunk['metadata']['source']}, page {chunk['metadata']['page']}"
+                sources.add(source)
+        else:
+            # Plain text chunks (for backward compatibility)
+            for i, chunk in enumerate(context_chunks):
+                if isinstance(chunk, dict):
+                    contexts.append(str(chunk))
+                else:
+                    contexts.append(chunk)
+                sources.add(f"Document chunk {i+1}")
         
         # Join the context texts
         context_text = "\n\n".join(contexts)
@@ -90,8 +101,18 @@ def generate_diagram(question, context_chunks, diagram_type="flowchart"):
         # Extract text from chunks
         contexts = []
         
-        for chunk in context_chunks:
-            contexts.append(chunk["content"])
+        # Check if chunks already have metadata or if they're plain strings
+        if context_chunks and isinstance(context_chunks[0], dict) and "content" in context_chunks[0]:
+            # Chunks with metadata
+            for chunk in context_chunks:
+                contexts.append(chunk["content"])
+        else:
+            # Plain text chunks (for backward compatibility)
+            for chunk in context_chunks:
+                if isinstance(chunk, dict):
+                    contexts.append(str(chunk))
+                else:
+                    contexts.append(chunk)
         
         # Join the context texts
         context_text = "\n\n".join(contexts)
