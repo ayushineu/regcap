@@ -586,13 +586,10 @@ def index():
             </div>
             
             <div class="sidebar-footer">
-                <div class="text-center mb-2" style="font-size: 0.85rem;">
+                <div class="text-center" style="font-size: 0.85rem;">
                     <i class="fa fa-info-circle"></i> 
                     Session: <strong>{{ session_id }}</strong>
                 </div>
-                <button id="themeToggle" class="theme-toggle">
-                    <i class="fa fa-moon-o"></i> Dark Mode
-                </button>
             </div>
         </div>
         
@@ -861,35 +858,31 @@ def index():
             
             // Theme toggle functionality
             function setupThemeToggle() {
-                var themeToggles = document.querySelectorAll('#themeToggle, #mobileThemeToggle');
+                var themeToggle = document.getElementById('mobileThemeToggle');
                 var savedTheme = localStorage.getItem('theme');
                 
                 // Apply saved theme
                 if (savedTheme === 'dark') {
                     document.documentElement.setAttribute('data-theme', 'dark');
-                    themeToggles.forEach(function(toggle) {
-                        toggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
-                    });
+                    if (themeToggle) {
+                        themeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
+                    }
                 }
                 
-                // Toggle theme on click for all theme toggles
-                themeToggles.forEach(function(toggle) {
-                    toggle.addEventListener('click', function() {
+                // Toggle theme on click
+                if (themeToggle) {
+                    themeToggle.addEventListener('click', function() {
                         if (document.documentElement.getAttribute('data-theme') === 'dark') {
                             document.documentElement.removeAttribute('data-theme');
                             localStorage.setItem('theme', 'light');
-                            themeToggles.forEach(function(t) {
-                                t.innerHTML = '<i class="fa fa-moon-o"></i> Dark Mode';
-                            });
+                            themeToggle.innerHTML = '<i class="fa fa-moon-o"></i> Dark Mode';
                         } else {
                             document.documentElement.setAttribute('data-theme', 'dark');
                             localStorage.setItem('theme', 'dark');
-                            themeToggles.forEach(function(t) {
-                                t.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
-                            });
+                            themeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
                         }
                     });
-                });
+                }
             }
             
             // Initialize theme toggle
