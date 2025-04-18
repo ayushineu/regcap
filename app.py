@@ -956,8 +956,43 @@ def index():
                     
                     var fileInput = document.getElementById('documentUpload');
                     if (fileInput.files.length > 0) {
-                        alert('File upload simulation: In the real application, this would process your documents.');
-                        fileInput.value = '';
+                        // Show loading message
+                        var uploadBtn = this.querySelector('button[type="submit"]');
+                        var originalBtnText = uploadBtn.innerHTML;
+                        uploadBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Processing...';
+                        uploadBtn.disabled = true;
+                        
+                        // Create FormData and append files
+                        var formData = new FormData();
+                        for (var i = 0; i < fileInput.files.length; i++) {
+                            formData.append('files', fileInput.files[i]);
+                        }
+                        
+                        // Send files to the server
+                        fetch('/upload-files', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('Files successfully processed: ' + data.message);
+                                // Reload page to refresh the documents list
+                                window.location.reload();
+                            } else {
+                                alert('Error: ' + data.error);
+                                // Reset button
+                                uploadBtn.innerHTML = originalBtnText;
+                                uploadBtn.disabled = false;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred while uploading the files.');
+                            // Reset button
+                            uploadBtn.innerHTML = originalBtnText;
+                            uploadBtn.disabled = false;
+                        });
                     } else {
                         alert('Please select at least one file to upload.');
                     }
@@ -969,7 +1004,26 @@ def index():
             if (newSessionBtn) {
                 newSessionBtn.addEventListener('click', function() {
                     if (confirm('Create a new session? This will start with a clean slate.')) {
-                        alert('New session simulation: In the real application, this would create a new session.');
+                        // Create a new session via API
+                        fetch('/new-session', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('New session created successfully!');
+                                window.location.reload();
+                            } else {
+                                alert('Error: ' + data.error);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred while creating a new session.');
+                        });
                     }
                 });
             }
@@ -980,7 +1034,29 @@ def index():
                 sessionSwitchBtns[s].addEventListener('click', function() {
                     var sessionId = this.getAttribute('data-session-id');
                     if (confirm('Switch to session ' + sessionId + '?')) {
-                        alert('Session switch simulation: In the real application, this would switch to the selected session.');
+                        // Switch to the selected session via API
+                        fetch('/switch-session', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                session_id: sessionId
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('Switched to session ' + sessionId);
+                                window.location.reload();
+                            } else {
+                                alert('Error: ' + data.error);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred while switching sessions.');
+                        });
                     }
                 });
             }
@@ -1011,8 +1087,17 @@ def switch_session():
     try:
         data = request.get_json()
         session_id = data.get('session_id')
-        # This would be implemented with actual session switching logic
-        return jsonify({'success': True})
+        
+        if not session_id:
+            return jsonify({'success': False, 'error': 'No session ID provided'})
+            
+        # Store the session ID in the Flask session
+        session['current_session'] = session_id
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Switched to session {session_id}'
+        })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
