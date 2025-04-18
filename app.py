@@ -51,13 +51,13 @@ try:
         # Vector search and embedding
         get_embedding, create_vector_store, get_similar_chunks,
         
-        # Question answering and AI content generation
-        generate_answer, generate_diagram, detect_diagram_request,
-        
         # History and storage management
         save_chat_history, get_chat_history, save_diagram, get_diagrams,
         list_all_sessions, log_message
     )
+    
+    # Import OpenAI helper functions
+    from utils.openai_helper import generate_answer, generate_diagram, detect_diagram_request
 except ImportError:
     # For deployment where imports might fail
     def fix_mermaid_syntax(code, diagram_type):
@@ -81,11 +81,21 @@ except ImportError:
         
     def list_all_sessions():
         return {"session_" + str(int(time.time())): time.time()}
+        
+    # Fallbacks for OpenAI helper functions
+    def generate_answer(question, context_chunks):
+        return "I'm unable to generate an answer because the OpenAI API is not available."
+        
+    def generate_diagram(question, context_chunks, diagram_type="flowchart"):
+        return False, "Unable to generate a diagram because the OpenAI API is not available."
+        
+    def detect_diagram_request(question):
+        return False, None
 
 # Create our question status tracking system
 question_status_store = {}
 
-def update_question_status(question_id, stage=None, progress=None, done=None, error=None):
+def update_question_status(question_id, stage=None, progress=None, done=None, error=None, answer=None, has_diagram=None, diagram_code=None):
     """Update the status of a question being processed in the background."""
     if not question_id:
         return
@@ -97,7 +107,10 @@ def update_question_status(question_id, stage=None, progress=None, done=None, er
             "stage": "Starting",
             "progress": 0,
             "done": False,
-            "error": None
+            "error": None,
+            "answer": None,
+            "has_diagram": False,
+            "diagram_code": None
         }
     
     # Update status values as requested
@@ -118,6 +131,15 @@ def update_question_status(question_id, stage=None, progress=None, done=None, er
     if error:
         current_status["error"] = error
         print(f"Question {question_id} ERROR: {error}")
+        
+    if answer:
+        current_status["answer"] = answer
+        
+    if has_diagram is not None:
+        current_status["has_diagram"] = has_diagram
+        
+    if diagram_code:
+        current_status["diagram_code"] = diagram_code
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
