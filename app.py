@@ -1432,26 +1432,81 @@ def process_question(question, question_id):
                     if diagram_type == "flowchart":
                         # Handle special characters and problematic syntax with a detailed diagram
                         if "syntax error" in explanation.lower() or diagram_code.strip() == "" or "ISO 20022" in question or "ISO20022" in question:
-                            # Create a simplified minimal diagram
-                            diagram_code = """graph TD
-    A(ISO 20022) --> B(Value Proposition)
-    B --> B1(Communication Interoperability)
-    B --> B2(Address Overlapping Standards)
-    A --> C(Standardization Approach)
-    C --> C1(Single Standard Long-term)
-    C --> C2(Coexistence Short-term)
-    A --> D(ISO 20022 Recipe)
-    D --> D1(Modeling-based Standards)
-    D --> D2(Development Process)
-    D --> D3(Registrations)
-    A --> E(Actors)
-    E --> E1(Registration Management Group)
-    E --> E2(Standards Evaluation Groups)
-    E --> E3(Registration Authority)
-    E --> E4(Technical Support Group)
-    A --> F(Financial Repository)
-    F --> F1(Data Dictionary)
-    F --> F2(Business Process Catalogue)"""
+                            # Use SVG directly instead of Mermaid
+                            diagram_code = '''<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Main node -->
+  <rect x="350" y="20" width="100" height="40" rx="5" fill="#0088cc" stroke="black" />
+  <text x="400" y="45" font-family="Arial" font-size="14" fill="white" text-anchor="middle">ISO 20022</text>
+  
+  <!-- Level 1 nodes -->
+  <rect x="100" y="120" width="160" height="40" rx="5" fill="#e0f7ff" stroke="#0088cc" />
+  <text x="180" y="145" font-family="Arial" font-size="14" fill="black" text-anchor="middle">Value Proposition</text>
+  
+  <rect x="280" y="120" width="160" height="40" rx="5" fill="#e0f7ff" stroke="#0088cc" />
+  <text x="360" y="145" font-family="Arial" font-size="14" fill="black" text-anchor="middle">Standardization</text>
+  
+  <rect x="460" y="120" width="160" height="40" rx="5" fill="#e0f7ff" stroke="#0088cc" />
+  <text x="540" y="145" font-family="Arial" font-size="14" fill="black" text-anchor="middle">ISO 20022 Recipe</text>
+  
+  <rect x="640" y="120" width="160" height="40" rx="5" fill="#e0f7ff" stroke="#0088cc" />
+  <text x="720" y="145" font-family="Arial" font-size="14" fill="black" text-anchor="middle">Actors</text>
+  
+  <!-- Level 2 nodes - Value Proposition -->
+  <rect x="40" y="220" width="160" height="40" rx="5" fill="#e0f7ff" stroke="#0088cc" />
+  <text x="120" y="245" font-family="Arial" font-size="14" fill="black" text-anchor="middle">Communication</text>
+  
+  <rect x="40" y="280" width="160" height="40" rx="5" fill="#e0f7ff" stroke="#0088cc" />
+  <text x="120" y="305" font-family="Arial" font-size="14" fill="black" text-anchor="middle">Address Standards</text>
+  
+  <!-- Level 2 nodes - Standardization -->
+  <rect x="240" y="220" width="160" height="40" rx="5" fill="#e0f7ff" stroke="#0088cc" />
+  <text x="320" y="245" font-family="Arial" font-size="14" fill="black" text-anchor="middle">Single Standard</text>
+  
+  <rect x="240" y="280" width="160" height="40" rx="5" fill="#e0f7ff" stroke="#0088cc" />
+  <text x="320" y="305" font-family="Arial" font-size="14" fill="black" text-anchor="middle">Coexistence</text>
+  
+  <!-- Level 2 nodes - Recipe -->
+  <rect x="440" y="220" width="160" height="40" rx="5" fill="#e0f7ff" stroke="#0088cc" />
+  <text x="520" y="245" font-family="Arial" font-size="14" fill="black" text-anchor="middle">Modeling Standards</text>
+  
+  <rect x="440" y="280" width="160" height="40" rx="5" fill="#e0f7ff" stroke="#0088cc" />
+  <text x="520" y="305" font-family="Arial" font-size="14" fill="black" text-anchor="middle">Development</text>
+  
+  <!-- Level 2 nodes - Actors -->
+  <rect x="640" y="220" width="160" height="40" rx="5" fill="#e0f7ff" stroke="#0088cc" />
+  <text x="720" y="245" font-family="Arial" font-size="14" fill="black" text-anchor="middle">RMG</text>
+  
+  <rect x="640" y="280" width="160" height="40" rx="5" fill="#e0f7ff" stroke="#0088cc" />
+  <text x="720" y="305" font-family="Arial" font-size="14" fill="black" text-anchor="middle">SEG</text>
+  
+  <rect x="640" y="340" width="160" height="40" rx="5" fill="#e0f7ff" stroke="#0088cc" />
+  <text x="720" y="365" font-family="Arial" font-size="14" fill="black" text-anchor="middle">RA</text>
+  
+  <!-- Connecting lines from main node to level 1 -->
+  <line x1="400" y1="60" x2="180" y2="120" stroke="#0088cc" stroke-width="2" />
+  <line x1="400" y1="60" x2="360" y2="120" stroke="#0088cc" stroke-width="2" />
+  <line x1="400" y1="60" x2="540" y2="120" stroke="#0088cc" stroke-width="2" />
+  <line x1="400" y1="60" x2="720" y2="120" stroke="#0088cc" stroke-width="2" />
+  
+  <!-- Connecting lines from Value Proposition to level 2 -->
+  <line x1="180" y1="160" x2="120" y2="220" stroke="#0088cc" stroke-width="2" />
+  <line x1="180" y1="160" x2="120" y2="280" stroke="#0088cc" stroke-width="2" />
+  
+  <!-- Connecting lines from Standardization to level 2 -->
+  <line x1="360" y1="160" x2="320" y2="220" stroke="#0088cc" stroke-width="2" />
+  <line x1="360" y1="160" x2="320" y2="280" stroke="#0088cc" stroke-width="2" />
+  
+  <!-- Connecting lines from Recipe to level 2 -->
+  <line x1="540" y1="160" x2="520" y2="220" stroke="#0088cc" stroke-width="2" />
+  <line x1="540" y1="160" x2="520" y2="280" stroke="#0088cc" stroke-width="2" />
+  
+  <!-- Connecting lines from Actors to level 2 -->
+  <line x1="720" y1="160" x2="720" y2="220" stroke="#0088cc" stroke-width="2" />
+  <line x1="720" y1="160" x2="720" y2="280" stroke="#0088cc" stroke-width="2" />
+  <line x1="720" y1="160" x2="720" y2="340" stroke="#0088cc" stroke-width="2" />
+  
+  <text x="400" y="400" font-family="Arial" font-size="18" fill="#0088cc" text-anchor="middle" font-weight="bold">ISO 20022 Framework Overview</text>
+</svg>'''
                             
                     print(f"Original diagram code: {original_diagram_code[:50]}...")
                     print(f"Fixed diagram code: {diagram_code[:50]}...")
