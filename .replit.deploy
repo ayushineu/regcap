@@ -1,1 +1,1 @@
-run = ["python", "deployment.py"]
+run = ["python", "streamlit_app.py", "--server.headless", "true"]
