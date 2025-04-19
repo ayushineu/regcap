@@ -301,9 +301,9 @@ def index():
         .hamburger-menu {
             display: none; /* Hidden by default, shown on mobile */
             position: fixed;
-            top: 10px;
-            left: 10px;
-            z-index: 1000;
+            top: 12px;
+            left: 12px;
+            z-index: 1100; /* Higher than beta banner */
             background: var(--primary-color);
             color: white;
             border: none;
@@ -403,6 +403,14 @@ def index():
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+            z-index: 1000;
+        }
+        
+        @media (max-width: 768px) {
+            .beta-banner {
+                padding-left: 3.5rem; /* Make space for hamburger menu */
+            }
         }
         
         [data-theme="dark"] .beta-banner {
@@ -751,14 +759,15 @@ def index():
 </head>
 <body>
     <!-- Mobile menu button (hamburger) -->
-    <button class="hamburger-menu" id="menuToggle">
-        <i class="fa fa-bars"></i>
-    </button>
-    
-    <!-- Menu overlay for mobile -->
-    <div class="menu-overlay" id="menuOverlay"></div>
-    
     <div class="app-container">
+        <!-- Mobile menu button (hamburger) -->
+        <button class="hamburger-menu" id="menuToggle">
+            <i class="fa fa-bars"></i>
+        </button>
+        
+        <!-- Menu overlay for mobile -->
+        <div class="menu-overlay" id="menuOverlay"></div>
+        
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
@@ -1062,6 +1071,49 @@ def index():
                 'sessions-panel': '<i class="fa fa-database"></i> Session Management'
             };
             
+            // Function to switch panels - extracted for reuse
+            function switchToPanel(panelId, clickedNavItem) {
+                if (!panelId) return;
+                
+                // Log panel change attempt for debugging
+                console.log('Switching to panel:', panelId);
+                
+                // Hide all content panels
+                var contentPanels = document.querySelectorAll('.content-panel');
+                for (var j = 0; j < contentPanels.length; j++) {
+                    contentPanels[j].classList.remove('active');
+                }
+                
+                // Remove active class from all navigation items
+                for (var k = 0; k < navItems.length; k++) {
+                    navItems[k].classList.remove('active');
+                }
+                
+                // Show the selected content panel
+                var panelElement = document.getElementById(panelId);
+                if (panelElement) {
+                    panelElement.classList.add('active');
+                    console.log('Panel activated:', panelId);
+                } else {
+                    console.log('Panel element not found:', panelId);
+                }
+                
+                // Update panel title
+                if (panelTitles[panelId]) {
+                    document.getElementById('currentPanelTitle').innerHTML = panelTitles[panelId];
+                }
+                
+                // Add active class to clicked navigation item
+                if (clickedNavItem) {
+                    clickedNavItem.classList.add('active');
+                }
+                
+                // On mobile, ensure we scroll to top of panel
+                if (window.innerWidth <= 768) {
+                    window.scrollTo(0, 0);
+                }
+            }
+            
             // Add click event to each navigation item
             for (var i = 0; i < navItems.length; i++) {
                 navItems[i].addEventListener('click', function() {
@@ -1072,32 +1124,7 @@ def index():
                     
                     // Get the panel id from data-panel attribute
                     var panelId = this.getAttribute('data-panel');
-                    if (!panelId) return;
-                    
-                    // Hide all content panels
-                    var contentPanels = document.querySelectorAll('.content-panel');
-                    for (var j = 0; j < contentPanels.length; j++) {
-                        contentPanels[j].classList.remove('active');
-                    }
-                    
-                    // Remove active class from all navigation items
-                    for (var k = 0; k < navItems.length; k++) {
-                        navItems[k].classList.remove('active');
-                    }
-                    
-                    // Show the selected content panel
-                    var panelElement = document.getElementById(panelId);
-                    if (panelElement) {
-                        panelElement.classList.add('active');
-                    }
-                    
-                    // Update panel title
-                    if (panelTitles[panelId]) {
-                        document.getElementById('currentPanelTitle').innerHTML = panelTitles[panelId];
-                    }
-                    
-                    // Add active class to clicked navigation item
-                    this.classList.add('active');
+                    switchToPanel(panelId, this);
                 });
             }
             
