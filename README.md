@@ -154,4 +154,9 @@ FinTech Strategist | RegTech Innovator | Judge for AI & Technology Awards
 
 ## 📄 License
 
-This project is licensed under the MIT License — see the `LICENSE` file for details.
+This project is licensed under the MIT License — see the `LICENSE` file for full terms.
+
+Please note: This repository is intended for **learning, research, and demonstration purposes only**.  
+Commercial use, distribution, or deployment of the RegCap GPT platform as a service or product may require **separate written permission** or licensing.
+
+
