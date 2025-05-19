@@ -1039,31 +1039,40 @@ def index():
                                 <i class="fa fa-info-circle"></i> <strong>Version 1.0.0</strong> - For support or feature requests, please contact our team.
                             </div>
                             
-                            <div class="mt-4">
-                                <h4 style="color: var(--primary-text) !important;">Contact Us</h4>
-                                <p style="color: var(--primary-text) !important;">We'd love to hear from you! Whether you have questions, feedback, or partnership inquiries, please reach out using the form below.</p>
-                                
-                                <form class="mt-4">
-                                    <div class="mb-3">
-                                        <label for="contactName" class="form-label" style="color: var(--primary-text) !important;">Name</label>
-                                        <input type="text" class="form-control" id="contactName" required>
+                            <div class="row mt-4">
+                                <div class="col-md-4"></div>
+                                <div class="col-md-8">
+                                    <div class="card" style="background-color: var(--secondary-bg) !important;">
+                                        <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
+                                            <h5 class="card-title mb-0">Contact Us</h5>
+                                        </div>
+                                        <div class="card-body" style="background-color: var(--secondary-bg) !important;">
+                                            <p style="color: var(--primary-text) !important;">We'd love to hear from you! Please reach out using the form below.</p>
+                                            
+                                            <form>
+                                                <div class="mb-2">
+                                                    <label for="contactName" class="form-label small" style="color: var(--primary-text) !important;">Name</label>
+                                                    <input type="text" class="form-control form-control-sm" id="contactName" required>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label for="contactEmail" class="form-label small" style="color: var(--primary-text) !important;">Email</label>
+                                                    <input type="email" class="form-control form-control-sm" id="contactEmail" required>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label for="contactOrg" class="form-label small" style="color: var(--primary-text) !important;">Organization (optional)</label>
+                                                    <input type="text" class="form-control form-control-sm" id="contactOrg">
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label for="contactMessage" class="form-label small" style="color: var(--primary-text) !important;">Message</label>
+                                                    <textarea class="form-control form-control-sm" id="contactMessage" rows="3" required></textarea>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary btn-sm mt-2">
+                                                    <i class="fa fa-paper-plane"></i> Send Message
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
-                                    <div class="mb-3">
-                                        <label for="contactEmail" class="form-label" style="color: var(--primary-text) !important;">Email</label>
-                                        <input type="email" class="form-control" id="contactEmail" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="contactOrg" class="form-label" style="color: var(--primary-text) !important;">Organization (optional)</label>
-                                        <input type="text" class="form-control" id="contactOrg">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="contactMessage" class="form-label" style="color: var(--primary-text) !important;">Message</label>
-                                        <textarea class="form-control" id="contactMessage" rows="4" required></textarea>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fa fa-paper-plane"></i> Send Message
-                                    </button>
-                                </form>
+                                </div>
                             </div>
                         </div>
                     </div>
