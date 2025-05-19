@@ -755,92 +755,6 @@ def index():
             min-width: 16px;
             margin-top: 0.2rem;
         }
-        
-        /* Modal Styles */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1200;
-        }
-        
-        .modal-dialog {
-            width: 100%;
-            max-width: 500px;
-            margin: 2rem;
-            position: relative;
-            z-index: 1201;
-        }
-        
-        .modal-content {
-            background-color: var(--primary-bg);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow-lg);
-            overflow: hidden;
-        }
-        
-        .modal-header {
-            padding: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .modal-title {
-            margin: 0;
-            font-size: 1.25rem;
-        }
-        
-        .modal-body {
-            padding: 1.5rem;
-            max-height: 70vh;
-            overflow-y: auto;
-        }
-        
-        .close {
-            background: none;
-            border: none;
-            color: var(--light-text);
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0;
-            line-height: 1;
-        }
-        
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1100;
-        }
-        
-        /* Modal animations */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        .modal.show {
-            animation: fadeIn 0.3s forwards;
-        }
-        
-        .modal.show .modal-dialog {
-            animation: slideIn 0.3s forwards;
-        }
     </style>
 </head>
 <body>
@@ -887,10 +801,6 @@ def index():
                         <li><i class="fa fa-check"></i> Vector search technology</li>
                         <li><i class="fa fa-check"></i> Dark/light mode</li>
                     </ul>
-                </div>
-                <div class="nav-item" data-panel="about-panel">
-                    <i class="fa fa-info-circle"></i> About Us
-                </div>
                 </div>
             </div>
             
@@ -1083,94 +993,10 @@ def index():
                         </div>
                     </div>
                 </div>
-                
-                <!-- About Panel -->
-                <div id="about-panel" class="content-panel">
-                    <div class="card">
-                        <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
-                            <h5 class="card-title mb-0"><i class="fa fa-info-circle"></i> About RegCap GPT</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="text-center mb-4">
-                                <div style="display: inline-block; background-color: #0088cc; width: 100px; height: 100px; border-radius: 50%; color: white; line-height: 100px; font-size: 40px; font-weight: bold;">
-                                    R
-                                </div>
-                            </div>
-                            
-                            <h4 class="text-center mb-3">RegCap GPT</h4>
-                            <p>RegCap GPT is an advanced Regulatory Intelligence platform designed to transform complex regulatory documents into actionable insights through AI-driven analysis.</p>
-                            
-                            <h5 class="mt-4">Our Mission</h5>
-                            <p>To make regulatory compliance more accessible by providing powerful tools for document analysis, visualization, and knowledge extraction.</p>
-                            
-                            <h5 class="mt-4">Key Features</h5>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <ul class="list-unstyled">
-                                        <li><i class="fa fa-check text-primary"></i> PDF document analysis</li>
-                                        <li><i class="fa fa-check text-primary"></i> Natural language queries</li>
-                                        <li><i class="fa fa-check text-primary"></i> AI-generated diagrams</li>
-                                    </ul>
-                                </div>
-                                <div class="col-md-6">
-                                    <ul class="list-unstyled">
-                                        <li><i class="fa fa-check text-primary"></i> Multi-session support</li>
-                                        <li><i class="fa fa-check text-primary"></i> Vector search technology</li>
-                                        <li><i class="fa fa-check text-primary"></i> Dark/light mode</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            
-                            <h5 class="mt-4">The Team</h5>
-                            <p>RegCap was developed by a team of regulatory experts, machine learning engineers, and UI/UX specialists dedicated to creating the most user-friendly regulatory document analysis platform.</p>
-                            
-                            <div class="mt-5 text-center">
-                                <hr>
-                                <p class="small text-muted">Version 1.0.0 | &copy; 2025 RegCap Team</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
-            
-            <!-- About Us Modal -->
-            <div class="modal" id="aboutUsModal" tabindex="-1" role="dialog" style="display: none;">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header" style="background-color: var(--primary-color); color: var(--light-text);">
-                            <h5 class="modal-title"><i class="fa fa-info-circle"></i> About RegCap GPT</h5>
-                            <button type="button" class="close" id="closeAboutModal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="text-center mb-4">
-                                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNDUiIGZpbGw9IiMwMDg4Y2MiIC8+PHRleHQgeD0iNTAiIHk9IjYwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IndoaXRlIj5SPC90ZXh0Pjwvc3ZnPg==" 
-                                    alt="RegCap Logo" style="width: 80px; height: 80px;">
-                            </div>
-                            
-                            <h4 class="text-center mb-3">RegCap GPT</h4>
-                            <p>RegCap GPT is an advanced Regulatory Intelligence platform designed to transform complex regulatory documents into actionable insights through AI-driven analysis.</p>
-                            
-                            <h5 class="mt-4">Our Mission</h5>
-                            <p>To make regulatory compliance more accessible by providing powerful tools for document analysis, visualization, and knowledge extraction.</p>
-                            
-                            <h5 class="mt-4">The Team</h5>
-                            <p>RegCap was developed by a team of regulatory experts, machine learning engineers, and UI/UX specialists dedicated to creating the most user-friendly regulatory document analysis platform.</p>
-                            
-                            <div class="text-center mt-4">
-                                <p class="small text-muted">Version 1.0.0 | &copy; 2025 RegCap Team</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Modal Overlay -->
-            <div class="modal-overlay" id="modalOverlay" style="display: none;"></div>
             
             <!-- Footer -->
-            <footer class="pt-3 border-top text-center text-muted" style="padding: 1rem 2rem; font-size: 0.8rem;">
+            <footer class="pt-3 border-top text-center" style="padding: 1rem 2rem; font-size: 0.8rem; color: var(--secondary-text);">
                 <p><i class="fa fa-code"></i> RegCap GPT - Regulatory Document Analysis Platform | Version 1.0.0 | Made with <i class="fa fa-heart text-danger"></i> by RegCap Team</p>
             </footer>
         </div>
@@ -1238,73 +1064,69 @@ def index():
             
             // Content navigation
             var navItems = document.querySelectorAll('.nav-item');
+            var panelTitles = {
+                'chat-panel': '<i class="fa fa-comments"></i> Chat with your Documents',
+                'docs-panel': '<i class="fa fa-file-pdf-o"></i> Document Management',
+                'diagrams-panel': '<i class="fa fa-sitemap"></i> Generated Diagrams',
+                'sessions-panel': '<i class="fa fa-database"></i> Session Management'
+            };
             
-            // Initialize navigation system after page load
-            document.addEventListener('DOMContentLoaded', function() {
-                // Get all navigation items and content panels
-                const navItems = document.querySelectorAll('.nav-item');
-                const contentPanels = document.querySelectorAll('.content-panel');
+            // Function to switch panels - extracted for reuse
+            function switchToPanel(panelId, clickedNavItem) {
+                if (!panelId) return;
                 
-                // Function to switch between panels
-                function switchToPanel(panelId) {
-                    if (!panelId) return;
-                    
-                    console.log('Switching to panel:', panelId);
-                    
-                    // Hide all panels first
-                    contentPanels.forEach(panel => {
-                        panel.classList.remove('active');
-                    });
-                    
-                    // Show the selected panel
-                    const selectedPanel = document.getElementById(panelId);
-                    if (selectedPanel) {
-                        selectedPanel.classList.add('active');
-                        console.log('Panel activated:', panelId);
-                    } else {
-                        console.error('Panel not found:', panelId);
-                    }
-                    
-                    // Update active state in navigation
-                    navItems.forEach(item => {
-                        item.classList.remove('active');
-                        if (item.getAttribute('data-panel') === panelId) {
-                            item.classList.add('active');
-                        }
-                    });
-                    
-                    // Update panel title
-                    const currentPanelTitle = document.getElementById('currentPanelTitle');
-                    if (currentPanelTitle && panelTitles[panelId]) {
-                        currentPanelTitle.innerHTML = panelTitles[panelId];
-                    }
-                    
-                    // On mobile, ensure we scroll to top and close menu
-                    if (window.innerWidth <= 768) {
-                        window.scrollTo(0, 0);
-                        const sidebar = document.getElementById('sidebar');
-                        const menuOverlay = document.getElementById('menuOverlay');
-                        if (sidebar) sidebar.classList.remove('mobile-active');
-                        if (menuOverlay) menuOverlay.classList.remove('active');
-                        document.body.style.overflow = '';
-                    }
+                // Log panel change attempt for debugging
+                console.log('Switching to panel:', panelId);
+                
+                // Hide all content panels
+                var contentPanels = document.querySelectorAll('.content-panel');
+                for (var j = 0; j < contentPanels.length; j++) {
+                    contentPanels[j].classList.remove('active');
                 }
                 
-                // Set up click handler for each nav item
-                navItems.forEach(item => {
-                    item.addEventListener('click', function(event) {
-                        // Skip navigation for feature toggle
-                        if (this.id === 'featureToggle') {
-                            return;
-                        }
-                        
-                        const panelId = this.getAttribute('data-panel');
-                        if (panelId) {
-                            switchToPanel(panelId);
-                        }
-                    });
+                // Remove active class from all navigation items
+                for (var k = 0; k < navItems.length; k++) {
+                    navItems[k].classList.remove('active');
+                }
+                
+                // Show the selected content panel
+                var panelElement = document.getElementById(panelId);
+                if (panelElement) {
+                    panelElement.classList.add('active');
+                    console.log('Panel activated:', panelId);
+                } else {
+                    console.log('Panel element not found:', panelId);
+                }
+                
+                // Update panel title
+                if (panelTitles[panelId]) {
+                    document.getElementById('currentPanelTitle').innerHTML = panelTitles[panelId];
+                }
+                
+                // Add active class to clicked navigation item
+                if (clickedNavItem) {
+                    clickedNavItem.classList.add('active');
+                }
+                
+                // On mobile, ensure we scroll to top of panel
+                if (window.innerWidth <= 768) {
+                    window.scrollTo(0, 0);
+                }
+            }
+            
+            // Add click event to each navigation item
+            for (var i = 0; i < navItems.length; i++) {
+                navItems[i].addEventListener('click', function() {
+                    // If this is the features toggle, don't navigate
+                    if (this.id === 'featureToggle') {
+                        return;
+                    }
+                    
+                    // Get the panel id from data-panel attribute
+                    var panelId = this.getAttribute('data-panel');
+                    switchToPanel(panelId, this);
                 });
-            });
+            }
             
             // Theme toggle functionality
             function setupThemeToggle() {
@@ -1337,15 +1159,6 @@ def index():
             
             // Initialize theme toggle
             setupThemeToggle();
-            
-            // Set panel titles (make sure we only define this once)
-            var panelTitles = {
-                'chat-panel': '<i class="fa fa-comments"></i> Chat with your Documents',
-                'docs-panel': '<i class="fa fa-file-pdf-o"></i> Document Management',
-                'diagrams-panel': '<i class="fa fa-sitemap"></i> Generated Diagrams',
-                'sessions-panel': '<i class="fa fa-database"></i> Session Management',
-                'about-panel': '<i class="fa fa-info-circle"></i> About RegCap GPT'
-            };
             
             // Initialize Mermaid diagrams
             if (typeof mermaid !== 'undefined') {
