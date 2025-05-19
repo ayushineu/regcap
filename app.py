@@ -382,6 +382,16 @@ def index():
             font-weight: 500;
         }
         
+        .no-decoration {
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .no-decoration:hover {
+            text-decoration: none;
+            color: inherit;
+        }
+        
         .sidebar-footer {
             padding: 1rem 1.5rem;
             border-top: 1px solid var(--border-color);
@@ -807,6 +817,11 @@ def index():
                 <div class="nav-item" data-panel="about-panel">
                     <i class="fa fa-info-circle"></i> About Us
                 </div>
+                <a href="/aboutus" class="no-decoration" target="_blank">
+                    <div class="nav-item">
+                        <i class="fa fa-external-link"></i> About Us Page
+                    </div>
+                </a>
                 <div class="feature-list" id="featureList" style="display: none;">
                     <div class="feature-list-date">As of April 18, 2025</div>
                     <ul>
