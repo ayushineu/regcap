@@ -1001,31 +1001,27 @@ def index():
                 <div id="about-panel" class="content-panel">
                     <div class="card mb-4">
                         <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
-                            <h5 class="card-title mb-0">About RegCap GPT</h5>
+                            <h5 class="card-title mb-0">About Us – RegCap GPT</h5>
                         </div>
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-8">
-                                    <h4>Our Mission</h4>
-                                    <p>RegCap GPT is an advanced Regulatory Intelligence platform designed to transform complex regulatory documents into actionable insights through AI-driven analysis and intuitive visualization technologies.</p>
+                                    <p class="lead">RegCap GPT is an AI-powered compliance assistant designed to help financial institutions navigate complex regulatory requirements with ease and accuracy. Built by industry professionals for industry professionals, RegCap GPT transforms the way compliance teams manage reporting, risk assessment, and regulatory interpretation.</p>
                                     
-                                    <h4 class="mt-4">Core Features</h4>
-                                    <ul>
-                                        <li><strong>Document Processing:</strong> Upload and analyze PDFs containing regulatory information</li>
-                                        <li><strong>Natural Language Queries:</strong> Ask questions in plain English about your regulatory documents</li>
-                                        <li><strong>Visual Explanations:</strong> Generate diagrams and flowcharts to visualize complex processes</li>
-                                        <li><strong>Context-Aware Responses:</strong> Get answers relevant to your specific documents</li>
-                                        <li><strong>Multi-Session Support:</strong> Organize your work across different document sets</li>
-                                    </ul>
+                                    <h4 class="mt-4">Our Mission</h4>
+                                    <p>Our mission is to automate and simplify regulatory compliance using cutting-edge natural language processing (NLP) and AI, enabling institutions to reduce manual effort, minimize errors, and stay audit-ready.</p>
                                     
-                                    <h4 class="mt-4">Technology Stack</h4>
-                                    <p>Built using state-of-the-art technologies including vector-based document indexing, advanced language models, and data visualization tools to deliver a seamless user experience.</p>
+                                    <h4 class="mt-4">Leadership</h4>
+                                    <p>Founded and led by Ayushi, a seasoned fintech and regulatory technology expert, RegCap GPT blends financial domain expertise with responsible AI practices to deliver secure, scalable, and adaptive compliance solutions.</p>
+                                    
+                                    <p class="mt-4">Whether you're a global bank or a fintech startup, RegCap GPT empowers your teams to stay ahead of changing regulations, streamline operations, and enhance transparency—all without writing a single line of code.</p>
                                 </div>
                                 <div class="col-md-4 text-center">
-                                    <i class="fa fa-book fa-5x mb-3" style="color: var(--primary-color);"></i>
+                                    <i class="fa fa-balance-scale fa-5x mb-3" style="color: var(--primary-color);"></i>
                                     <div class="mt-4">
                                         <h5>Contact Us</h5>
                                         <p><i class="fa fa-envelope"></i> info@regcap.ai</p>
+                                        <p><i class="fa fa-linkedin"></i> linkedin.com/company/regcap</p>
                                         <p><i class="fa fa-globe"></i> www.regcap.ai</p>
                                     </div>
                                 </div>
