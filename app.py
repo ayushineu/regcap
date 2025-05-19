@@ -788,6 +788,9 @@ def index():
                 <div class="nav-item" data-panel="sessions-panel">
                     <i class="fa fa-database"></i> Sessions
                 </div>
+                <div class="nav-item" data-panel="about-panel">
+                    <i class="fa fa-info-circle"></i> About Us
+                </div>
                 <div class="nav-item" id="featureToggle">
                     <i class="fa fa-list"></i> Features <span class="float-end"><i class="fa fa-angle-down toggle-icon"></i></span>
                 </div>
@@ -993,6 +996,47 @@ def index():
                         </div>
                     </div>
                 </div>
+                
+                <!-- About Us Panel -->
+                <div id="about-panel" class="content-panel">
+                    <div class="card mb-4">
+                        <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
+                            <h5 class="card-title mb-0">About RegCap GPT</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h4>Our Mission</h4>
+                                    <p>RegCap GPT is an advanced Regulatory Intelligence platform designed to transform complex regulatory documents into actionable insights through AI-driven analysis and intuitive visualization technologies.</p>
+                                    
+                                    <h4 class="mt-4">Core Features</h4>
+                                    <ul>
+                                        <li><strong>Document Processing:</strong> Upload and analyze PDFs containing regulatory information</li>
+                                        <li><strong>Natural Language Queries:</strong> Ask questions in plain English about your regulatory documents</li>
+                                        <li><strong>Visual Explanations:</strong> Generate diagrams and flowcharts to visualize complex processes</li>
+                                        <li><strong>Context-Aware Responses:</strong> Get answers relevant to your specific documents</li>
+                                        <li><strong>Multi-Session Support:</strong> Organize your work across different document sets</li>
+                                    </ul>
+                                    
+                                    <h4 class="mt-4">Technology Stack</h4>
+                                    <p>Built using state-of-the-art technologies including vector-based document indexing, advanced language models, and data visualization tools to deliver a seamless user experience.</p>
+                                </div>
+                                <div class="col-md-4 text-center">
+                                    <i class="fa fa-book fa-5x mb-3" style="color: var(--primary-color);"></i>
+                                    <div class="mt-4">
+                                        <h5>Contact Us</h5>
+                                        <p><i class="fa fa-envelope"></i> info@regcap.ai</p>
+                                        <p><i class="fa fa-globe"></i> www.regcap.ai</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info mt-4">
+                                <i class="fa fa-info-circle"></i> <strong>Version 1.0.0</strong> - For support or feature requests, please contact our team.
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- Footer -->
@@ -1068,7 +1112,8 @@ def index():
                 'chat-panel': '<i class="fa fa-comments"></i> Chat with your Documents',
                 'docs-panel': '<i class="fa fa-file-pdf-o"></i> Document Management',
                 'diagrams-panel': '<i class="fa fa-sitemap"></i> Generated Diagrams',
-                'sessions-panel': '<i class="fa fa-database"></i> Session Management'
+                'sessions-panel': '<i class="fa fa-database"></i> Session Management',
+                'about-panel': '<i class="fa fa-info-circle"></i> About RegCap GPT'
             };
             
             // Function to switch panels - extracted for reuse
