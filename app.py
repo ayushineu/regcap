@@ -788,11 +788,11 @@ def index():
                 <div class="nav-item" data-panel="sessions-panel">
                     <i class="fa fa-database"></i> Sessions
                 </div>
-                <div class="nav-item" data-panel="about-panel">
-                    <i class="fa fa-info-circle"></i> About Us
-                </div>
                 <div class="nav-item" id="featureToggle">
                     <i class="fa fa-list"></i> Features <span class="float-end"><i class="fa fa-angle-down toggle-icon"></i></span>
+                </div>
+                <div class="nav-item" data-panel="about-panel">
+                    <i class="fa fa-info-circle"></i> About Us
                 </div>
                 <div class="feature-list" id="featureList" style="display: none;">
                     <div class="feature-list-date">As of April 18, 2025</div>
