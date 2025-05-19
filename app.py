@@ -177,11 +177,8 @@ except:
     pass  # Will be handled in routes
 
 @app.route('/')
-@app.route('/chat')
 def index():
-    """Render the main application page with chat panel active."""
-    active_tab = "chat-panel"
-    session['current_tab'] = active_tab
+    """Render the main application page."""
     try:
         # Get data from the storage
         session_id = get_current_session()
@@ -805,9 +802,6 @@ def index():
                         <li><i class="fa fa-check"></i> Dark/light mode</li>
                     </ul>
                 </div>
-                <div class="nav-item" data-panel="about-panel">
-                    <i class="fa fa-info-circle"></i> About Us
-                </div>
             </div>
             
             <div class="sidebar-footer">
@@ -999,65 +993,10 @@ def index():
                         </div>
                     </div>
                 </div>
-                
-                <!-- About Us Panel -->
-                <div id="about-panel" class="content-panel">
-                    <div class="row">
-                        <div class="col-md-7">
-                            <div class="card mb-4">
-                                <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
-                                    <h5 class="card-title mb-0">About Us – RegCap GPT</h5>
-                                </div>
-                                <div class="card-body">
-                                    <p>RegCap GPT is an AI-powered compliance assistant designed to help financial institutions navigate complex regulatory requirements with ease and accuracy. Built by industry professionals for industry professionals, RegCap GPT transforms the way compliance teams manage reporting, risk assessment, and regulatory interpretation.</p>
-                                    
-                                    <p>Our mission is to automate and simplify regulatory compliance using cutting-edge natural language processing (NLP) and AI, enabling institutions to reduce manual effort, minimize errors, and stay audit-ready.</p>
-                                    
-                                    <p>Founded and led by Ayushi, a seasoned fintech and regulatory technology expert, RegCap GPT blends financial domain expertise with responsible AI practices to deliver secure, scalable, and adaptive compliance solutions.</p>
-                                    
-                                    <p>Whether you're a global bank or a fintech startup, RegCap GPT empowers your teams to stay ahead of changing regulations, streamline operations, and enhance transparency—all without writing a single line of code.</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-5">
-                            <div class="card mb-4">
-                                <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
-                                    <h5 class="card-title mb-0">Contact Us</h5>
-                                </div>
-                                <div class="card-body">
-                                    <form id="contactForm">
-                                        <div class="mb-3">
-                                            <label for="firstName" class="form-label">First Name</label>
-                                            <input type="text" class="form-control" id="firstName" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="lastName" class="form-label">Last Name</label>
-                                            <input type="text" class="form-control" id="lastName" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="email" class="form-label">Email Address</label>
-                                            <input type="email" class="form-control" id="email" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="message" class="form-label">Message</label>
-                                            <textarea class="form-control" id="message" rows="4" required></textarea>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="fa fa-paper-plane"></i> Send Message
-                                        </button>
-                                        <div class="mt-3" id="contactFormStatus" style="display: none;">
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
             
             <!-- Footer -->
-            <footer class="pt-3 border-top text-center" style="padding: 1rem 2rem; font-size: 0.8rem; color: var(--secondary-text);">
+            <footer class="pt-3 border-top text-center text-muted" style="padding: 1rem 2rem; font-size: 0.8rem;">
                 <p><i class="fa fa-code"></i> RegCap GPT - Regulatory Document Analysis Platform | Version 1.0.0 | Made with <i class="fa fa-heart text-danger"></i> by RegCap Team</p>
             </footer>
         </div>
@@ -1066,177 +1005,178 @@ def index():
     <script>
         // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
-            // Handle mobile menu toggle
+            // Initialize hamburger menu for mobile
             var menuToggle = document.getElementById('menuToggle');
             var menuOverlay = document.getElementById('menuOverlay');
             var sidebar = document.getElementById('sidebar');
             
+            // Toggle menu on hamburger button click
             if (menuToggle) {
-                menuToggle.onclick = function() {
+                menuToggle.addEventListener('click', function() {
                     sidebar.classList.toggle('mobile-active');
                     menuOverlay.classList.toggle('active');
                     document.body.style.overflow = sidebar.classList.contains('mobile-active') ? 'hidden' : '';
-                };
+                });
             }
             
+            // Close menu when clicking the overlay
             if (menuOverlay) {
-                menuOverlay.onclick = function() {
+                menuOverlay.addEventListener('click', function() {
                     sidebar.classList.remove('mobile-active');
                     menuOverlay.classList.remove('active');
                     document.body.style.overflow = '';
-                };
+                });
             }
             
-            // Handle navigation clicks
-            var navItems = document.querySelectorAll('.nav-item');
-            
-            for (var i = 0; i < navItems.length; i++) {
-                navItems[i].onclick = function(e) {
-                    // Special handling for feature toggle
-                    if (this.id === 'featureToggle') {
-                        var featureList = document.getElementById('featureList');
-                        var toggleIcon = this.querySelector('.toggle-icon');
-                        
-                        if (featureList.style.display === 'none' || !featureList.style.display) {
-                            featureList.style.display = 'block';
-                            if (toggleIcon) {
-                                toggleIcon.className = 'fa fa-angle-up toggle-icon';
-                            }
-                        } else {
-                            featureList.style.display = 'none';
-                            if (toggleIcon) {
-                                toggleIcon.className = 'fa fa-angle-down toggle-icon';
-                            }
-                        }
-                        return;
-                    }
-                    
-                    // Regular navigation
-                    var panelId = this.getAttribute('data-panel');
-                    if (!panelId) return;
-                    
-                    // Hide all panels
-                    var contentPanels = document.querySelectorAll('.content-panel');
-                    for (var j = 0; j < contentPanels.length; j++) {
-                        contentPanels[j].classList.remove('active');
-                    }
-                    
-                    // Show selected panel
-                    var selectedPanel = document.getElementById(panelId);
-                    if (selectedPanel) {
-                        selectedPanel.classList.add('active');
-                    }
-                    
-                    // Update active nav item
-                    for (var k = 0; k < navItems.length; k++) {
-                        navItems[k].classList.remove('active');
-                    }
-                    this.classList.add('active');
-                    
-                    // Update header title
-                    var titles = {
-                        'chat-panel': '<i class="fa fa-comments"></i> Chat with your Documents',
-                        'docs-panel': '<i class="fa fa-file-pdf-o"></i> Document Management',
-                        'diagrams-panel': '<i class="fa fa-sitemap"></i> Generated Diagrams',
-                        'sessions-panel': '<i class="fa fa-database"></i> Session Management',
-                        'about-panel': '<i class="fa fa-info-circle"></i> About Us'
-                    };
-                    
-                    var titleElement = document.getElementById('currentPanelTitle');
-                    if (titleElement && titles[panelId]) {
-                        titleElement.innerHTML = titles[panelId];
-                    }
-                    
-                    // Close mobile menu if open
-                    if (window.innerWidth <= 768) {
+            // Close menu when a navigation item is clicked on mobile
+            var navItemsForMenu = document.querySelectorAll('.nav-item');
+            navItemsForMenu.forEach(function(item) {
+                item.addEventListener('click', function() {
+                    if (window.innerWidth <= 768 && item.id !== 'featureToggle') {
                         sidebar.classList.remove('mobile-active');
                         menuOverlay.classList.remove('active');
                         document.body.style.overflow = '';
                     }
-                };
+                });
+            });
+            
+            // Initialize feature list toggle
+            var featureToggle = document.getElementById('featureToggle');
+            var featureList = document.getElementById('featureList');
+            
+            if (featureToggle && featureList) {
+                featureToggle.addEventListener('click', function() {
+                    var toggleIcon = this.querySelector('.toggle-icon');
+                    
+                    if (featureList.style.display === 'none') {
+                        featureList.style.display = 'block';
+                        if (toggleIcon) {
+                            toggleIcon.className = 'fa fa-angle-up toggle-icon';
+                        }
+                    } else {
+                        featureList.style.display = 'none';
+                        if (toggleIcon) {
+                            toggleIcon.className = 'fa fa-angle-down toggle-icon';
+                        }
+                    }
+                });
             }
             
-            // Theme toggle
-            var themeToggle = document.getElementById('mobileThemeToggle');
-            if (themeToggle) {
-                // Apply saved theme
+            // Content navigation
+            var navItems = document.querySelectorAll('.nav-item');
+            var panelTitles = {
+                'chat-panel': '<i class="fa fa-comments"></i> Chat with your Documents',
+                'docs-panel': '<i class="fa fa-file-pdf-o"></i> Document Management',
+                'diagrams-panel': '<i class="fa fa-sitemap"></i> Generated Diagrams',
+                'sessions-panel': '<i class="fa fa-database"></i> Session Management'
+            };
+            
+            // Function to switch panels - extracted for reuse
+            function switchToPanel(panelId, clickedNavItem) {
+                if (!panelId) return;
+                
+                // Log panel change attempt for debugging
+                console.log('Switching to panel:', panelId);
+                
+                // Hide all content panels
+                var contentPanels = document.querySelectorAll('.content-panel');
+                for (var j = 0; j < contentPanels.length; j++) {
+                    contentPanels[j].classList.remove('active');
+                }
+                
+                // Remove active class from all navigation items
+                for (var k = 0; k < navItems.length; k++) {
+                    navItems[k].classList.remove('active');
+                }
+                
+                // Show the selected content panel
+                var panelElement = document.getElementById(panelId);
+                if (panelElement) {
+                    panelElement.classList.add('active');
+                    console.log('Panel activated:', panelId);
+                } else {
+                    console.log('Panel element not found:', panelId);
+                }
+                
+                // Update panel title
+                if (panelTitles[panelId]) {
+                    document.getElementById('currentPanelTitle').innerHTML = panelTitles[panelId];
+                }
+                
+                // Add active class to clicked navigation item
+                if (clickedNavItem) {
+                    clickedNavItem.classList.add('active');
+                }
+                
+                // On mobile, ensure we scroll to top of panel
+                if (window.innerWidth <= 768) {
+                    window.scrollTo(0, 0);
+                }
+            }
+            
+            // Add click event to each navigation item
+            for (var i = 0; i < navItems.length; i++) {
+                navItems[i].addEventListener('click', function() {
+                    // If this is the features toggle, don't navigate
+                    if (this.id === 'featureToggle') {
+                        return;
+                    }
+                    
+                    // Get the panel id from data-panel attribute
+                    var panelId = this.getAttribute('data-panel');
+                    switchToPanel(panelId, this);
+                });
+            }
+            
+            // Theme toggle functionality
+            function setupThemeToggle() {
+                var themeToggle = document.getElementById('mobileThemeToggle');
                 var savedTheme = localStorage.getItem('theme');
+                
+                // Apply saved theme
                 if (savedTheme === 'dark') {
                     document.documentElement.setAttribute('data-theme', 'dark');
-                    themeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
+                    if (themeToggle) {
+                        themeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
+                    }
                 }
                 
                 // Toggle theme on click
-                themeToggle.onclick = function() {
-                    if (document.documentElement.getAttribute('data-theme') === 'dark') {
-                        document.documentElement.removeAttribute('data-theme');
-                        localStorage.setItem('theme', 'light');
-                        themeToggle.innerHTML = '<i class="fa fa-moon-o"></i> Dark Mode';
-                    } else {
-                        document.documentElement.setAttribute('data-theme', 'dark');
-                        localStorage.setItem('theme', 'dark');
-                        themeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
-                    }
-                };
+                if (themeToggle) {
+                    themeToggle.addEventListener('click', function() {
+                        if (document.documentElement.getAttribute('data-theme') === 'dark') {
+                            document.documentElement.removeAttribute('data-theme');
+                            localStorage.setItem('theme', 'light');
+                            themeToggle.innerHTML = '<i class="fa fa-moon-o"></i> Dark Mode';
+                        } else {
+                            document.documentElement.setAttribute('data-theme', 'dark');
+                            localStorage.setItem('theme', 'dark');
+                            themeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
+                        }
+                    });
+                }
             }
             
-            // Initialize Mermaid
+            // Initialize theme toggle
+            setupThemeToggle();
+            
+            // Initialize Mermaid diagrams
             if (typeof mermaid !== 'undefined') {
                 mermaid.initialize({
                     startOnLoad: true,
                     securityLevel: 'loose',
-                    theme: 'default'
+                    theme: 'default',
+                    flowchart: {
+                        htmlLabels: true,
+                        useMaxWidth: true,
+                        curve: 'linear'
+                    }
                 });
             }
             
-            // Contact form 
-            var contactForm = document.getElementById('contactForm');
-            if (contactForm) {
-                contactForm.onsubmit = function(e) {
-                    e.preventDefault();
-                    
-                    var firstName = document.getElementById('firstName').value.trim();
-                    var lastName = document.getElementById('lastName').value.trim();
-                    var email = document.getElementById('email').value.trim();
-                    var message = document.getElementById('message').value.trim();
-                    var statusDiv = document.getElementById('contactFormStatus');
-                    
-                    if (!firstName || !lastName || !email || !message) {
-                        statusDiv.innerHTML = '<div class="alert alert-danger">Please fill out all fields.</div>';
-                        statusDiv.style.display = 'block';
-                        return;
-                    }
-                    
-                    // Email validation
-                    var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (!emailRegex.test(email)) {
-                        statusDiv.innerHTML = '<div class="alert alert-danger">Please enter a valid email address.</div>';
-                        statusDiv.style.display = 'block';
-                        return;
-                    }
-                    
-                    // Create mailto link
-                    var mailtoLink = 'mailto:ayushis.nmims@gmail.com'
-                        + '?subject=' + encodeURIComponent('Contact Form: ' + firstName + ' ' + lastName)
-                        + '&body=' + encodeURIComponent('Name: ' + firstName + ' ' + lastName + '\nEmail: ' + email + '\n\nMessage:\n' + message);
-                    
-                    window.location.href = mailtoLink;
-                    
-                    // Show success message
-                    statusDiv.innerHTML = '<div class="alert alert-success">Your message has been sent! Thank you for contacting us.</div>';
-                    statusDiv.style.display = 'block';
-                    
-                    // Reset form
-                    contactForm.reset();
-                    
-                    // Hide status after 5 seconds
-                    setTimeout(function() {
-                        statusDiv.style.display = 'none';
-                    }, 5000);
-                };
-            }
-        });
-    </script>
+            // Form handling for question submission
+            var questionForm = document.getElementById('questionForm');
+            if (questionForm) {
                 questionForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     
