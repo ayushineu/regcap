@@ -1006,7 +1006,7 @@ def index():
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-8">
-                                    <p class="lead">RegCap GPT is an AI-powered compliance assistant designed to help financial institutions navigate complex regulatory requirements with ease and accuracy. Built by industry professionals for industry professionals, RegCap GPT transforms the way compliance teams manage reporting, risk assessment, and regulatory interpretation.</p>
+                                    <p>RegCap GPT is an AI-powered compliance assistant designed to help financial institutions navigate complex regulatory requirements with ease and accuracy. Built by industry professionals for industry professionals, RegCap GPT transforms the way compliance teams manage reporting, risk assessment, and regulatory interpretation.</p>
                                     
                                     <h4 class="mt-4">Our Mission</h4>
                                     <p>Our mission is to automate and simplify regulatory compliance using cutting-edge natural language processing (NLP) and AI, enabling institutions to reduce manual effort, minimize errors, and stay audit-ready.</p>
@@ -1017,13 +1017,7 @@ def index():
                                     <p class="mt-4">Whether you're a global bank or a fintech startup, RegCap GPT empowers your teams to stay ahead of changing regulations, streamline operations, and enhance transparency—all without writing a single line of code.</p>
                                 </div>
                                 <div class="col-md-4 text-center">
-                                    <i class="fa fa-balance-scale fa-5x mb-3" style="color: var(--primary-color);"></i>
-                                    <div class="mt-4">
-                                        <h5>Contact Us</h5>
-                                        <p><i class="fa fa-envelope"></i> info@regcap.ai</p>
-                                        <p><i class="fa fa-linkedin"></i> linkedin.com/company/regcap</p>
-                                        <p><i class="fa fa-globe"></i> www.regcap.ai</p>
-                                    </div>
+                                    <i class="fa fa-book fa-5x mb-3" style="color: var(--primary-color);"></i>
                                 </div>
                             </div>
                             
