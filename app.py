@@ -817,7 +817,7 @@ def index():
                 <div class="nav-item" data-panel="about-panel">
                     <i class="fa fa-info-circle"></i> About Us
                 </div>
-                <a href="/aboutus" class="no-decoration" target="_blank">
+                <a href="/aboutus" class="no-decoration">
                     <div class="nav-item">
                         <i class="fa fa-external-link"></i> About Us Page
                     </div>
@@ -1928,13 +1928,37 @@ def get_question_status(question_id):
 
 @app.route('/aboutus')
 def aboutus():
-    """Render the About Us page."""
+    """Render the About Us page that uses the main app layout."""
     try:
-        # Get session information for theme consistency
+        # Get data from the storage
         session_id = get_current_session()
+        documents = get_document_chunks()
+        chat_history = get_chat_history()
+        raw_diagrams = get_diagrams()
         sessions = list_all_sessions()
         
-        return render_template_string("""
+        # Process diagrams for consistency with main app
+        seen_diagrams = set()
+        diagrams = []
+        
+        for diagram_code, explanation, diagram_type in raw_diagrams:
+            diagram_id = f"{explanation}-{diagram_type}"
+            if diagram_id in seen_diagrams:
+                continue
+            seen_diagrams.add(diagram_id)
+            fixed_code = fix_mermaid_syntax(diagram_code, diagram_type)
+            diagrams.append((fixed_code, explanation, diagram_type))
+    except Exception as e:
+        # Fallbacks for deployment testing
+        session_id = "test_session"
+        documents = {}
+        chat_history = []
+        diagrams = []
+        sessions = {"test_session": time.time()}
+        print(f"Error in aboutus: {str(e)}")
+    
+    # Use the main template but with the About Us panel activated by default
+    return render_template_string("""
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1945,6 +1969,8 @@ def aboutus():
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Mermaid JS for diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@8.14.0/dist/mermaid.min.js"></script>
     <style>
         :root {
             --primary-color: #0088cc;
@@ -1954,54 +1980,201 @@ def aboutus():
             --light-text: #ffffff;
             --dark-text: #343a40;
             --primary-text: var(--dark-text);
+            --secondary-text: #6c757d;
             --secondary-bg: var(--light-bg);
             --tertiary-bg: #f8f9fa;
             --border-color: #dee2e6;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --border-radius: 0.375rem;
+            --transition-speed: 0.3s;
+            --sidebar-width: 260px;
+            --sidebar-bg: #f8f9fa;
+            --sidebar-active: rgba(0, 136, 204, 0.1);
+            --mobile-nav-height: 60px;
         }
         
         [data-theme="dark"] {
             --primary-text: #f8f9fa;
+            --secondary-text: #adb5bd;
             --secondary-bg: #333;
             --tertiary-bg: #444;
             --border-color: #666;
+            --sidebar-bg: #2c2c2c;
+            --sidebar-active: rgba(255, 255, 255, 0.1);
         }
         
+        /* Base styles */
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
             background-color: var(--secondary-bg);
             color: var(--primary-text);
-            transition: all 0.3s ease;
+            transition: all var(--transition-speed) ease;
         }
         
-        .navbar {
+        .beta-badge {
+            position: fixed;
+            top: 0;
+            right: 0;
             background-color: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            z-index: 1030;
+            transform: translate(30%, -30%) rotate(45deg) translateX(35px);
+            transform-origin: top right;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
-        .card {
-            border-color: var(--border-color);
-            margin-bottom: 20px;
+        /* Sidebar styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            transition: transform var(--transition-speed) ease;
+            z-index: 1020;
         }
         
-        .btn-primary {
+        .sidebar-header {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .sidebar-header .byline {
+            font-size: 0.85rem;
+            color: var(--secondary-text);
+            font-style: italic;
+        }
+        
+        .sidebar-nav {
+            padding: 1rem 0;
+            flex-grow: 1;
+        }
+        
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            margin: 0.25rem 0.75rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--secondary-text);
+            transition: all 0.2s ease;
+        }
+        
+        .nav-item:hover {
+            background-color: var(--sidebar-active);
+            color: var(--primary-text);
+        }
+        
+        .nav-item.active {
+            background-color: var(--sidebar-active);
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .no-decoration {
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .no-decoration:hover {
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .sidebar-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        /* Main content area */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            padding: 2rem;
+            transition: margin var(--transition-speed) ease;
+        }
+        
+        /* Mobile menu button */
+        .mobile-menu-toggle {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1030;
+            border: none;
             background-color: var(--primary-color);
-            border-color: var(--primary-color);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
-        .btn-primary:hover {
-            background-color: var(--secondary-color);
-            border-color: var(--secondary-color);
+        /* Mobile navigation */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding-top: 4rem;
+            }
+            
+            .mobile-menu-toggle {
+                display: flex;
+            }
+            
+            .beta-badge {
+                transform: translate(30%, -30%) rotate(45deg) translateX(45px);
+            }
         }
         
-        .container {
-            max-width: 1200px;
-            padding: 20px;
+        /* Dark mode toggle */
+        .theme-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
         }
         
         .theme-switch {
             position: relative;
             display: inline-block;
-            width: 60px;
-            height: 34px;
+            width: 48px;
+            height: 24px;
         }
         
         .theme-switch input {
@@ -2019,136 +2192,448 @@ def aboutus():
             bottom: 0;
             background-color: #ccc;
             transition: .4s;
-            border-radius: 34px;
+            border-radius: 24px;
         }
         
         .slider:before {
             position: absolute;
             content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
             background-color: white;
             transition: .4s;
             border-radius: 50%;
         }
         
         input:checked + .slider {
-            background-color: #2196F3;
+            background-color: var(--primary-color);
         }
         
         input:checked + .slider:before {
-            transform: translateX(26px);
+            transform: translateX(24px);
+        }
+        
+        /* Content panels */
+        .content-panel {
+            display: none;
+        }
+        
+        .content-panel.active {
+            display: block;
+        }
+        
+        /* Chat panel */
+        .chat-container {
+            height: calc(100vh - 170px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            background-color: var(--tertiary-bg);
+            border: 1px solid var(--border-color);
+        }
+        
+        .message {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            max-width: 80%;
+        }
+        
+        .user-message {
+            background-color: var(--primary-color);
+            color: white;
+            margin-left: auto;
+        }
+        
+        .bot-message {
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            margin-right: auto;
+        }
+        
+        .message-input {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .message-input textarea {
+            flex-grow: 1;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+            min-height: 60px;
+            background-color: var(--tertiary-bg);
+            color: var(--primary-text);
+        }
+        
+        .feature-list {
+            background-color: var(--tertiary-bg);
+            border-radius: var(--border-radius);
+            margin: 0.5rem 1.5rem;
+            padding: 1rem;
+            font-size: 0.85rem;
+        }
+        
+        .feature-list-date {
+            font-style: italic;
+            color: var(--secondary-text);
+            margin-bottom: 0.5rem;
+            font-size: 0.75rem;
+        }
+        
+        .feature-list ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+        
+        .feature-list li {
+            margin-bottom: 0.25rem;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .sidebar-header {
+                padding: 1rem;
+            }
+            
+            .nav-item {
+                padding: 0.5rem 1rem;
+                margin: 0.25rem 0.5rem;
+            }
+            
+            .main-content {
+                padding: 1rem;
+                padding-top: 3rem;
+            }
+            
+            .chat-container {
+                height: calc(100vh - 150px);
+            }
+        }
+        
+        /* Card styles */
+        .card {
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            margin-bottom: 1rem;
+            background-color: var(--secondary-bg);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.75rem 1rem;
+            font-weight: 500;
+        }
+        
+        .card-body {
+            padding: 1rem;
+            background-color: var(--secondary-bg);
+            color: var(--primary-text);
+        }
+        
+        /* Button styles */
+        .btn {
+            border-radius: var(--border-radius);
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        /* Form controls */
+        .form-control {
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            padding: 0.375rem 0.75rem;
+            background-color: var(--tertiary-bg);
+            color: var(--primary-text);
+        }
+        
+        /* Status indicators */
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: var(--border-radius);
+            background-color: var(--tertiary-bg);
+            border: 1px solid var(--border-color);
+        }
+        
+        .status-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--secondary-text);
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Diagram styles */
+        .diagram-container {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            background-color: var(--tertiary-bg);
+            border: 1px solid var(--border-color);
+        }
+        
+        /* Session Management */
+        .session-switch-btn {
+            margin-bottom: 0.5rem;
+            text-align: left;
+        }
+        
+        /* Document Management */
+        .document-info {
+            margin-bottom: 0.5rem;
+            padding: 0.75rem;
+            border-radius: var(--border-radius);
+            background-color: var(--tertiary-bg);
+            border: 1px solid var(--border-color);
+        }
+        
+        /* Loading Progress Bar */
+        .progress {
+            height: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: var(--border-radius);
+            background-color: var(--tertiary-bg);
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            transition: width 0.2s ease;
+        }
+        
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 1050;
+        }
+        
+        .toast {
+            margin-bottom: 0.5rem;
+            min-width: 250px;
+            background-color: var(--secondary-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .toast-header {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0.75rem;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .toast-body {
+            padding: 0.75rem;
+            color: var(--primary-text);
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">
+    <div class="beta-badge">BETA</div>
+    
+    <button id="toggleMobileMenu" class="mobile-menu-toggle">
+        <i class="fa fa-bars"></i>
+    </button>
+    
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
                 <i class="fa fa-book"></i> RegCap GPT
-            </a>
-            <div class="ms-auto d-flex align-items-center">
-                <span class="text-light me-2">Dark Mode</span>
-                <label class="theme-switch mb-0">
+            </div>
+            <div class="byline">Regulatory Intelligence</div>
+            
+            <div class="theme-toggle mt-3">
+                <span>Dark Mode</span>
+                <label class="theme-switch">
                     <input type="checkbox" id="themeSwitch">
                     <span class="slider"></span>
                 </label>
             </div>
         </div>
-    </nav>
-    
-    <div class="container mt-4">
-        <div class="card mb-4" style="color: var(--primary-text) !important; background-color: var(--secondary-bg) !important;">
-            <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
-                <h5 class="card-title mb-0">About Us – RegCap GPT</h5>
+        
+        <div class="sidebar-nav">
+            <div class="nav-item" data-panel="chat-panel">
+                <i class="fa fa-comments"></i> Chat
             </div>
-            <div class="card-body" style="background-color: var(--secondary-bg) !important;">
-                <div class="row">
-                    <div class="col-md-8">
-                        <p style="color: var(--primary-text) !important;">RegCap GPT is an AI-powered compliance assistant designed to help financial institutions navigate complex regulatory requirements with ease and accuracy. Built by industry professionals for industry professionals, RegCap GPT transforms the way compliance teams manage reporting, risk assessment, and regulatory interpretation.</p>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h4 class="mt-3" style="color: var(--primary-text) !important;">Our Mission</h4>
-                                <p style="color: var(--primary-text) !important;">Our mission is to automate and simplify regulatory compliance using cutting-edge natural language processing (NLP) and AI, enabling institutions to reduce manual effort, minimize errors, and stay audit-ready.</p>
-                            </div>
-                            <div class="col-md-6">
-                                <h4 class="mt-3" style="color: var(--primary-text) !important;">Leadership</h4>
-                                <p style="color: var(--primary-text) !important;">Founded and led by Ayushi, a seasoned fintech and regulatory technology expert, RegCap GPT blends financial domain expertise with responsible AI practices to deliver secure, scalable, and adaptive compliance solutions.</p>
-                            </div>
-                        </div>
-                        
-                        <p class="mt-3" style="color: var(--primary-text) !important;">Whether you're a global bank or a fintech startup, RegCap GPT empowers your teams to stay ahead of changing regulations, streamline operations, and enhance transparency—all without writing a single line of code.</p>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="text-center mb-3">
-                            <i class="fa fa-book fa-4x mb-2" style="color: var(--primary-color);"></i>
-                        </div>
-                        
-                        <div class="card mb-3" style="background-color: var(--secondary-bg) !important;">
-                            <div class="card-header py-2" style="background-color: var(--primary-color); color: var(--light-text);">
-                                <h5 class="card-title mb-0 fs-6">Contact Us</h5>
-                            </div>
-                            <div class="card-body p-3" style="background-color: var(--secondary-bg) !important;">
-                                <form class="small">
-                                    <div class="mb-1">
-                                        <label for="contactName" class="form-label small mb-1" style="color: var(--primary-text) !important;">Name</label>
-                                        <input type="text" class="form-control form-control-sm" id="contactName" required>
-                                    </div>
-                                    <div class="mb-1">
-                                        <label for="contactEmail" class="form-label small mb-1" style="color: var(--primary-text) !important;">Email</label>
-                                        <input type="email" class="form-control form-control-sm" id="contactEmail" required>
-                                    </div>
-                                    <div class="mb-1">
-                                        <label for="contactOrg" class="form-label small mb-1" style="color: var(--primary-text) !important;">Organization (optional)</label>
-                                        <input type="text" class="form-control form-control-sm" id="contactOrg">
-                                    </div>
-                                    <div class="mb-1">
-                                        <label for="contactMessage" class="form-label small mb-1" style="color: var(--primary-text) !important;">Message</label>
-                                        <textarea class="form-control form-control-sm" id="contactMessage" rows="2" required></textarea>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary btn-sm mt-2">
-                                        <i class="fa fa-paper-plane"></i> Send
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+            <div class="nav-item" data-panel="docs-panel">
+                <i class="fa fa-file-text"></i> Documents
+            </div>
+            <div class="nav-item" data-panel="diagrams-panel">
+                <i class="fa fa-project-diagram"></i> Diagrams
+            </div>
+            <div class="nav-item" data-panel="sessions-panel">
+                <i class="fa fa-clock-o"></i> Sessions
+            </div>
+            <div class="nav-item" id="featureToggle">
+                <i class="fa fa-list"></i> Features <span class="float-end"><i class="fa fa-angle-down toggle-icon"></i></span>
+            </div>
+            <div class="nav-item active" data-panel="about-panel">
+                <i class="fa fa-info-circle"></i> About Us
+            </div>
+            <a href="/" class="no-decoration">
+                <div class="nav-item">
+                    <i class="fa fa-home"></i> Main App
                 </div>
-                
-                <div class="alert alert-info mt-3">
-                    <i class="fa fa-info-circle"></i> <strong>Version 1.0.0</strong> - For support or feature requests, please contact our team.
-                </div>
+            </a>
+            <div class="feature-list" id="featureList" style="display: none;">
+                <div class="feature-list-date">As of April 18, 2025</div>
+                <ul>
+                    <li><i class="fa fa-check"></i> PDF document analysis</li>
+                    <li><i class="fa fa-check"></i> AI-powered QA system</li>
+                    <li><i class="fa fa-check"></i> Auto diagram generation</li>
+                    <li><i class="fa fa-check"></i> Mermaid flowchart support</li>
+                    <li><i class="fa fa-check"></i> Dark mode support</li>
+                    <li><i class="fa fa-check"></i> Session management</li>
+                    <li><i class="fa fa-hourglass-half"></i> Multiple diagram types</li>
+                    <li><i class="fa fa-hourglass-half"></i> Export functionality</li>
+                    <li><i class="fa fa-hourglass-half"></i> API integration</li>
+                </ul>
             </div>
         </div>
         
-        <div class="text-center mt-3">
-            <a href="/" class="btn btn-outline-primary">
-                <i class="fa fa-arrow-left"></i> Back to Application
-            </a>
+        <div class="sidebar-footer">
+            <small class="text-muted">Current Session: <span id="sessionId">{{ session_id }}</span></small>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="content-panels">
+            <!-- About Us Panel -->
+            <div id="about-panel" class="content-panel active">
+                <div class="card mb-4" style="color: var(--primary-text) !important; background-color: var(--secondary-bg) !important;">
+                    <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
+                        <h5 class="card-title mb-0">About Us – RegCap GPT</h5>
+                    </div>
+                    <div class="card-body" style="background-color: var(--secondary-bg) !important;">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <p style="color: var(--primary-text) !important;">RegCap GPT is an AI-powered compliance assistant designed to help financial institutions navigate complex regulatory requirements with ease and accuracy. Built by industry professionals for industry professionals, RegCap GPT transforms the way compliance teams manage reporting, risk assessment, and regulatory interpretation.</p>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h4 class="mt-3" style="color: var(--primary-text) !important;">Our Mission</h4>
+                                        <p style="color: var(--primary-text) !important;">Our mission is to automate and simplify regulatory compliance using cutting-edge natural language processing (NLP) and AI, enabling institutions to reduce manual effort, minimize errors, and stay audit-ready.</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h4 class="mt-3" style="color: var(--primary-text) !important;">Leadership</h4>
+                                        <p style="color: var(--primary-text) !important;">Founded and led by Ayushi, a seasoned fintech and regulatory technology expert, RegCap GPT blends financial domain expertise with responsible AI practices to deliver secure, scalable, and adaptive compliance solutions.</p>
+                                    </div>
+                                </div>
+                                
+                                <p class="mt-3" style="color: var(--primary-text) !important;">Whether you're a global bank or a fintech startup, RegCap GPT empowers your teams to stay ahead of changing regulations, streamline operations, and enhance transparency—all without writing a single line of code.</p>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center mb-3">
+                                    <i class="fa fa-book fa-4x mb-2" style="color: var(--primary-color);"></i>
+                                </div>
+                                
+                                <div class="card mb-3" style="background-color: var(--secondary-bg) !important;">
+                                    <div class="card-header py-2" style="background-color: var(--primary-color); color: var(--light-text);">
+                                        <h5 class="card-title mb-0 fs-6">Contact Us</h5>
+                                    </div>
+                                    <div class="card-body p-3" style="background-color: var(--secondary-bg) !important;">
+                                        <form class="small">
+                                            <div class="mb-1">
+                                                <label for="contactName" class="form-label small mb-1" style="color: var(--primary-text) !important;">Name</label>
+                                                <input type="text" class="form-control form-control-sm" id="contactName" required>
+                                            </div>
+                                            <div class="mb-1">
+                                                <label for="contactEmail" class="form-label small mb-1" style="color: var(--primary-text) !important;">Email</label>
+                                                <input type="email" class="form-control form-control-sm" id="contactEmail" required>
+                                            </div>
+                                            <div class="mb-1">
+                                                <label for="contactOrg" class="form-label small mb-1" style="color: var(--primary-text) !important;">Organization (optional)</label>
+                                                <input type="text" class="form-control form-control-sm" id="contactOrg">
+                                            </div>
+                                            <div class="mb-1">
+                                                <label for="contactMessage" class="form-label small mb-1" style="color: var(--primary-text) !important;">Message</label>
+                                                <textarea class="form-control form-control-sm" id="contactMessage" rows="2" required></textarea>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary btn-sm mt-2">
+                                                <i class="fa fa-paper-plane"></i> Send
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info mt-3">
+                            <i class="fa fa-info-circle"></i> <strong>Version 1.0.0</strong> - For support or feature requests, please contact our team.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Other panels are not shown by default -->
+            <div id="chat-panel" class="content-panel">
+                <!-- The chat panel content would be here, but hidden -->
+            </div>
+            <div id="docs-panel" class="content-panel">
+                <!-- The documents panel content would be here, but hidden -->
+            </div>
+            <div id="diagrams-panel" class="content-panel">
+                <!-- The diagrams panel content would be here, but hidden -->
+            </div>
+            <div id="sessions-panel" class="content-panel">
+                <!-- The sessions panel content would be here, but hidden -->
+            </div>
         </div>
     </div>
     
     <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Theme switcher functionality
         document.addEventListener('DOMContentLoaded', function() {
+            // Theme switcher
             const themeSwitch = document.getElementById('themeSwitch');
-            
-            // Check for saved theme preference or preferred color scheme
             const savedTheme = localStorage.getItem('theme');
             const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
             
-            // Apply theme
             if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
                 document.documentElement.setAttribute('data-theme', 'dark');
                 themeSwitch.checked = true;
             }
             
-            // Switch theme when toggle is clicked
             themeSwitch.addEventListener('change', function() {
                 if (this.checked) {
                     document.documentElement.setAttribute('data-theme', 'dark');
@@ -2158,13 +2643,66 @@ def aboutus():
                     localStorage.setItem('theme', 'light');
                 }
             });
+            
+            // Mobile menu toggle
+            const toggleMobileMenuBtn = document.getElementById('toggleMobileMenu');
+            const sidebar = document.getElementById('sidebar');
+            
+            toggleMobileMenuBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+            });
+            
+            // Panel navigation
+            const navItems = document.querySelectorAll('.nav-item[data-panel]');
+            const contentPanels = document.querySelectorAll('.content-panel');
+            
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const panelId = this.getAttribute('data-panel');
+                    
+                    // Hide all panels
+                    contentPanels.forEach(panel => {
+                        panel.classList.remove('active');
+                    });
+                    
+                    // Deactivate all nav items
+                    navItems.forEach(navItem => {
+                        navItem.classList.remove('active');
+                    });
+                    
+                    // Show the selected panel
+                    document.getElementById(panelId).classList.add('active');
+                    
+                    // Activate the clicked nav item
+                    this.classList.add('active');
+                    
+                    // Close mobile menu after navigation (on small screens)
+                    if (window.innerWidth < 992) {
+                        sidebar.classList.remove('active');
+                    }
+                    
+                    // Log the panel change (helpful for debugging)
+                    console.log('Switching to panel:', panelId);
+                    console.log('Panel activated:', panelId);
+                });
+            });
+            
+            // Toggle feature list
+            const featureToggle = document.getElementById('featureToggle');
+            const featureList = document.getElementById('featureList');
+            const toggleIcon = document.querySelector('.toggle-icon');
+            
+            featureToggle.addEventListener('click', function() {
+                featureList.style.display = featureList.style.display === 'none' ? 'block' : 'none';
+                toggleIcon.classList.toggle('fa-angle-down');
+                toggleIcon.classList.toggle('fa-angle-up');
+            });
         });
     </script>
 </body>
 </html>
-        """)
-    except Exception as e:
-        return f"Error rendering About Us page: {str(e)}"
+    """)
+    
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
