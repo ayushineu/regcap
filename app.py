@@ -850,9 +850,9 @@ def index():
                                 </div>
                             {% endfor %}
                         {% else %}
-                            <div class="text-center text-muted my-5">
-                                <i class="fa fa-info-circle fa-2x mb-3"></i>
-                                <p>No chat history yet. Upload documents and start asking questions!</p>
+                            <div class="text-center my-5">
+                                <i class="fa fa-info-circle fa-2x mb-3" style="color: var(--primary-text) !important;"></i>
+                                <p style="color: var(--primary-text) !important;">No chat history yet. Upload documents and start asking questions!</p>
                             </div>
                         {% endif %}
                     </div>
@@ -999,22 +999,22 @@ def index():
                 
                 <!-- About Us Panel -->
                 <div id="about-panel" class="content-panel">
-                    <div class="card mb-4">
+                    <div class="card mb-4" style="color: var(--primary-text) !important;">
                         <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
                             <h5 class="card-title mb-0">About Us – RegCap GPT</h5>
                         </div>
-                        <div class="card-body" style="color: var(--primary-text);">
+                        <div class="card-body">
                             <div class="row">
                                 <div class="col-md-8">
-                                    <p>RegCap GPT is an AI-powered compliance assistant designed to help financial institutions navigate complex regulatory requirements with ease and accuracy. Built by industry professionals for industry professionals, RegCap GPT transforms the way compliance teams manage reporting, risk assessment, and regulatory interpretation.</p>
+                                    <p style="color: var(--primary-text) !important;">RegCap GPT is an AI-powered compliance assistant designed to help financial institutions navigate complex regulatory requirements with ease and accuracy. Built by industry professionals for industry professionals, RegCap GPT transforms the way compliance teams manage reporting, risk assessment, and regulatory interpretation.</p>
                                     
-                                    <h4 class="mt-4">Our Mission</h4>
-                                    <p>Our mission is to automate and simplify regulatory compliance using cutting-edge natural language processing (NLP) and AI, enabling institutions to reduce manual effort, minimize errors, and stay audit-ready.</p>
+                                    <h4 class="mt-4" style="color: var(--primary-text) !important;">Our Mission</h4>
+                                    <p style="color: var(--primary-text) !important;">Our mission is to automate and simplify regulatory compliance using cutting-edge natural language processing (NLP) and AI, enabling institutions to reduce manual effort, minimize errors, and stay audit-ready.</p>
                                     
-                                    <h4 class="mt-4">Leadership</h4>
-                                    <p>Founded and led by Ayushi, a seasoned fintech and regulatory technology expert, RegCap GPT blends financial domain expertise with responsible AI practices to deliver secure, scalable, and adaptive compliance solutions.</p>
+                                    <h4 class="mt-4" style="color: var(--primary-text) !important;">Leadership</h4>
+                                    <p style="color: var(--primary-text) !important;">Founded and led by Ayushi, a seasoned fintech and regulatory technology expert, RegCap GPT blends financial domain expertise with responsible AI practices to deliver secure, scalable, and adaptive compliance solutions.</p>
                                     
-                                    <p class="mt-4">Whether you're a global bank or a fintech startup, RegCap GPT empowers your teams to stay ahead of changing regulations, streamline operations, and enhance transparency—all without writing a single line of code.</p>
+                                    <p class="mt-4" style="color: var(--primary-text) !important;">Whether you're a global bank or a fintech startup, RegCap GPT empowers your teams to stay ahead of changing regulations, streamline operations, and enhance transparency—all without writing a single line of code.</p>
                                 </div>
                                 <div class="col-md-4 text-center">
                                     <i class="fa fa-book fa-5x mb-3" style="color: var(--primary-color);"></i>
