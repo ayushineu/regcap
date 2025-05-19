@@ -1022,57 +1022,57 @@ def index():
                                 <div class="col-md-8">
                                     <p style="color: var(--primary-text) !important;">RegCap GPT is an AI-powered compliance assistant designed to help financial institutions navigate complex regulatory requirements with ease and accuracy. Built by industry professionals for industry professionals, RegCap GPT transforms the way compliance teams manage reporting, risk assessment, and regulatory interpretation.</p>
                                     
-                                    <h4 class="mt-4" style="color: var(--primary-text) !important;">Our Mission</h4>
-                                    <p style="color: var(--primary-text) !important;">Our mission is to automate and simplify regulatory compliance using cutting-edge natural language processing (NLP) and AI, enabling institutions to reduce manual effort, minimize errors, and stay audit-ready.</p>
-                                    
-                                    <h4 class="mt-4" style="color: var(--primary-text) !important;">Leadership</h4>
-                                    <p style="color: var(--primary-text) !important;">Founded and led by Ayushi, a seasoned fintech and regulatory technology expert, RegCap GPT blends financial domain expertise with responsible AI practices to deliver secure, scalable, and adaptive compliance solutions.</p>
-                                    
-                                    <p class="mt-4" style="color: var(--primary-text) !important;">Whether you're a global bank or a fintech startup, RegCap GPT empowers your teams to stay ahead of changing regulations, streamline operations, and enhance transparency—all without writing a single line of code.</p>
-                                </div>
-                                <div class="col-md-4 text-center">
-                                    <i class="fa fa-book fa-5x mb-3" style="color: var(--primary-color);"></i>
-                                </div>
-                            </div>
-                            
-                            <div class="alert alert-info mt-4">
-                                <i class="fa fa-info-circle"></i> <strong>Version 1.0.0</strong> - For support or feature requests, please contact our team.
-                            </div>
-                            
-                            <div class="row mt-4">
-                                <div class="col-md-4"></div>
-                                <div class="col-md-8">
-                                    <div class="card" style="background-color: var(--secondary-bg) !important;">
-                                        <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
-                                            <h5 class="card-title mb-0">Contact Us</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h4 class="mt-3" style="color: var(--primary-text) !important;">Our Mission</h4>
+                                            <p style="color: var(--primary-text) !important;">Our mission is to automate and simplify regulatory compliance using cutting-edge natural language processing (NLP) and AI, enabling institutions to reduce manual effort, minimize errors, and stay audit-ready.</p>
                                         </div>
-                                        <div class="card-body" style="background-color: var(--secondary-bg) !important;">
-                                            <p style="color: var(--primary-text) !important;">We'd love to hear from you! Please reach out using the form below.</p>
-                                            
-                                            <form>
-                                                <div class="mb-2">
-                                                    <label for="contactName" class="form-label small" style="color: var(--primary-text) !important;">Name</label>
+                                        <div class="col-md-6">
+                                            <h4 class="mt-3" style="color: var(--primary-text) !important;">Leadership</h4>
+                                            <p style="color: var(--primary-text) !important;">Founded and led by Ayushi, a seasoned fintech and regulatory technology expert, RegCap GPT blends financial domain expertise with responsible AI practices to deliver secure, scalable, and adaptive compliance solutions.</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="mt-3" style="color: var(--primary-text) !important;">Whether you're a global bank or a fintech startup, RegCap GPT empowers your teams to stay ahead of changing regulations, streamline operations, and enhance transparency—all without writing a single line of code.</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center mb-3">
+                                        <i class="fa fa-book fa-4x mb-2" style="color: var(--primary-color);"></i>
+                                    </div>
+                                    
+                                    <div class="card mb-3" style="background-color: var(--secondary-bg) !important;">
+                                        <div class="card-header py-2" style="background-color: var(--primary-color); color: var(--light-text);">
+                                            <h5 class="card-title mb-0 fs-6">Contact Us</h5>
+                                        </div>
+                                        <div class="card-body p-3" style="background-color: var(--secondary-bg) !important;">
+                                            <form class="small">
+                                                <div class="mb-1">
+                                                    <label for="contactName" class="form-label small mb-1" style="color: var(--primary-text) !important;">Name</label>
                                                     <input type="text" class="form-control form-control-sm" id="contactName" required>
                                                 </div>
-                                                <div class="mb-2">
-                                                    <label for="contactEmail" class="form-label small" style="color: var(--primary-text) !important;">Email</label>
+                                                <div class="mb-1">
+                                                    <label for="contactEmail" class="form-label small mb-1" style="color: var(--primary-text) !important;">Email</label>
                                                     <input type="email" class="form-control form-control-sm" id="contactEmail" required>
                                                 </div>
-                                                <div class="mb-2">
-                                                    <label for="contactOrg" class="form-label small" style="color: var(--primary-text) !important;">Organization (optional)</label>
+                                                <div class="mb-1">
+                                                    <label for="contactOrg" class="form-label small mb-1" style="color: var(--primary-text) !important;">Organization (optional)</label>
                                                     <input type="text" class="form-control form-control-sm" id="contactOrg">
                                                 </div>
-                                                <div class="mb-2">
-                                                    <label for="contactMessage" class="form-label small" style="color: var(--primary-text) !important;">Message</label>
-                                                    <textarea class="form-control form-control-sm" id="contactMessage" rows="3" required></textarea>
+                                                <div class="mb-1">
+                                                    <label for="contactMessage" class="form-label small mb-1" style="color: var(--primary-text) !important;">Message</label>
+                                                    <textarea class="form-control form-control-sm" id="contactMessage" rows="2" required></textarea>
                                                 </div>
                                                 <button type="submit" class="btn btn-primary btn-sm mt-2">
-                                                    <i class="fa fa-paper-plane"></i> Send Message
+                                                    <i class="fa fa-paper-plane"></i> Send
                                                 </button>
                                             </form>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                            
+                            <div class="alert alert-info mt-3">
+                                <i class="fa fa-info-circle"></i> <strong>Version 1.0.0</strong> - For support or feature requests, please contact our team.
                             </div>
                         </div>
                     </div>
