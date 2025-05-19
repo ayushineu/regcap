@@ -1911,5 +1911,245 @@ def get_question_status(question_id):
         return jsonify(question_status_store[question_id])
     return jsonify({'error': 'Question ID not found'})
 
+@app.route('/aboutus')
+def aboutus():
+    """Render the About Us page."""
+    try:
+        # Get session information for theme consistency
+        session_id = get_current_session()
+        sessions = list_all_sessions()
+        
+        return render_template_string("""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - RegCap GPT</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0088cc;
+            --secondary-color: #005580;
+            --light-bg: #ffffff;
+            --dark-bg: #222;
+            --light-text: #ffffff;
+            --dark-text: #343a40;
+            --primary-text: var(--dark-text);
+            --secondary-bg: var(--light-bg);
+            --tertiary-bg: #f8f9fa;
+            --border-color: #dee2e6;
+        }
+        
+        [data-theme="dark"] {
+            --primary-text: #f8f9fa;
+            --secondary-bg: #333;
+            --tertiary-bg: #444;
+            --border-color: #666;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--secondary-bg);
+            color: var(--primary-text);
+            transition: all 0.3s ease;
+        }
+        
+        .navbar {
+            background-color: var(--primary-color);
+        }
+        
+        .card {
+            border-color: var(--border-color);
+            margin-bottom: 20px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .container {
+            max-width: 1200px;
+            padding: 20px;
+        }
+        
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fa fa-book"></i> RegCap GPT
+            </a>
+            <div class="ms-auto d-flex align-items-center">
+                <span class="text-light me-2">Dark Mode</span>
+                <label class="theme-switch mb-0">
+                    <input type="checkbox" id="themeSwitch">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mt-4">
+        <div class="card mb-4" style="color: var(--primary-text) !important; background-color: var(--secondary-bg) !important;">
+            <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
+                <h5 class="card-title mb-0">About Us – RegCap GPT</h5>
+            </div>
+            <div class="card-body" style="background-color: var(--secondary-bg) !important;">
+                <div class="row">
+                    <div class="col-md-8">
+                        <p style="color: var(--primary-text) !important;">RegCap GPT is an AI-powered compliance assistant designed to help financial institutions navigate complex regulatory requirements with ease and accuracy. Built by industry professionals for industry professionals, RegCap GPT transforms the way compliance teams manage reporting, risk assessment, and regulatory interpretation.</p>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4 class="mt-3" style="color: var(--primary-text) !important;">Our Mission</h4>
+                                <p style="color: var(--primary-text) !important;">Our mission is to automate and simplify regulatory compliance using cutting-edge natural language processing (NLP) and AI, enabling institutions to reduce manual effort, minimize errors, and stay audit-ready.</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h4 class="mt-3" style="color: var(--primary-text) !important;">Leadership</h4>
+                                <p style="color: var(--primary-text) !important;">Founded and led by Ayushi, a seasoned fintech and regulatory technology expert, RegCap GPT blends financial domain expertise with responsible AI practices to deliver secure, scalable, and adaptive compliance solutions.</p>
+                            </div>
+                        </div>
+                        
+                        <p class="mt-3" style="color: var(--primary-text) !important;">Whether you're a global bank or a fintech startup, RegCap GPT empowers your teams to stay ahead of changing regulations, streamline operations, and enhance transparency—all without writing a single line of code.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center mb-3">
+                            <i class="fa fa-book fa-4x mb-2" style="color: var(--primary-color);"></i>
+                        </div>
+                        
+                        <div class="card mb-3" style="background-color: var(--secondary-bg) !important;">
+                            <div class="card-header py-2" style="background-color: var(--primary-color); color: var(--light-text);">
+                                <h5 class="card-title mb-0 fs-6">Contact Us</h5>
+                            </div>
+                            <div class="card-body p-3" style="background-color: var(--secondary-bg) !important;">
+                                <form class="small">
+                                    <div class="mb-1">
+                                        <label for="contactName" class="form-label small mb-1" style="color: var(--primary-text) !important;">Name</label>
+                                        <input type="text" class="form-control form-control-sm" id="contactName" required>
+                                    </div>
+                                    <div class="mb-1">
+                                        <label for="contactEmail" class="form-label small mb-1" style="color: var(--primary-text) !important;">Email</label>
+                                        <input type="email" class="form-control form-control-sm" id="contactEmail" required>
+                                    </div>
+                                    <div class="mb-1">
+                                        <label for="contactOrg" class="form-label small mb-1" style="color: var(--primary-text) !important;">Organization (optional)</label>
+                                        <input type="text" class="form-control form-control-sm" id="contactOrg">
+                                    </div>
+                                    <div class="mb-1">
+                                        <label for="contactMessage" class="form-label small mb-1" style="color: var(--primary-text) !important;">Message</label>
+                                        <textarea class="form-control form-control-sm" id="contactMessage" rows="2" required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-sm mt-2">
+                                        <i class="fa fa-paper-plane"></i> Send
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="fa fa-info-circle"></i> <strong>Version 1.0.0</strong> - For support or feature requests, please contact our team.
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-3">
+            <a href="/" class="btn btn-outline-primary">
+                <i class="fa fa-arrow-left"></i> Back to Application
+            </a>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Theme switcher functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeSwitch = document.getElementById('themeSwitch');
+            
+            // Check for saved theme preference or preferred color scheme
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            // Apply theme
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeSwitch.checked = true;
+            }
+            
+            // Switch theme when toggle is clicked
+            themeSwitch.addEventListener('change', function() {
+                if (this.checked) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+        """)
+    except Exception as e:
+        return f"Error rendering About Us page: {str(e)}"
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
