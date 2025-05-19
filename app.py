@@ -999,11 +999,11 @@ def index():
                 
                 <!-- About Us Panel -->
                 <div id="about-panel" class="content-panel">
-                    <div class="card mb-4" style="color: var(--primary-text) !important;">
+                    <div class="card mb-4" style="color: var(--primary-text) !important; background-color: var(--secondary-bg) !important;">
                         <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
                             <h5 class="card-title mb-0">About Us – RegCap GPT</h5>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body" style="background-color: var(--secondary-bg) !important;">
                             <div class="row">
                                 <div class="col-md-8">
                                     <p style="color: var(--primary-text) !important;">RegCap GPT is an AI-powered compliance assistant designed to help financial institutions navigate complex regulatory requirements with ease and accuracy. Built by industry professionals for industry professionals, RegCap GPT transforms the way compliance teams manage reporting, risk assessment, and regulatory interpretation.</p>
