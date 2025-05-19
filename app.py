@@ -177,8 +177,11 @@ except:
     pass  # Will be handled in routes
 
 @app.route('/')
+@app.route('/chat')
 def index():
-    """Render the main application page."""
+    """Render the main application page with chat panel active."""
+    active_tab = "chat-panel"
+    session['current_tab'] = active_tab
     try:
         # Get data from the storage
         session_id = get_current_session()
