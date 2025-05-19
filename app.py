@@ -1038,6 +1038,33 @@ def index():
                             <div class="alert alert-info mt-4">
                                 <i class="fa fa-info-circle"></i> <strong>Version 1.0.0</strong> - For support or feature requests, please contact our team.
                             </div>
+                            
+                            <div class="mt-4">
+                                <h4 style="color: var(--primary-text) !important;">Contact Us</h4>
+                                <p style="color: var(--primary-text) !important;">We'd love to hear from you! Whether you have questions, feedback, or partnership inquiries, please reach out using the form below.</p>
+                                
+                                <form class="mt-4">
+                                    <div class="mb-3">
+                                        <label for="contactName" class="form-label" style="color: var(--primary-text) !important;">Name</label>
+                                        <input type="text" class="form-control" id="contactName" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="contactEmail" class="form-label" style="color: var(--primary-text) !important;">Email</label>
+                                        <input type="email" class="form-control" id="contactEmail" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="contactOrg" class="form-label" style="color: var(--primary-text) !important;">Organization (optional)</label>
+                                        <input type="text" class="form-control" id="contactOrg">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="contactMessage" class="form-label" style="color: var(--primary-text) !important;">Message</label>
+                                        <textarea class="form-control" id="contactMessage" rows="4" required></textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa fa-paper-plane"></i> Send Message
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
