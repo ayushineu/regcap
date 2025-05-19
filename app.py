@@ -957,12 +957,12 @@ def index():
                 <div id="sessions-panel" class="content-panel">
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="card mb-4">
+                            <div class="card mb-4" style="background-color: var(--secondary-bg) !important;">
                                 <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
                                     <h5 class="card-title mb-0">Create New Session</h5>
                                 </div>
-                                <div class="card-body">
-                                    <p>Create a new session to start with a clean slate:</p>
+                                <div class="card-body" style="background-color: var(--secondary-bg) !important;">
+                                    <p style="color: var(--primary-text) !important;">Create a new session to start with a clean slate:</p>
                                     <button id="newSessionBtn" class="btn btn-primary">
                                         <i class="fa fa-plus-circle"></i> New Session
                                     </button>
@@ -971,23 +971,24 @@ def index():
                         </div>
                         
                         <div class="col-md-6">
-                            <div class="card mb-4">
+                            <div class="card mb-4" style="background-color: var(--secondary-bg) !important;">
                                 <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
                                     <h5 class="card-title mb-0">Available Sessions</h5>
                                 </div>
-                                <div class="card-body">
+                                <div class="card-body" style="background-color: var(--secondary-bg) !important;">
                                     {% if sessions %}
                                         <div class="list-group">
                                             {% for session_id, timestamp in sessions.items() %}
                                                 <button class="list-group-item list-group-item-action session-switch-btn"
-                                                    data-session-id="{{ session_id }}">
+                                                    data-session-id="{{ session_id }}" 
+                                                    style="background-color: var(--tertiary-bg) !important; color: var(--primary-text) !important; border-color: var(--border-color) !important;">
                                                     <i class="fa fa-clock-o"></i> 
                                                     {{ session_id }}
                                                 </button>
                                             {% endfor %}
                                         </div>
                                     {% else %}
-                                        <div class="text-center text-muted">
+                                        <div class="text-center" style="color: var(--primary-text) !important;">
                                             <p>No previous sessions found.</p>
                                         </div>
                                     {% endif %}
