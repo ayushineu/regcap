@@ -1347,8 +1347,8 @@ def index():
                                                                             console.log("Detected mermaid syntax error, showing fallback");
                                                                             // Clean up the error message and show the diagram code
                                                                             diagramElement.innerHTML = 
-                                                                                '<div class="alert alert-warning">The diagram could not be rendered properly.</div>' +
-                                                                                '<pre style="background-color:#f8f9fa; padding:10px; border-radius:5px;">' + 
+                                                                                '<div class="alert alert-warning" style="background-color: var(--secondary-bg) !important; color: var(--primary-text) !important; border-color: var(--border-color) !important;">The diagram could not be rendered properly.</div>' +
+                                                                                '<pre style="background-color: var(--tertiary-bg) !important; color: var(--primary-text) !important; padding:10px; border-radius:5px;">' + 
                                                                                 diagramCode + '</pre>';
                                                                         }
                                                                     }, 1000);
