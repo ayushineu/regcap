@@ -888,7 +888,7 @@ def index():
                         <li><i class="fa fa-check"></i> Dark/light mode</li>
                     </ul>
                 </div>
-                <div class="nav-item" id="aboutUsToggle">
+                <div class="nav-item" data-panel="about-panel">
                     <i class="fa fa-info-circle"></i> About Us
                 </div>
                 </div>
@@ -1083,6 +1083,54 @@ def index():
                         </div>
                     </div>
                 </div>
+                
+                <!-- About Panel -->
+                <div id="about-panel" class="content-panel">
+                    <div class="card">
+                        <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
+                            <h5 class="card-title mb-0"><i class="fa fa-info-circle"></i> About RegCap GPT</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center mb-4">
+                                <div style="display: inline-block; background-color: #0088cc; width: 100px; height: 100px; border-radius: 50%; color: white; line-height: 100px; font-size: 40px; font-weight: bold;">
+                                    R
+                                </div>
+                            </div>
+                            
+                            <h4 class="text-center mb-3">RegCap GPT</h4>
+                            <p>RegCap GPT is an advanced Regulatory Intelligence platform designed to transform complex regulatory documents into actionable insights through AI-driven analysis.</p>
+                            
+                            <h5 class="mt-4">Our Mission</h5>
+                            <p>To make regulatory compliance more accessible by providing powerful tools for document analysis, visualization, and knowledge extraction.</p>
+                            
+                            <h5 class="mt-4">Key Features</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li><i class="fa fa-check text-primary"></i> PDF document analysis</li>
+                                        <li><i class="fa fa-check text-primary"></i> Natural language queries</li>
+                                        <li><i class="fa fa-check text-primary"></i> AI-generated diagrams</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li><i class="fa fa-check text-primary"></i> Multi-session support</li>
+                                        <li><i class="fa fa-check text-primary"></i> Vector search technology</li>
+                                        <li><i class="fa fa-check text-primary"></i> Dark/light mode</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <h5 class="mt-4">The Team</h5>
+                            <p>RegCap was developed by a team of regulatory experts, machine learning engineers, and UI/UX specialists dedicated to creating the most user-friendly regulatory document analysis platform.</p>
+                            
+                            <div class="mt-5 text-center">
+                                <hr>
+                                <p class="small text-muted">Version 1.0.0 | &copy; 2025 RegCap Team</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- About Us Modal -->
@@ -1190,69 +1238,73 @@ def index():
             
             // Content navigation
             var navItems = document.querySelectorAll('.nav-item');
-            var panelTitles = {
-                'chat-panel': '<i class="fa fa-comments"></i> Chat with your Documents',
-                'docs-panel': '<i class="fa fa-file-pdf-o"></i> Document Management',
-                'diagrams-panel': '<i class="fa fa-sitemap"></i> Generated Diagrams',
-                'sessions-panel': '<i class="fa fa-database"></i> Session Management'
-            };
             
-            // Function to switch panels - extracted for reuse
-            function switchToPanel(panelId, clickedNavItem) {
-                if (!panelId) return;
+            // Initialize navigation system after page load
+            document.addEventListener('DOMContentLoaded', function() {
+                // Get all navigation items and content panels
+                const navItems = document.querySelectorAll('.nav-item');
+                const contentPanels = document.querySelectorAll('.content-panel');
                 
-                // Log panel change attempt for debugging
-                console.log('Switching to panel:', panelId);
-                
-                // Hide all content panels
-                var contentPanels = document.querySelectorAll('.content-panel');
-                for (var j = 0; j < contentPanels.length; j++) {
-                    contentPanels[j].classList.remove('active');
-                }
-                
-                // Remove active class from all navigation items
-                for (var k = 0; k < navItems.length; k++) {
-                    navItems[k].classList.remove('active');
-                }
-                
-                // Show the selected content panel
-                var panelElement = document.getElementById(panelId);
-                if (panelElement) {
-                    panelElement.classList.add('active');
-                    console.log('Panel activated:', panelId);
-                } else {
-                    console.log('Panel element not found:', panelId);
-                }
-                
-                // Update panel title
-                if (panelTitles[panelId]) {
-                    document.getElementById('currentPanelTitle').innerHTML = panelTitles[panelId];
-                }
-                
-                // Add active class to clicked navigation item
-                if (clickedNavItem) {
-                    clickedNavItem.classList.add('active');
-                }
-                
-                // On mobile, ensure we scroll to top of panel
-                if (window.innerWidth <= 768) {
-                    window.scrollTo(0, 0);
-                }
-            }
-            
-            // Add click event to each navigation item
-            for (var i = 0; i < navItems.length; i++) {
-                navItems[i].addEventListener('click', function() {
-                    // If this is the features toggle, don't navigate
-                    if (this.id === 'featureToggle') {
-                        return;
+                // Function to switch between panels
+                function switchToPanel(panelId) {
+                    if (!panelId) return;
+                    
+                    console.log('Switching to panel:', panelId);
+                    
+                    // Hide all panels first
+                    contentPanels.forEach(panel => {
+                        panel.classList.remove('active');
+                    });
+                    
+                    // Show the selected panel
+                    const selectedPanel = document.getElementById(panelId);
+                    if (selectedPanel) {
+                        selectedPanel.classList.add('active');
+                        console.log('Panel activated:', panelId);
+                    } else {
+                        console.error('Panel not found:', panelId);
                     }
                     
-                    // Get the panel id from data-panel attribute
-                    var panelId = this.getAttribute('data-panel');
-                    switchToPanel(panelId, this);
+                    // Update active state in navigation
+                    navItems.forEach(item => {
+                        item.classList.remove('active');
+                        if (item.getAttribute('data-panel') === panelId) {
+                            item.classList.add('active');
+                        }
+                    });
+                    
+                    // Update panel title
+                    const currentPanelTitle = document.getElementById('currentPanelTitle');
+                    if (currentPanelTitle && panelTitles[panelId]) {
+                        currentPanelTitle.innerHTML = panelTitles[panelId];
+                    }
+                    
+                    // On mobile, ensure we scroll to top and close menu
+                    if (window.innerWidth <= 768) {
+                        window.scrollTo(0, 0);
+                        const sidebar = document.getElementById('sidebar');
+                        const menuOverlay = document.getElementById('menuOverlay');
+                        if (sidebar) sidebar.classList.remove('mobile-active');
+                        if (menuOverlay) menuOverlay.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                }
+                
+                // Set up click handler for each nav item
+                navItems.forEach(item => {
+                    item.addEventListener('click', function(event) {
+                        // Skip navigation for feature toggle
+                        if (this.id === 'featureToggle') {
+                            return;
+                        }
+                        
+                        const panelId = this.getAttribute('data-panel');
+                        if (panelId) {
+                            switchToPanel(panelId);
+                        }
+                    });
                 });
-            }
+            });
             
             // Theme toggle functionality
             function setupThemeToggle() {
@@ -1286,42 +1338,14 @@ def index():
             // Initialize theme toggle
             setupThemeToggle();
             
-            // About Us modal functionality
-            var aboutUsToggle = document.getElementById('aboutUsToggle');
-            var aboutUsModal = document.getElementById('aboutUsModal');
-            var modalOverlay = document.getElementById('modalOverlay');
-            var closeAboutModal = document.getElementById('closeAboutModal');
-            
-            // Show modal when About Us is clicked
-            if (aboutUsToggle) {
-                aboutUsToggle.addEventListener('click', function() {
-                    console.log('About Us clicked');
-                    aboutUsModal.style.display = 'flex';
-                    aboutUsModal.classList.add('show');
-                    modalOverlay.style.display = 'block';
-                    document.body.style.overflow = 'hidden'; // Prevent scrolling
-                });
-            }
-            
-            // Close modal when X button is clicked
-            if (closeAboutModal) {
-                closeAboutModal.addEventListener('click', function() {
-                    aboutUsModal.style.display = 'none';
-                    aboutUsModal.classList.remove('show');
-                    modalOverlay.style.display = 'none';
-                    document.body.style.overflow = ''; // Allow scrolling again
-                });
-            }
-            
-            // Close modal when overlay is clicked
-            if (modalOverlay) {
-                modalOverlay.addEventListener('click', function() {
-                    aboutUsModal.style.display = 'none';
-                    aboutUsModal.classList.remove('show');
-                    modalOverlay.style.display = 'none';
-                    document.body.style.overflow = ''; // Allow scrolling again
-                });
-            }
+            // Set panel titles (make sure we only define this once)
+            var panelTitles = {
+                'chat-panel': '<i class="fa fa-comments"></i> Chat with your Documents',
+                'docs-panel': '<i class="fa fa-file-pdf-o"></i> Document Management',
+                'diagrams-panel': '<i class="fa fa-sitemap"></i> Generated Diagrams',
+                'sessions-panel': '<i class="fa fa-database"></i> Session Management',
+                'about-panel': '<i class="fa fa-info-circle"></i> About RegCap GPT'
+            };
             
             // Initialize Mermaid diagrams
             if (typeof mermaid !== 'undefined') {
