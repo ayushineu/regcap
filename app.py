@@ -1120,72 +1120,78 @@ def index():
                 });
             }
             
-            // Content navigation
-            var navItems = document.querySelectorAll('.nav-item');
-            var panelTitles = {
-                'chat-panel': '<i class="fa fa-comments"></i> Chat with your Documents',
-                'docs-panel': '<i class="fa fa-file-pdf-o"></i> Document Management',
-                'diagrams-panel': '<i class="fa fa-sitemap"></i> Generated Diagrams',
-                'sessions-panel': '<i class="fa fa-database"></i> Session Management',
-                'about-panel': '<i class="fa fa-info-circle"></i> About Us'
-            };
-            
-            // Function to switch panels - extracted for reuse
-            function switchToPanel(panelId, clickedNavItem) {
-                if (!panelId) return;
-                
-                // Log panel change attempt for debugging
-                console.log('Switching to panel:', panelId);
-                
-                // Hide all content panels
-                var contentPanels = document.querySelectorAll('.content-panel');
-                for (var j = 0; j < contentPanels.length; j++) {
-                    contentPanels[j].classList.remove('active');
-                }
-                
-                // Remove active class from all navigation items
-                for (var k = 0; k < navItems.length; k++) {
-                    navItems[k].classList.remove('active');
-                }
-                
-                // Show the selected content panel
-                var panelElement = document.getElementById(panelId);
-                if (panelElement) {
-                    panelElement.classList.add('active');
-                    console.log('Panel activated:', panelId);
-                } else {
-                    console.log('Panel element not found:', panelId);
-                }
-                
-                // Update panel title
-                if (panelTitles[panelId]) {
-                    document.getElementById('currentPanelTitle').innerHTML = panelTitles[panelId];
-                }
-                
-                // Add active class to clicked navigation item
-                if (clickedNavItem) {
-                    clickedNavItem.classList.add('active');
-                }
-                
-                // On mobile, ensure we scroll to top of panel
-                if (window.innerWidth <= 768) {
-                    window.scrollTo(0, 0);
-                }
-            }
-            
-            // Add click event to each navigation item
-            for (var i = 0; i < navItems.length; i++) {
-                navItems[i].addEventListener('click', function() {
-                    // If this is the features toggle, don't navigate
-                    if (this.id === 'featureToggle') {
+            // Content navigation - simplified to avoid errors
+            document.addEventListener('click', function(event) {
+                // Check if clicked element is a nav item
+                if (event.target.classList.contains('nav-item') || 
+                    event.target.parentElement.classList.contains('nav-item')) {
+                    
+                    // Get the nav item (could be the clicked element or its parent)
+                    var navItem = event.target.classList.contains('nav-item') ? 
+                                  event.target : event.target.parentElement;
+                    
+                    // Skip if it's the features toggle
+                    if (navItem.id === 'featureToggle') {
                         return;
                     }
                     
-                    // Get the panel id from data-panel attribute
-                    var panelId = this.getAttribute('data-panel');
-                    switchToPanel(panelId, this);
-                });
-            }
+                    // Get panel ID
+                    var panelId = navItem.getAttribute('data-panel');
+                    if (!panelId) return;
+                    
+                    console.log('Navigation clicked:', panelId);
+                    
+                    // Update panel titles
+                    var panelTitles = {
+                        'chat-panel': '<i class="fa fa-comments"></i> Chat with your Documents',
+                        'docs-panel': '<i class="fa fa-file-pdf-o"></i> Document Management',
+                        'diagrams-panel': '<i class="fa fa-sitemap"></i> Generated Diagrams',
+                        'sessions-panel': '<i class="fa fa-database"></i> Session Management',
+                        'about-panel': '<i class="fa fa-info-circle"></i> About Us'
+                    };
+                    
+                    // Hide all content panels
+                    var contentPanels = document.querySelectorAll('.content-panel');
+                    for (var i = 0; i < contentPanels.length; i++) {
+                        contentPanels[i].classList.remove('active');
+                    }
+                    
+                    // Remove active class from all navigation items
+                    var navItems = document.querySelectorAll('.nav-item');
+                    for (var i = 0; i < navItems.length; i++) {
+                        navItems[i].classList.remove('active');
+                    }
+                    
+                    // Show the selected content panel
+                    var panelElement = document.getElementById(panelId);
+                    if (panelElement) {
+                        panelElement.classList.add('active');
+                    }
+                    
+                    // Update panel title
+                    if (panelTitles[panelId]) {
+                        var titleElement = document.getElementById('currentPanelTitle');
+                        if (titleElement) {
+                            titleElement.innerHTML = panelTitles[panelId];
+                        }
+                    }
+                    
+                    // Add active class to clicked navigation item
+                    navItem.classList.add('active');
+                    
+                    // On mobile, ensure sidebar is closed and scroll to top
+                    if (window.innerWidth <= 768) {
+                        var sidebar = document.getElementById('sidebar');
+                        var menuOverlay = document.getElementById('menuOverlay');
+                        
+                        if (sidebar) sidebar.classList.remove('mobile-active');
+                        if (menuOverlay) menuOverlay.classList.remove('active');
+                        
+                        document.body.style.overflow = '';
+                        window.scrollTo(0, 0);
+                    }
+                }
+            });
             
             // Theme toggle functionality
             function setupThemeToggle() {
