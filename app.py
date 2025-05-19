@@ -802,6 +802,9 @@ def index():
                         <li><i class="fa fa-check"></i> Dark/light mode</li>
                     </ul>
                 </div>
+                <div class="nav-item" data-panel="about-panel">
+                    <i class="fa fa-info-circle"></i> About Us
+                </div>
             </div>
             
             <div class="sidebar-footer">
@@ -993,6 +996,61 @@ def index():
                         </div>
                     </div>
                 </div>
+                
+                <!-- About Us Panel -->
+                <div id="about-panel" class="content-panel">
+                    <div class="row">
+                        <div class="col-md-7">
+                            <div class="card mb-4">
+                                <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
+                                    <h5 class="card-title mb-0">About Us – RegCap GPT</h5>
+                                </div>
+                                <div class="card-body">
+                                    <p>RegCap GPT is an AI-powered compliance assistant designed to help financial institutions navigate complex regulatory requirements with ease and accuracy. Built by industry professionals for industry professionals, RegCap GPT transforms the way compliance teams manage reporting, risk assessment, and regulatory interpretation.</p>
+                                    
+                                    <p>Our mission is to automate and simplify regulatory compliance using cutting-edge natural language processing (NLP) and AI, enabling institutions to reduce manual effort, minimize errors, and stay audit-ready.</p>
+                                    
+                                    <p>Founded and led by Ayushi, a seasoned fintech and regulatory technology expert, RegCap GPT blends financial domain expertise with responsible AI practices to deliver secure, scalable, and adaptive compliance solutions.</p>
+                                    
+                                    <p>Whether you're a global bank or a fintech startup, RegCap GPT empowers your teams to stay ahead of changing regulations, streamline operations, and enhance transparency—all without writing a single line of code.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-5">
+                            <div class="card mb-4">
+                                <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
+                                    <h5 class="card-title mb-0">Contact Us</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form id="contactForm">
+                                        <div class="mb-3">
+                                            <label for="firstName" class="form-label">First Name</label>
+                                            <input type="text" class="form-control" id="firstName" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="lastName" class="form-label">Last Name</label>
+                                            <input type="text" class="form-control" id="lastName" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="email" class="form-label">Email Address</label>
+                                            <input type="email" class="form-control" id="email" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="message" class="form-label">Message</label>
+                                            <textarea class="form-control" id="message" rows="4" required></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fa fa-paper-plane"></i> Send Message
+                                        </button>
+                                        <div class="mt-3" id="contactFormStatus" style="display: none;">
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- Footer -->
@@ -1068,7 +1126,8 @@ def index():
                 'chat-panel': '<i class="fa fa-comments"></i> Chat with your Documents',
                 'docs-panel': '<i class="fa fa-file-pdf-o"></i> Document Management',
                 'diagrams-panel': '<i class="fa fa-sitemap"></i> Generated Diagrams',
-                'sessions-panel': '<i class="fa fa-database"></i> Session Management'
+                'sessions-panel': '<i class="fa fa-database"></i> Session Management',
+                'about-panel': '<i class="fa fa-info-circle"></i> About Us'
             };
             
             // Function to switch panels - extracted for reuse
@@ -1171,6 +1230,55 @@ def index():
                         useMaxWidth: true,
                         curve: 'linear'
                     }
+                });
+            }
+            
+            // Contact form handling
+            var contactForm = document.getElementById('contactForm');
+            if (contactForm) {
+                contactForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    var firstName = document.getElementById('firstName').value.trim();
+                    var lastName = document.getElementById('lastName').value.trim();
+                    var email = document.getElementById('email').value.trim();
+                    var message = document.getElementById('message').value.trim();
+                    var statusDiv = document.getElementById('contactFormStatus');
+                    
+                    if (!firstName || !lastName || !email || !message) {
+                        statusDiv.innerHTML = '<div class="alert alert-danger">Please fill out all fields.</div>';
+                        statusDiv.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Email validation
+                    var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(email)) {
+                        statusDiv.innerHTML = '<div class="alert alert-danger">Please enter a valid email address.</div>';
+                        statusDiv.style.display = 'block';
+                        return;
+                    }
+                    
+                    // For demo purposes, we'll show a success message
+                    // In a real application, you would send this data to a server
+                    var mailtoLink = 'mailto:ayushis.nmims@gmail.com'
+                        + '?subject=' + encodeURIComponent('Contact Form: ' + firstName + ' ' + lastName)
+                        + '&body=' + encodeURIComponent('Name: ' + firstName + ' ' + lastName + '\nEmail: ' + email + '\n\nMessage:\n' + message);
+                    
+                    // Open the default email client
+                    window.location.href = mailtoLink;
+                    
+                    // Show success message
+                    statusDiv.innerHTML = '<div class="alert alert-success">Your message has been sent! Thank you for contacting us.</div>';
+                    statusDiv.style.display = 'block';
+                    
+                    // Reset form
+                    contactForm.reset();
+                    
+                    // Hide status after 5 seconds
+                    setTimeout(function() {
+                        statusDiv.style.display = 'none';
+                    }, 5000);
                 });
             }
             
