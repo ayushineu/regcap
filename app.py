@@ -545,6 +545,19 @@ def index():
             border-bottom-left-radius: 0.25rem;
         }
         
+        /* Ensure error messages are visible in dark mode */
+        .bot-message .alert {
+            background-color: var(--secondary-bg) !important;
+            color: var(--primary-text) !important;
+            border-color: var(--border-color) !important;
+        }
+        
+        .bot-message .alert-danger {
+            background-color: rgba(220, 53, 69, 0.15) !important;
+            color: #f8d7da !important;
+            border-color: rgba(220, 53, 69, 0.3) !important;
+        }
+        
         /* Form elements */
         .form-control, .btn {
             border-radius: var(--border-radius);
