@@ -876,14 +876,14 @@ def index():
                 
                 <!-- Documents Panel -->
                 <div id="docs-panel" class="content-panel">
-                    <div class="card mb-4">
+                    <div class="card mb-4" style="background-color: var(--secondary-bg) !important;">
                         <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
                             <h5 class="card-title mb-0">Upload Documents</h5>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body" style="background-color: var(--secondary-bg) !important;">
                             <form id="uploadForm" enctype="multipart/form-data">
                                 <div class="mb-3">
-                                    <label for="documentUpload" class="form-label">
+                                    <label for="documentUpload" class="form-label" style="color: var(--primary-text) !important;">
                                         Select PDF files to upload:
                                     </label>
                                     <input class="form-control" type="file" id="documentUpload" 
@@ -896,15 +896,15 @@ def index():
                         </div>
                     </div>
                     
-                    <div class="card">
+                    <div class="card" style="background-color: var(--secondary-bg) !important;">
                         <div class="card-header" style="background-color: var(--primary-color); color: var(--light-text);">
                             <h5 class="card-title mb-0">Uploaded Documents</h5>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body" style="background-color: var(--secondary-bg) !important;">
                             {% if documents %}
                                 <div class="list-group">
                                     {% for doc_name in documents.keys() %}
-                                        <div class="list-group-item">
+                                        <div class="list-group-item" style="background-color: var(--tertiary-bg) !important; color: var(--primary-text) !important; border-color: var(--border-color) !important;">
                                             <i class="fa fa-file-pdf-o"></i> {{ doc_name }}
                                             <span class="badge bg-secondary float-end">
                                                 {{ documents[doc_name]|length }} chunks
@@ -913,9 +913,9 @@ def index():
                                     {% endfor %}
                                 </div>
                             {% else %}
-                                <div class="text-center text-muted my-4">
-                                    <i class="fa fa-folder-open-o fa-2x mb-3"></i>
-                                    <p>No documents have been uploaded yet.</p>
+                                <div class="text-center my-4">
+                                    <i class="fa fa-folder-open-o fa-2x mb-3" style="color: var(--primary-text) !important;"></i>
+                                    <p style="color: var(--primary-text) !important;">No documents have been uploaded yet.</p>
                                 </div>
                             {% endif %}
                         </div>
