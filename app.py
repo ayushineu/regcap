@@ -1063,86 +1063,75 @@ def index():
     <script>
         // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize hamburger menu for mobile
+            // Handle mobile menu toggle
             var menuToggle = document.getElementById('menuToggle');
             var menuOverlay = document.getElementById('menuOverlay');
             var sidebar = document.getElementById('sidebar');
             
-            // Toggle menu on hamburger button click
             if (menuToggle) {
-                menuToggle.addEventListener('click', function() {
+                menuToggle.onclick = function() {
                     sidebar.classList.toggle('mobile-active');
                     menuOverlay.classList.toggle('active');
                     document.body.style.overflow = sidebar.classList.contains('mobile-active') ? 'hidden' : '';
-                });
+                };
             }
             
-            // Close menu when clicking the overlay
             if (menuOverlay) {
-                menuOverlay.addEventListener('click', function() {
+                menuOverlay.onclick = function() {
                     sidebar.classList.remove('mobile-active');
                     menuOverlay.classList.remove('active');
                     document.body.style.overflow = '';
-                });
+                };
             }
             
-            // Close menu when a navigation item is clicked on mobile
-            var navItemsForMenu = document.querySelectorAll('.nav-item');
-            navItemsForMenu.forEach(function(item) {
-                item.addEventListener('click', function() {
-                    if (window.innerWidth <= 768 && item.id !== 'featureToggle') {
-                        sidebar.classList.remove('mobile-active');
-                        menuOverlay.classList.remove('active');
-                        document.body.style.overflow = '';
-                    }
-                });
-            });
+            // Handle navigation clicks
+            var navItems = document.querySelectorAll('.nav-item');
             
-            // Initialize feature list toggle
-            var featureToggle = document.getElementById('featureToggle');
-            var featureList = document.getElementById('featureList');
-            
-            if (featureToggle && featureList) {
-                featureToggle.addEventListener('click', function() {
-                    var toggleIcon = this.querySelector('.toggle-icon');
-                    
-                    if (featureList.style.display === 'none') {
-                        featureList.style.display = 'block';
-                        if (toggleIcon) {
-                            toggleIcon.className = 'fa fa-angle-up toggle-icon';
+            for (var i = 0; i < navItems.length; i++) {
+                navItems[i].onclick = function(e) {
+                    // Special handling for feature toggle
+                    if (this.id === 'featureToggle') {
+                        var featureList = document.getElementById('featureList');
+                        var toggleIcon = this.querySelector('.toggle-icon');
+                        
+                        if (featureList.style.display === 'none' || !featureList.style.display) {
+                            featureList.style.display = 'block';
+                            if (toggleIcon) {
+                                toggleIcon.className = 'fa fa-angle-up toggle-icon';
+                            }
+                        } else {
+                            featureList.style.display = 'none';
+                            if (toggleIcon) {
+                                toggleIcon.className = 'fa fa-angle-down toggle-icon';
+                            }
                         }
-                    } else {
-                        featureList.style.display = 'none';
-                        if (toggleIcon) {
-                            toggleIcon.className = 'fa fa-angle-down toggle-icon';
-                        }
-                    }
-                });
-            }
-            
-            // Content navigation - simplified to avoid errors
-            document.addEventListener('click', function(event) {
-                // Check if clicked element is a nav item
-                if (event.target.classList.contains('nav-item') || 
-                    event.target.parentElement.classList.contains('nav-item')) {
-                    
-                    // Get the nav item (could be the clicked element or its parent)
-                    var navItem = event.target.classList.contains('nav-item') ? 
-                                  event.target : event.target.parentElement;
-                    
-                    // Skip if it's the features toggle
-                    if (navItem.id === 'featureToggle') {
                         return;
                     }
                     
-                    // Get panel ID
-                    var panelId = navItem.getAttribute('data-panel');
+                    // Regular navigation
+                    var panelId = this.getAttribute('data-panel');
                     if (!panelId) return;
                     
-                    console.log('Navigation clicked:', panelId);
+                    // Hide all panels
+                    var contentPanels = document.querySelectorAll('.content-panel');
+                    for (var j = 0; j < contentPanels.length; j++) {
+                        contentPanels[j].classList.remove('active');
+                    }
                     
-                    // Update panel titles
-                    var panelTitles = {
+                    // Show selected panel
+                    var selectedPanel = document.getElementById(panelId);
+                    if (selectedPanel) {
+                        selectedPanel.classList.add('active');
+                    }
+                    
+                    // Update active nav item
+                    for (var k = 0; k < navItems.length; k++) {
+                        navItems[k].classList.remove('active');
+                    }
+                    this.classList.add('active');
+                    
+                    // Update header title
+                    var titles = {
                         'chat-panel': '<i class="fa fa-comments"></i> Chat with your Documents',
                         'docs-panel': '<i class="fa fa-file-pdf-o"></i> Document Management',
                         'diagrams-panel': '<i class="fa fa-sitemap"></i> Generated Diagrams',
@@ -1150,99 +1139,57 @@ def index():
                         'about-panel': '<i class="fa fa-info-circle"></i> About Us'
                     };
                     
-                    // Hide all content panels
-                    var contentPanels = document.querySelectorAll('.content-panel');
-                    for (var i = 0; i < contentPanels.length; i++) {
-                        contentPanels[i].classList.remove('active');
+                    var titleElement = document.getElementById('currentPanelTitle');
+                    if (titleElement && titles[panelId]) {
+                        titleElement.innerHTML = titles[panelId];
                     }
                     
-                    // Remove active class from all navigation items
-                    var navItems = document.querySelectorAll('.nav-item');
-                    for (var i = 0; i < navItems.length; i++) {
-                        navItems[i].classList.remove('active');
-                    }
-                    
-                    // Show the selected content panel
-                    var panelElement = document.getElementById(panelId);
-                    if (panelElement) {
-                        panelElement.classList.add('active');
-                    }
-                    
-                    // Update panel title
-                    if (panelTitles[panelId]) {
-                        var titleElement = document.getElementById('currentPanelTitle');
-                        if (titleElement) {
-                            titleElement.innerHTML = panelTitles[panelId];
-                        }
-                    }
-                    
-                    // Add active class to clicked navigation item
-                    navItem.classList.add('active');
-                    
-                    // On mobile, ensure sidebar is closed and scroll to top
+                    // Close mobile menu if open
                     if (window.innerWidth <= 768) {
-                        var sidebar = document.getElementById('sidebar');
-                        var menuOverlay = document.getElementById('menuOverlay');
-                        
-                        if (sidebar) sidebar.classList.remove('mobile-active');
-                        if (menuOverlay) menuOverlay.classList.remove('active');
-                        
+                        sidebar.classList.remove('mobile-active');
+                        menuOverlay.classList.remove('active');
                         document.body.style.overflow = '';
-                        window.scrollTo(0, 0);
                     }
-                }
-            });
+                };
+            }
             
-            // Theme toggle functionality
-            function setupThemeToggle() {
-                var themeToggle = document.getElementById('mobileThemeToggle');
-                var savedTheme = localStorage.getItem('theme');
-                
+            // Theme toggle
+            var themeToggle = document.getElementById('mobileThemeToggle');
+            if (themeToggle) {
                 // Apply saved theme
+                var savedTheme = localStorage.getItem('theme');
                 if (savedTheme === 'dark') {
                     document.documentElement.setAttribute('data-theme', 'dark');
-                    if (themeToggle) {
-                        themeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
-                    }
+                    themeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
                 }
                 
                 // Toggle theme on click
-                if (themeToggle) {
-                    themeToggle.addEventListener('click', function() {
-                        if (document.documentElement.getAttribute('data-theme') === 'dark') {
-                            document.documentElement.removeAttribute('data-theme');
-                            localStorage.setItem('theme', 'light');
-                            themeToggle.innerHTML = '<i class="fa fa-moon-o"></i> Dark Mode';
-                        } else {
-                            document.documentElement.setAttribute('data-theme', 'dark');
-                            localStorage.setItem('theme', 'dark');
-                            themeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
-                        }
-                    });
-                }
+                themeToggle.onclick = function() {
+                    if (document.documentElement.getAttribute('data-theme') === 'dark') {
+                        document.documentElement.removeAttribute('data-theme');
+                        localStorage.setItem('theme', 'light');
+                        themeToggle.innerHTML = '<i class="fa fa-moon-o"></i> Dark Mode';
+                    } else {
+                        document.documentElement.setAttribute('data-theme', 'dark');
+                        localStorage.setItem('theme', 'dark');
+                        themeToggle.innerHTML = '<i class="fa fa-sun-o"></i> Light Mode';
+                    }
+                };
             }
             
-            // Initialize theme toggle
-            setupThemeToggle();
-            
-            // Initialize Mermaid diagrams
+            // Initialize Mermaid
             if (typeof mermaid !== 'undefined') {
                 mermaid.initialize({
                     startOnLoad: true,
                     securityLevel: 'loose',
-                    theme: 'default',
-                    flowchart: {
-                        htmlLabels: true,
-                        useMaxWidth: true,
-                        curve: 'linear'
-                    }
+                    theme: 'default'
                 });
             }
             
-            // Contact form handling
+            // Contact form 
             var contactForm = document.getElementById('contactForm');
             if (contactForm) {
-                contactForm.addEventListener('submit', function(e) {
+                contactForm.onsubmit = function(e) {
                     e.preventDefault();
                     
                     var firstName = document.getElementById('firstName').value.trim();
@@ -1265,13 +1212,11 @@ def index():
                         return;
                     }
                     
-                    // For demo purposes, we'll show a success message
-                    // In a real application, you would send this data to a server
+                    // Create mailto link
                     var mailtoLink = 'mailto:ayushis.nmims@gmail.com'
                         + '?subject=' + encodeURIComponent('Contact Form: ' + firstName + ' ' + lastName)
                         + '&body=' + encodeURIComponent('Name: ' + firstName + ' ' + lastName + '\nEmail: ' + email + '\n\nMessage:\n' + message);
                     
-                    // Open the default email client
                     window.location.href = mailtoLink;
                     
                     // Show success message
@@ -1285,12 +1230,10 @@ def index():
                     setTimeout(function() {
                         statusDiv.style.display = 'none';
                     }, 5000);
-                });
+                };
             }
-            
-            // Form handling for question submission
-            var questionForm = document.getElementById('questionForm');
-            if (questionForm) {
+        });
+    </script>
                 questionForm.addEventListener('submit', function(e) {
                     e.preventDefault();
                     
