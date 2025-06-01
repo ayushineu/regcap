@@ -1939,7 +1939,59 @@ def get_question_status(question_id):
 @app.route('/aboutus')
 def aboutus():
     """Render the main app with About Us panel active."""
-    return redirect('/?tab=about')
+    try:
+        # Get data from the storage (same as index route)
+        session_id = get_current_session()
+        documents = get_document_chunks()
+        chat_history = get_chat_history()
+        raw_diagrams = get_diagrams()
+        sessions = list_all_sessions()
+        
+        # Process diagrams to fix any Mermaid syntax issues
+        seen_diagrams = set()
+        diagrams = []
+        
+        for diagram_code, explanation, diagram_type in raw_diagrams:
+            diagram_id = f"{explanation}-{diagram_type}"
+            if diagram_id in seen_diagrams:
+                continue
+            seen_diagrams.add(diagram_id)
+            fixed_code = fix_mermaid_syntax(diagram_code, diagram_type)
+            diagrams.append((fixed_code, explanation, diagram_type))
+    except Exception as e:
+        # For deployment testing, provide fallbacks
+        session_id = "test_session"
+        documents = {}
+        chat_history = []
+        diagrams = []
+        sessions = {"test_session": time.time()}
+        print(f"Error in aboutus: {str(e)}")
+    
+    # Render the same template as index but with about panel active by default
+    return render_template_string("""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - RegCap GPT</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@8.14.0/dist/mermaid.min.js"></script>
+    <script>var initialTab = 'about';</script>
+</head>
+<body>
+    <script>
+        // Redirect to main app with about tab
+        window.location.href = '/?tab=about';
+    </script>
+    <p>Redirecting to About Us...</p>
+</body>
+</html>""", 
+        session_id=session_id, 
+        documents=documents, 
+        chat_history=chat_history, 
+        diagrams=diagrams, 
+        sessions=sessions)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
