@@ -1205,9 +1205,31 @@ def index():
                     clickedNavItem.classList.add('active');
                 }
                 
+                // Update URL based on the active panel
+                updateURL(panelId);
+                
                 // On mobile, ensure we scroll to top of panel
                 if (window.innerWidth <= 768) {
                     window.scrollTo(0, 0);
+                }
+            }
+            
+            // Function to update URL based on active panel
+            function updateURL(panelId) {
+                const currentPath = window.location.pathname;
+                let newURL;
+                
+                if (panelId === 'about-panel') {
+                    // If switching to about panel, use /aboutus URL
+                    newURL = '/aboutus';
+                } else {
+                    // For other panels, use root URL
+                    newURL = '/';
+                }
+                
+                // Only update if URL needs to change
+                if (currentPath !== newURL) {
+                    window.history.pushState({}, '', newURL);
                 }
             }
             
