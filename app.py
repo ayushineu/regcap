@@ -26,6 +26,10 @@ import threading
 import json
 import base64
 import pickle
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from datetime import datetime
 
 # Try to import optional dependencies
 try:
@@ -1057,7 +1061,7 @@ def index():
                                             <h5 class="card-title mb-0 fs-6">Contact Us</h5>
                                         </div>
                                         <div class="card-body p-3" style="background-color: var(--secondary-bg) !important;">
-                                            <form class="small">
+                                            <form class="small" id="contactForm">
                                                 <div class="mb-1">
                                                     <label for="contactName" class="form-label small mb-1" style="color: var(--primary-text) !important;">Name</label>
                                                     <input type="text" class="form-control form-control-sm" id="contactName" required>
@@ -1074,9 +1078,10 @@ def index():
                                                     <label for="contactMessage" class="form-label small mb-1" style="color: var(--primary-text) !important;">Message</label>
                                                     <textarea class="form-control form-control-sm" id="contactMessage" rows="2" required></textarea>
                                                 </div>
-                                                <button type="submit" class="btn btn-primary btn-sm mt-2">
+                                                <button type="submit" class="btn btn-primary btn-sm mt-2" id="contactSubmitBtn">
                                                     <i class="fa fa-paper-plane"></i> Send
                                                 </button>
+                                                <div id="contactStatus" class="mt-2" style="display: none;"></div>
                                             </form>
                                         </div>
                                     </div>
@@ -1669,6 +1674,67 @@ def index():
                 });
             }
         });
+        
+        // Contact form handling
+        var contactForm = document.getElementById('contactForm');
+        if (contactForm) {
+            contactForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                var submitBtn = document.getElementById('contactSubmitBtn');
+                var statusDiv = document.getElementById('contactStatus');
+                var name = document.getElementById('contactName').value.trim();
+                var email = document.getElementById('contactEmail').value.trim();
+                var organization = document.getElementById('contactOrg').value.trim();
+                var message = document.getElementById('contactMessage').value.trim();
+                
+                // Basic validation
+                if (!name || !email || !message) {
+                    statusDiv.innerHTML = '<div class="alert alert-danger alert-sm">Please fill in all required fields.</div>';
+                    statusDiv.style.display = 'block';
+                    return;
+                }
+                
+                // Disable submit button and show loading
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Sending...';
+                statusDiv.style.display = 'none';
+                
+                // Send contact form data
+                fetch('/contact', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        organization: organization,
+                        message: message
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        statusDiv.innerHTML = '<div class="alert alert-success alert-sm">' + data.message + '</div>';
+                        contactForm.reset(); // Clear the form
+                    } else {
+                        statusDiv.innerHTML = '<div class="alert alert-danger alert-sm">' + data.message + '</div>';
+                    }
+                    statusDiv.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    statusDiv.innerHTML = '<div class="alert alert-danger alert-sm">An error occurred while sending your message.</div>';
+                    statusDiv.style.display = 'block';
+                })
+                .finally(() => {
+                    // Re-enable submit button
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fa fa-paper-plane"></i> Send';
+                });
+            });
+        }
     </script>
 </body>
 </html>
@@ -2016,6 +2082,79 @@ def get_question_status(question_id):
     if question_id in question_status_store:
         return jsonify(question_status_store[question_id])
     return jsonify({'error': 'Question ID not found'})
+
+def send_contact_email(name, email, organization, message):
+    """Send contact form email to the designated email address."""
+    try:
+        # Email configuration
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        sender_email = "ayushis.nmims@gmail.com"
+        sender_password = os.environ.get('GMAIL_APP_PASSWORD')
+        recipient_email = "ayushis.nmims@gmail.com"
+        
+        if not sender_password:
+            return False, "Email configuration not available"
+        
+        # Create message
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = recipient_email
+        msg['Subject'] = f"RegCap GPT Contact Form - Message from {name}"
+        
+        # Email body
+        body = f"""
+        New contact form submission from RegCap GPT:
+        
+        Name: {name}
+        Email: {email}
+        Organization: {organization if organization else 'Not specified'}
+        
+        Message:
+        {message}
+        
+        Submitted at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+        """
+        
+        msg.attach(MIMEText(body, 'plain'))
+        
+        # Send email
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        text = msg.as_string()
+        server.sendmail(sender_email, recipient_email, text)
+        server.quit()
+        
+        return True, "Email sent successfully"
+        
+    except Exception as e:
+        return False, f"Failed to send email: {str(e)}"
+
+@app.route('/contact', methods=['POST'])
+def contact():
+    """Handle contact form submission."""
+    try:
+        data = request.get_json()
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip()
+        organization = data.get('organization', '').strip()
+        message = data.get('message', '').strip()
+        
+        # Validate required fields
+        if not name or not email or not message:
+            return jsonify({'success': False, 'message': 'Please fill in all required fields.'})
+        
+        # Send email
+        success, result_message = send_contact_email(name, email, organization, message)
+        
+        if success:
+            return jsonify({'success': True, 'message': 'Thank you for your message! We will get back to you soon.'})
+        else:
+            return jsonify({'success': False, 'message': 'Sorry, there was an error sending your message. Please try again later.'})
+            
+    except Exception as e:
+        return jsonify({'success': False, 'message': 'An error occurred while processing your request.'})
 
 @app.route('/aboutus')
 def aboutus():
