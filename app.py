@@ -1496,6 +1496,45 @@ def index():
                 });
             }
             
+            // Function to update the document list display
+            function updateDocumentList(documents) {
+                // Find the documents section by searching for the h5 with "Uploaded Documents" text
+                const cardHeaders = document.querySelectorAll('.card-header h5');
+                let documentsCardBody = null;
+                
+                for (const header of cardHeaders) {
+                    if (header.textContent.includes('Uploaded Documents')) {
+                        documentsCardBody = header.closest('.card').querySelector('.card-body');
+                        break;
+                    }
+                }
+                
+                if (!documentsCardBody) return;
+                
+                if (documents && Object.keys(documents).length > 0) {
+                    let html = '<div class="list-group">';
+                    for (const [docName, chunks] of Object.entries(documents)) {
+                        html += `
+                            <div class="list-group-item" style="background-color: var(--tertiary-bg) !important; color: var(--primary-text) !important; border-color: var(--border-color) !important;">
+                                <i class="fa fa-file-pdf-o"></i> ${docName}
+                                <span class="badge bg-secondary float-end">
+                                    ${chunks.length} chunks
+                                </span>
+                            </div>
+                        `;
+                    }
+                    html += '</div>';
+                    documentsCardBody.innerHTML = html;
+                } else {
+                    documentsCardBody.innerHTML = `
+                        <div class="text-center my-4">
+                            <i class="fa fa-folder-open-o fa-2x mb-3" style="color: var(--primary-text) !important;"></i>
+                            <p style="color: var(--primary-text) !important;">No documents have been uploaded yet.</p>
+                        </div>
+                    `;
+                }
+            }
+            
             // File upload handling
             var uploadForm = document.getElementById('uploadForm');
             if (uploadForm) {
@@ -1536,6 +1575,11 @@ def index():
                                 
                                 // Clear the file input
                                 fileInput.value = '';
+                                
+                                // Update the document list if available
+                                if (data.documents) {
+                                    updateDocumentList(data.documents);
+                                }
                                 
                                 // Clear the success message after a few seconds
                                 setTimeout(function() {
@@ -1702,10 +1746,14 @@ def upload_files():
                         'error': f"Error processing PDF {filename}: {str(pdf_error)}"
                     })
         
+        # Get updated document list to return to client
+        updated_documents = get_document_chunks()
+        
         return jsonify({
             'success': True, 
             'message': f'Processed {len(processed_files)} files', 
-            'files': processed_files
+            'files': processed_files,
+            'documents': updated_documents
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
