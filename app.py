@@ -820,7 +820,7 @@ def index():
                     </div>
                 </a>
                 <div class="feature-list" id="featureList" style="display: none;">
-                    <div class="feature-list-date">As of April 18, 2025</div>
+                    <div class="feature-list-date">As of June 1, 2025</div>
                     <ul>
                         <li><i class="fa fa-check"></i> PDF document analysis</li>
                         <li><i class="fa fa-check"></i> Natural language queries</li>
