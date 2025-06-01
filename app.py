@@ -1093,7 +1093,7 @@ def index():
             
             <!-- Footer -->
             <footer class="pt-3 border-top text-center" style="padding: 1rem 2rem; font-size: 0.8rem; color: var(--secondary-text);">
-                <p><i class="fa fa-code"></i> RegCap GPT - Regulatory Document Analysis Platform | Version 1.0.0 | Made with <i class="fa fa-heart text-danger"></i> by RegCap Team</p>
+                <p><i class="fa fa-code"></i> RegCap GPT - Your Intelligent Regulatory Companion | Version 1.0.0 | Made with <i class="fa fa-heart text-danger"></i> by RegCap Team</p>
             </footer>
         </div>
     </div>
