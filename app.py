@@ -814,11 +814,6 @@ def index():
                 <div class="nav-item" id="featureToggle">
                     <i class="fa fa-list"></i> Features <span class="float-end"><i class="fa fa-angle-down toggle-icon"></i></span>
                 </div>
-                <a href="/aboutus" class="no-decoration">
-                    <div class="nav-item">
-                        <i class="fa fa-info-circle"></i> About Us
-                    </div>
-                </a>
                 <div class="feature-list" id="featureList" style="display: none;">
                     <div class="feature-list-date">As of June 1, 2025</div>
                     <ul>
@@ -830,6 +825,11 @@ def index():
                         <li><i class="fa fa-check"></i> Dark/light mode</li>
                     </ul>
                 </div>
+                <a href="/aboutus" class="no-decoration">
+                    <div class="nav-item">
+                        <i class="fa fa-info-circle"></i> About Us
+                    </div>
+                </a>
             </div>
             
             <div class="sidebar-footer">
