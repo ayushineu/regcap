@@ -814,12 +814,9 @@ def index():
                 <div class="nav-item" id="featureToggle">
                     <i class="fa fa-list"></i> Features <span class="float-end"><i class="fa fa-angle-down toggle-icon"></i></span>
                 </div>
-                <div class="nav-item" data-panel="about-panel">
-                    <i class="fa fa-info-circle"></i> About Us
-                </div>
                 <a href="/aboutus" class="no-decoration">
                     <div class="nav-item">
-                        <i class="fa fa-external-link"></i> About Us Page
+                        <i class="fa fa-info-circle"></i> About Us
                     </div>
                 </a>
                 <div class="feature-list" id="featureList" style="display: none;">
