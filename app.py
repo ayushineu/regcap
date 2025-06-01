@@ -1471,10 +1471,7 @@ def index():
                                                     }
                                                 }
                                                 
-                                                // Refresh the page after a short delay to show updated chat history
-                                                setTimeout(function() {
-                                                    window.location.reload();
-                                                }, 2000);
+
                                             } else if (status.stage && status.progress) {
                                                 // Update the processing message with the current status
                                                 processingDiv.innerHTML = '<strong>RegCap GPT:</strong> <i class="fa fa-spinner fa-spin"></i> ' + 
@@ -1533,10 +1530,12 @@ def index():
                                 successMsg.innerHTML = '<i class="fa fa-check-circle"></i> Files successfully processed: ' + data.message;
                                 uploadForm.appendChild(successMsg);
                                 
-                                // Reload page after a short delay to refresh the documents list
+                                // Clear the success message after a few seconds
                                 setTimeout(function() {
-                                    window.location.reload();
-                                }, 1500);
+                                    if (successMsg && successMsg.parentNode) {
+                                        successMsg.parentNode.removeChild(successMsg);
+                                    }
+                                }, 3000);
                             } else {
                                 alert('Error: ' + data.error);
                                 // Reset button
