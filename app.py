@@ -1470,6 +1470,11 @@ def index():
                                                         }, 300);
                                                     }
                                                 }
+                                                
+                                                // Refresh the page after a short delay to show updated chat history
+                                                setTimeout(function() {
+                                                    window.location.reload();
+                                                }, 2000);
                                             } else if (status.stage && status.progress) {
                                                 // Update the processing message with the current status
                                                 processingDiv.innerHTML = '<strong>RegCap GPT:</strong> <i class="fa fa-spinner fa-spin"></i> ' + 
