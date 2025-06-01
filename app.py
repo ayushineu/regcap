@@ -1524,11 +1524,18 @@ def index():
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
+                                // Reset button first
+                                uploadBtn.innerHTML = originalBtnText;
+                                uploadBtn.disabled = false;
+                                
                                 // Show success message in UI instead of alert
                                 var successMsg = document.createElement('div');
                                 successMsg.className = 'alert alert-success mt-2';
                                 successMsg.innerHTML = '<i class="fa fa-check-circle"></i> Files successfully processed: ' + data.message;
                                 uploadForm.appendChild(successMsg);
+                                
+                                // Clear the file input
+                                fileInput.value = '';
                                 
                                 // Clear the success message after a few seconds
                                 setTimeout(function() {
