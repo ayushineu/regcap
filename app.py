@@ -1044,6 +1044,7 @@ def index():
                                     
                                     <h4 class="mt-4" style="color: var(--primary-text) !important;">Recognition</h4>
                                     <p style="color: var(--primary-text) !important;">RegCap GPT has been honored with the Silver Globee® Award for Technology in the Compliance Management Solution for FinTech category, recognizing its innovation, industry impact, and commitment to excellence in regulatory technology.</p>
+                                    <p style="color: var(--primary-text) !important;"><i class="fa fa-external-link"></i> <a href="https://credential.globeeawards.com/1f647147-b147-4423-bcdf-fe20563b0d74#acc.mEzXqQcd" target="_blank" style="color: var(--primary-color);">View Award Credential</a></p>
                                     
                                     <h4 class="mt-4" style="color: var(--primary-text) !important;">Leadership</h4>
                                     <p style="color: var(--primary-text) !important;">Founded and led by Ayushi, a seasoned fintech and regulatory technology expert, RegCap GPT blends financial domain expertise with responsible AI practices to deliver secure, scalable, and adaptive compliance solutions.</p>
