@@ -1036,20 +1036,19 @@ def index():
                         <div class="card-body" style="background-color: var(--secondary-bg) !important;">
                             <div class="row">
                                 <div class="col-md-8">
+                                    <h4 style="color: var(--primary-text) !important;">About Us</h4>
                                     <p style="color: var(--primary-text) !important;">RegCap GPT is an AI-powered compliance assistant designed to help financial institutions navigate complex regulatory requirements with ease and accuracy. Built by industry professionals for industry professionals, RegCap GPT transforms the way compliance teams manage reporting, risk assessment, and regulatory interpretation.</p>
                                     
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <h4 class="mt-3" style="color: var(--primary-text) !important;">Our Mission</h4>
-                                            <p style="color: var(--primary-text) !important;">Our mission is to automate and simplify regulatory compliance using cutting-edge natural language processing (NLP) and AI, enabling institutions to reduce manual effort, minimize errors, and stay audit-ready.</p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <h4 class="mt-3" style="color: var(--primary-text) !important;">Leadership</h4>
-                                            <p style="color: var(--primary-text) !important;">Founded and led by Ayushi, a seasoned fintech and regulatory technology expert, RegCap GPT blends financial domain expertise with responsible AI practices to deliver secure, scalable, and adaptive compliance solutions.</p>
-                                        </div>
-                                    </div>
+                                    <h4 class="mt-4" style="color: var(--primary-text) !important;">Our Mission</h4>
+                                    <p style="color: var(--primary-text) !important;">Our mission is to automate and simplify regulatory compliance using cutting-edge natural language processing (NLP) and AI, enabling institutions to reduce manual effort, minimize errors, and stay audit-ready.</p>
                                     
-                                    <p class="mt-3" style="color: var(--primary-text) !important;">Whether you're a global bank or a fintech startup, RegCap GPT empowers your teams to stay ahead of changing regulations, streamline operations, and enhance transparency—all without writing a single line of code.</p>
+                                    <h4 class="mt-4" style="color: var(--primary-text) !important;">Recognition</h4>
+                                    <p style="color: var(--primary-text) !important;">RegCap GPT has been honored with the Silver Globee® Award for Technology in the Compliance Management Solution for FinTech category, recognizing its innovation, industry impact, and commitment to excellence in regulatory technology.</p>
+                                    
+                                    <h4 class="mt-4" style="color: var(--primary-text) !important;">Leadership</h4>
+                                    <p style="color: var(--primary-text) !important;">Founded and led by Ayushi, a seasoned fintech and regulatory technology expert, RegCap GPT blends financial domain expertise with responsible AI practices to deliver secure, scalable, and adaptive compliance solutions.</p>
+                                    
+                                    <p class="mt-4" style="color: var(--primary-text) !important;">Whether you're a global bank or a fintech startup, RegCap GPT empowers your teams to stay ahead of changing regulations, streamline operations, and enhance transparency—all without writing a single line of code.</p>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="text-center mb-3">
