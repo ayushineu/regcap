@@ -4,6 +4,11 @@
 
 ---
 
+🏆 **Featured In**  
+- TechBullion: [AI-Powered Compliance Innovation – Ayushi on Building Financial Stability through RegCap GPT](https://techbullion.com/ai-powered-compliance-innovation-ayushi-on-building-financial-stability-through-regcap-gpt/)   
+- Medium: [RegCap GPT: Building the Future of AI-Driven Compliance in Financial Services](https://medium.com/@ayushis.nmims/regcap-gpt-building-the-future-of-ai-driven-compliance-in-financial-services-57ea1c4775d0)  
+- Winner: 2025 Globee Silver Award for Compliance Management Solutions  [https://credential.globeeawards.com/1f647147-b147-4423-bcdf-fe20563b0d74#acc.mEzXqQcd]
+
 ## 🚀 Key Features
 
 ### 📄 PDF Document Processing
@@ -79,11 +84,28 @@ It empowers users to extract actionable insights, generate visual aids, and navi
 
 ---
 
-## 📌 Roadmap (Coming Soon)
-- Document metadata filtering
-- Citations for document-derived answers
-- Admin interface for analytics and usage stats
-- Enterprise version with user-level permissions
+📌** Roadmap & Phased Rollout (2025–2027)**
+
+**Phase 1 (Q4 2025–Q2 2026)**
+- CCAR Stress Testing Module  
+- SOX Internal Controls Engine  
+- AI PDF Parser (RAG)  
+- BI Dashboards  
+*Target: GitHub v1.0 release, 2–3 early bank pilots, open-source documentation updates*
+
+**Phase 2 (Q3 2026–Q2 2027)**
+- ISO 20022 Translator  
+- Sanctions & AML Screening  
+- Compliance API Gateway  
+- Cloud SaaS Deployment  
+*Target: Expansion to 25–50 institutions, fintech accelerator partnerships*
+
+**Phase 3 (Q3–Q4 2027)**
+- AI Audit Trail & Anomaly Detection  
+- Cybersecurity Monitoring & Alerts  
+- Continuous Compliance Notifications  
+- Centralized Knowledge Hub  
+*Target: 50–100 institutions, regulator pilot programs*
 
 ---
 
