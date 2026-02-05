@@ -91,21 +91,18 @@ It empowers users to extract actionable insights, generate visual aids, and navi
 - SOX Internal Controls Engine  
 - AI PDF Parser (RAG)  
 - BI Dashboards  
-*Target: GitHub v1.0 release, 2–3 early bank pilots, open-source documentation updates*
 
 **Phase 2 (Q3 2026–Q2 2027)**
 - ISO 20022 Translator  
 - Sanctions & AML Screening  
 - Compliance API Gateway  
 - Cloud SaaS Deployment  
-*Target: Expansion to 25–50 institutions, fintech accelerator partnerships*
 
 **Phase 3 (Q3–Q4 2027)**
 - AI Audit Trail & Anomaly Detection  
 - Cybersecurity Monitoring & Alerts  
 - Continuous Compliance Notifications  
 - Centralized Knowledge Hub  
-*Target: 50–100 institutions, regulator pilot programs*
 
 ---
 
